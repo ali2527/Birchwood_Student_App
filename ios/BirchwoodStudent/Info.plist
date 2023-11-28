@@ -35,6 +35,36 @@
 			</dict>
 		</dict>
 	</dict>
+	<key>UIAppFonts</key>
+	<array>
+		<string>Euclid Circular A Bold Italic.ttf</string>
+		<string>Euclid Circular A Bold.ttf</string>
+		<string>Euclid Circular A Italic.ttf</string>
+		<string>Euclid Circular A Light Italic.ttf</string>
+		<string>Euclid Circular A Light.ttf</string>
+		<string>Euclid Circular A Medium Italic.ttf</string>
+		<string>Euclid Circular A Medium.ttf</string>
+		<string>Euclid Circular A Regular.ttf</string>
+		<string>Euclid Circular A SemiBold Italic.ttf</string>
+		<string>Euclid Circular A SemiBold.ttf</string>
+		<string>MaterialIcons.ttf</string>
+		<string>AntDesign.ttf</string>
+		<string>Entypo.ttf</string>
+		<string>EvilIcons.ttf</string>
+		<string>Feather.ttf</string>
+		<string>FontAwesome.ttf</string>
+		<string>FontAwesome5_Brands.ttf</string>
+		<string>FontAwesome5_Regular.ttf</string>
+		<string>FontAwesome5_Solid.ttf</string>
+		<string>Foundation.ttf</string>
+		<string>Ionicons.ttf</string>
+		<string>MaterialIcons.ttf</string>
+		<string>MaterialCommunityIcons.ttf</string>
+		<string>SimpleLineIcons.ttf</string>
+		<string>Octicons.ttf</string>
+		<string>Zocial.ttf</string>
+		<string>Fontisto.ttf</string>
+	</array>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string></string>
 	<key>UILaunchStoryboardName</key>
