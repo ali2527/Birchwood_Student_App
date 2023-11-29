@@ -12,6 +12,8 @@ const fonts = {
         regular: 'Euclid Circular A Regular',
         semiBoldItalic: 'Euclid Circular A SemiBold Italic',
         semiBold: 'Euclid Circular A SemiBold',
+        glroyBold:'Glory Bold'
+
     } : {
         boldItalic: 'EuclidCircularA-BoldItalic',
         bold: 'EuclidCircularA-Bold',

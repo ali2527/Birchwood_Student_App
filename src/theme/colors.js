@@ -29,6 +29,7 @@ const colors = {
     greyAlt2: '#666666',
     dimBlack: '#333333',
     themeAlt: '#010127',
+    black:'#000000'
   },
 };
 
