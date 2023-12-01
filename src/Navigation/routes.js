@@ -1,7 +1,8 @@
 const routes = {
   navigator: {
-    auth: 'Auth',
     onboard: 'OnBoard',
+    signin: 'SignIn',
+    signup: 'SignUP',
   },
 };
 

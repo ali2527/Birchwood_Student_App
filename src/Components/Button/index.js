@@ -7,7 +7,7 @@ const CustomButton = ({ title, _style, onPress, isFocused }) => {
     return (
         <TouchableOpacity
             style={[styles.button, {backgroundColor: isFocused ? colors.theme.primary : colors.background.primary }]}
-            onPress={onPress}
+            onPress={()=> {onPress && onPress()}}
         >
             <GlroyBold
              _style={{color:isFocused ? colors.text.white : colors.theme.primary}}

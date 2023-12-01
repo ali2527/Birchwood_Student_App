@@ -8,8 +8,13 @@ import CustomButton from '../../Components/Button';
 import GlroyBold from '../../Components/GlroyBoldText';
 import GrayMediumText from '../../Components/GrayMediumText';
 import SocialMediaIcons from '../../Components/SocialMediaIcons';
+import { useNavigation } from '@react-navigation/native';
+import routes from '../../Navigation/routes';
 
 export default function OnBoardScreen() {
+
+  const navigation = useNavigation();
+
   return (
     <View style={{ flex: 1 }}>
       <CustomStatusBar
@@ -34,7 +39,7 @@ export default function OnBoardScreen() {
             />
           </View>
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-            <ChildLogo />
+            <ChildLogo _style={styles.childLogo}/>
           </View>
           <View style={{ flex: 0.8, justifyContent: 'center' }}>
             <View style={styles.btn_container}>
@@ -44,12 +49,9 @@ export default function OnBoardScreen() {
               <CustomButton
                 isFocused={true}
                 title={'Sign In'}
+                onPress={()=> navigation.navigate(routes.navigator.signin)}
               />
             </View>
-            <GlroyBold
-              text={'Sign In With'}
-              _style={styles.text}
-            />
             <SocialMediaIcons />
           </View>
         </View>
@@ -66,11 +68,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 15
     // alignItems: 'center'
   },
-  text: {
-    color: colors.text.black,
-    marginTop: 15,
-    alignSelf: 'center'
-  },
   head: {
     marginTop: 20,
     color: colors.text.black
@@ -79,5 +76,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 15,
     lineHeight: 22
+  },
+  childLogo:{
+    height:'100%',
+    width:'80%'
   }
 });

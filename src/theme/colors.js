@@ -1,4 +1,8 @@
 const colors = {
+  input:{
+    background:'#EBEBEB',
+    label:'#EBEBEB'
+  },
   theme: {
     primary: '#035392',
     secondary: '#01C190',

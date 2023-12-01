@@ -18,8 +18,8 @@ const styles = StyleSheet.create({
     img:{
 
         //   backgroundColor:'red',
-         height:'100%',
-        width:'80%'
+        //  height:'100%',
+        // width:'80%'
         // flex:1
     }
 })
