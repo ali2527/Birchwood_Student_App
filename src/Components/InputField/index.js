@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, TextInput, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome'; // You may need to install this package
 import { colors } from '../../theme/colors';
-import SmallText from '../SmallText';
+import { useColorScheme } from 'react-native';
 
 const CustomTextInput = ({ 
     label, 
@@ -15,7 +15,7 @@ const CustomTextInput = ({
     placeholderFontSize
 }) => {
   const [secureTextEntry, setSecureTextEntry] = useState(password);
-
+  const colorScheme = useColorScheme();
   return (
     <View style={{ marginVertical: 10 }}>
       
@@ -25,7 +25,7 @@ const CustomTextInput = ({
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <TextInput
           placeholder={placeholder}
-          style={[styles.textInputField, {fontSize: placeholderFontSize || 12}]}
+          style={[styles.textInputField, {fontSize: placeholderFontSize || 12, color: 'black'}]}
           placeholderTextColor={colors.text.black}
           value={value}
           secureTextEntry={secureTextEntry}
@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 7,
         height:40,
         flex: 1,
-        backgroundColor:colors.input.background
+        backgroundColor:colors.input.background,
     },
     labelStyle:{
         marginBottom: 5,

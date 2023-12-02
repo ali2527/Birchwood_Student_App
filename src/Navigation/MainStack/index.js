@@ -5,6 +5,7 @@ import routes from '../routes';
 import OnBoardScreen from '../../Screens/OnBoardScreen';
 import NavigationOptions from '../NavigationOptions';
 import SignIn from '../../Screens/Auth/SignIn';
+import PasswordResetScreens from '../../Screens/Auth/PasswordResetScreens';
 
 const Stack = createNativeStackNavigator();
 
@@ -13,6 +14,8 @@ const MainStack = () => {
     <Stack.Navigator screenOptions={NavigationOptions}>
       <Stack.Screen name={routes.navigator.onboard} component={OnBoardScreen} />
       <Stack.Screen name={routes.navigator.signin} component={SignIn}/>
+      <Stack.Screen name={routes.navigator.passwordresetscreens} component={PasswordResetScreens}/>
+
     </Stack.Navigator>
   );
 };

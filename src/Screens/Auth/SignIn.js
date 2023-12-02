@@ -8,15 +8,20 @@ import ChildLogo from '../../Components/ChildLogo';
 import CustomButton from '../../Components/Button';
 import GlroyBold from '../../Components/GlroyBoldText';
 import SocialMediaIcons from '../../Components/SocialMediaIcons';
+import { useNavigation } from '@react-navigation/native';
+import routes from '../../Navigation/routes';
 
 
 const SignIn = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
+    const navigation = useNavigation();
+
     const handleForgotPassword = () => {
         // Add logic to handle forgot password functionality
         console.log('Forgot Password clicked');
+        navigation.navigate(routes.navigator.passwordresetscreens)
     };
 
     return (

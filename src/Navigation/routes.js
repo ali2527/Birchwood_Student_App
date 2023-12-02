@@ -3,6 +3,7 @@ const routes = {
     onboard: 'OnBoard',
     signin: 'SignIn',
     signup: 'SignUP',
+    passwordresetscreens:'PasswordResetScreens'
   },
 };
 
