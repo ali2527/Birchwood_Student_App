@@ -1,21 +1,22 @@
 import React, { useState } from 'react';
 import { View, TextInput, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome'; // You may need to install this package
+import IonicIcon from 'react-native-vector-icons/Ionicons'; // You may need to install this package
 import { colors } from '../../theme/colors';
 import { useColorScheme } from 'react-native';
 
-const CustomTextInput = ({ 
+
+const SampleInputField = ({ 
     label, 
     placeholder,
     value, 
     required, 
     starColor, 
-    password, 
+    icon, 
     onChangeText,
     placeholderFontSize,
     name
 }) => {
-  const [secureTextEntry, setSecureTextEntry] = useState(password);
+
   const colorScheme = useColorScheme();
   return (
     <View style={{ marginVertical: 10 }}>
@@ -24,7 +25,13 @@ const CustomTextInput = ({
         {label} {required && <Text style={{ color: starColor || 'red' }}>*</Text>}
       </Text>
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <TextInput
+        <TouchableOpacity
+        style={styles.textInputField}
+        onPress={()=> onChangeText(name, value)}
+        >
+            <Text style={{fontSize: placeholderFontSize || 12, color: 'black'}}>{value !== '' ? value : placeholder}</Text>
+        </TouchableOpacity>
+        {/* <TextInput
           placeholder={placeholder}
           style={[styles.textInputField, {fontSize: placeholderFontSize || 12, color: 'black'}]}
           placeholderTextColor={colors.text.black}
@@ -32,21 +39,16 @@ const CustomTextInput = ({
           name={name}
           secureTextEntry={secureTextEntry}
           onChangeText={(value)=> onChangeText(name, value)}
-        />
-        {password && (
-          <TouchableOpacity
-            onPress={() => setSecureTextEntry((prev) => !prev)}
-            style={{ position: 'absolute', right: 10 }}
-          >
-            <Icon name={secureTextEntry ? 'eye' : 'eye-slash'} size={20} color="gray" />
-          </TouchableOpacity>
+        /> */}
+        {icon && (
+            <IonicIcon name={icon} size={20} color={colors.text.altGrey} />
         )}
       </View>
     </View>
   );
 };
 
-export default CustomTextInput;
+export default SampleInputField;
 
 const styles = StyleSheet.create({
     textInputField:{
@@ -57,6 +59,7 @@ const styles = StyleSheet.create({
         height:40,
         flex: 1,
         backgroundColor:colors.input.background,
+        justifyContent:'center',
     },
     labelStyle:{
         marginBottom: 5,

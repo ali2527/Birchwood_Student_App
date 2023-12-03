@@ -45,6 +45,7 @@ export default function OnBoardScreen() {
             <View style={styles.btn_container}>
               <CustomButton
                 title={'Sign Up'}
+                onPress={()=> navigation.navigate(routes.navigator.signup)}
               />
               <CustomButton
                 isFocused={true}

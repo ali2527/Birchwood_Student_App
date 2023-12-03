@@ -19,15 +19,15 @@ import { useNavigation } from '@react-navigation/native';
 import routes from '../../Navigation/routes';
 import GrayMediumText from '../../Components/GrayMediumText'
 import CustomTextInput from '../../Components/InputField'
-import { CheckBox } from '@rneui/themed';
+import SampleInputField from '../../Components/SampleInputField'
+import { AddButton } from '../../Components/AddButton'
 
-export default function SignUp() {
+export default function Experience() {
     const [formData, setFormData] = useState({
-        first_name: '',
-        last_name: '',
-        email: '',
-        password: '',
-        confirm_password: ''
+        institut_name: '',
+        start_date: '',
+        end_date: '',
+        subject_taught: ''
     })
     const [rememberPassword, setRememberPassword] = useState(false);
     const navigation = useNavigation();
@@ -57,82 +57,72 @@ export default function SignUp() {
                     <ScrollView contentContainerStyle={styles.scrollContainer}>
                         {/* Your other components/content here */}
                         <View style={{ alignItems: 'center' }}>
+                            <GrayMediumText
+                                text={'Welcome to Birchwood Montessori Academy, a family-owned and operated school with a profound mission and vision.'}
+                                _style={styles.para}
+                            />
+                        </View>
+                        <View style={{ alignItems: 'center' }}>
                             <GlroyBold
-                                text={'Sign UP'}
+                                text={'Experience'}
                                 _style={styles.head}
                             />
                         </View>
-
                         <CustomTextInput
-                            label="First Name"
-                            name={'first_name'}
-                            onChangeText={(name, value) => handleChange(name, value)}
-                            placeholder={'first name'}
-                            value={formData.first_name}
+                            label="Institute Name"
+                            name={'institue_name'}
+                            placeholder={'institute name'}
+                            value={formData.institut_name}
                             required
-                        />
-                        <CustomTextInput
-                            label="Last Name"
-                            name={'last_name'}
-                            onChangeText={(name, value) => handleChange(name, value)}
-                            placeholder={'last name'}
-                            value={formData.last_name}
-                            required
-                        />
-                        <CustomTextInput
-                            label="Email Address"
-                            name={'email'}
-                            onChangeText={(name, value) => handleChange(name, value)}
-                            placeholder={'email'}
-                            value={formData.email}
-                            required
-                        />
-                        <CustomTextInput
-                            label="Password"
-                            name={'password'}
-                            placeholder={'password'}
-                            value={formData.password}
-                            required
-                            password={true}
-                            onChangeText={(name, value) => handleChange(name, value)}
-                        />
-                        <CustomTextInput
-                            label="Confirm Password"
-                            name={'confirm_password'}
-                            placeholder={'confirm password'}
-                            value={formData.confirm_password}
-                            required
-                            password={true}
                             onChangeText={(name, value) => handleChange(name, value)}
                         />
 
-                        <CheckBox
-                            checked={rememberPassword}
-                            title="Remember Password"
-                            textStyle={{
-                                fontSize: 12,
-                                color: colors.text.altGrey
-                            }}
-                            checkedColor={colors.theme.primary}
-                            onIconPress={() => setRememberPassword(rememberPassword => !rememberPassword)}
+                        <SampleInputField
+                            label="Starting Date"
+                            name={'start_date'}
+                            onChangeText={(name, value) => handleChange(name, value)}
+                            placeholder={'start date'}
+                            value={formData.start_date}
+                            required
                         />
+                        <SampleInputField
+                            label="Ending Date"
+                            name={'end_date'}
+                            onChangeText={(name, value) => handleChange(name, value)}
+                            placeholder={'end date'}
+                            value={formData.end_date}
+                            required
+                        />
+                        <CustomTextInput
+                            label="Subject study"
+                            name={'subject_taught'}
+                            placeholder={'subject taught'}
+                            value={formData.subject_taught}
+                            required
+                            onChangeText={(name, value) => handleChange(name, value)}
+                        />
+
+                        <AddButton
+                            title={'Add Experience'}
+                        />
+
                         <View style={{ alignItems: 'center' }}>
                             <CustomButton
                                 isFocused={true}
-                                title={'Next'}
-                                onPress={() => navigation.navigate(routes.navigator.personalInfo)}
+                                title={'Finish'}
+                                onPress={() => console.log('finish details')}
                             />
                         </View>
 
-                        <View style={{ alignItems: 'center', flexDirection: 'row', justifyContent:'center' }}>
+                        <View style={{ alignItems: 'center', flexDirection: 'row', justifyContent: 'center' }}>
                             <GrayMediumText
                                 text={'Already have account?'}
                             />
-                            <TouchableOpacity 
-                            style={{ marginHorizontal: 2 }}
-                            onPress={()=> navigation.navigate(routes.navigator.signin)}
+                            <TouchableOpacity
+                                style={{ marginHorizontal: 2 }}
+                                onPress={() => navigation.navigate(routes.navigator.signin)}
                             >
-                                <Text style={{ color: colors.theme.primary, fontWeight:'bold' }}>Login</Text>
+                                <Text style={{ color: colors.theme.primary, fontWeight: 'bold' }}>Login</Text>
                             </TouchableOpacity>
                         </View>
 
@@ -174,4 +164,8 @@ const styles = StyleSheet.create({
     checkboxLabel: {
         marginLeft: 8,
     },
+    para: {
+        fontSize: 14,
+        fontWeight: 'normal'
+    }
 })

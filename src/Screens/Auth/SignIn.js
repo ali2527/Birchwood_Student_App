@@ -58,7 +58,7 @@ const SignIn = () => {
                         </TouchableOpacity>
                     </View>
                 </View>
-                <View style={{ alignItems: 'center',marginVertical:8 }}>
+                <View style={{ alignItems: 'center' }}>
                     <CustomButton
                         isFocused={true}
                         title={'Sign In'}

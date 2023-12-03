@@ -3,7 +3,11 @@ const routes = {
     onboard: 'OnBoard',
     signin: 'SignIn',
     signup: 'SignUP',
-    passwordresetscreens:'PasswordResetScreens'
+    passwordresetscreens:'PasswordResetScreens',
+    personalInfo:'PersonalInfo',
+    education:'Education',
+    parentContact:'ParentContact',
+    experience:'Experience'
   },
 };
 

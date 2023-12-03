@@ -19,15 +19,15 @@ import { useNavigation } from '@react-navigation/native';
 import routes from '../../Navigation/routes';
 import GrayMediumText from '../../Components/GrayMediumText'
 import CustomTextInput from '../../Components/InputField'
-import { CheckBox } from '@rneui/themed';
 
-export default function SignUp() {
+
+export default function ParentContact() {
     const [formData, setFormData] = useState({
-        first_name: '',
-        last_name: '',
-        email: '',
-        password: '',
-        confirm_password: ''
+        phone_number: '',
+        home_number: '',
+        address: '',
+        city: '',
+        zip_code: ''
     })
     const [rememberPassword, setRememberPassword] = useState(false);
     const navigation = useNavigation();
@@ -57,70 +57,64 @@ export default function SignUp() {
                     <ScrollView contentContainerStyle={styles.scrollContainer}>
                         {/* Your other components/content here */}
                         <View style={{ alignItems: 'center' }}>
+                            <GrayMediumText
+                                text={'Welcome to Birchwood Montessori Academy, a family-owned and operated school with a profound mission and vision.'}
+                                _style={styles.para}
+                            />
+                        </View>
+                        <View style={{ alignItems: 'center' }}>
                             <GlroyBold
-                                text={'Sign UP'}
+                                text={'Parent Contact'}
                                 _style={styles.head}
                             />
                         </View>
 
                         <CustomTextInput
-                            label="First Name"
-                            name={'first_name'}
+                            label="Phone Number"
+                            name={'phone_number'}
                             onChangeText={(name, value) => handleChange(name, value)}
-                            placeholder={'first name'}
-                            value={formData.first_name}
+                            placeholder={'phone number'}
+                            value={formData.phone_number}
                             required
                         />
                         <CustomTextInput
-                            label="Last Name"
-                            name={'last_name'}
+                            label="Home Number"
+                            name={'home_number'}
                             onChangeText={(name, value) => handleChange(name, value)}
-                            placeholder={'last name'}
-                            value={formData.last_name}
+                            placeholder={'home number'}
+                            value={formData.home_number}
                             required
                         />
                         <CustomTextInput
-                            label="Email Address"
-                            name={'email'}
+                            label="Address"
+                            name={'address'}
                             onChangeText={(name, value) => handleChange(name, value)}
-                            placeholder={'email'}
-                            value={formData.email}
+                            placeholder={'address'}
+                            value={formData.address}
                             required
                         />
                         <CustomTextInput
-                            label="Password"
-                            name={'password'}
-                            placeholder={'password'}
-                            value={formData.password}
+                            label="City"
+                            name={'city'}
+                            placeholder={'city'}
+                            value={formData.city}
                             required
-                            password={true}
                             onChangeText={(name, value) => handleChange(name, value)}
                         />
                         <CustomTextInput
-                            label="Confirm Password"
-                            name={'confirm_password'}
-                            placeholder={'confirm password'}
-                            value={formData.confirm_password}
+                            label="Zip Code"
+                            name={'zip_code'}
+                            placeholder={'zip code'}
+                            value={formData.zip_code}
                             required
-                            password={true}
                             onChangeText={(name, value) => handleChange(name, value)}
                         />
 
-                        <CheckBox
-                            checked={rememberPassword}
-                            title="Remember Password"
-                            textStyle={{
-                                fontSize: 12,
-                                color: colors.text.altGrey
-                            }}
-                            checkedColor={colors.theme.primary}
-                            onIconPress={() => setRememberPassword(rememberPassword => !rememberPassword)}
-                        />
                         <View style={{ alignItems: 'center' }}>
                             <CustomButton
                                 isFocused={true}
                                 title={'Next'}
-                                onPress={() => navigation.navigate(routes.navigator.personalInfo)}
+                                onPress={() => navigation.navigate(routes.navigator.experience)}
                             />
                         </View>
 

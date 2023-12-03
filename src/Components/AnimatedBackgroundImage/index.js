@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ImageBackground, StyleSheet, Animated, Keyboard, View, Image } from 'react-native';
+import { ImageBackground, StyleSheet, Animated, Keyboard, View, Image, StatusBar } from 'react-native';
 import main_bg_img from '../../Assets/images/animated_bg.png';
 import right_icon from '../../Assets/images/icon_right.png';
 import left_icon from '../../Assets/images/icon_left.png';
@@ -9,6 +9,7 @@ const AnimatedBackgroundImage = ({ children, source, additionalImage }) => {
     const [imageHeight] = useState(new Animated.Value(200)); // Initial height of the image
     const additionalImageHeight = new Animated.Value(320);
     const additionalImageMarginTop = new Animated.Value(-50);
+    const statusBarHeight = StatusBar.currentHeight || 0;
     useEffect(() => {
         const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
             Animated.parallel([
@@ -23,7 +24,7 @@ const AnimatedBackgroundImage = ({ children, source, additionalImage }) => {
                     useNativeDriver: false,
                 }),
                 Animated.timing(additionalImageMarginTop, {
-                    toValue: -20, // Adjust the value based on your design (reduce margin top)
+                    toValue: -20 - statusBarHeight, // Adjust the value based on your design (reduce margin top)
                     duration: 300,
                     useNativeDriver: false,
                   }),
@@ -43,7 +44,7 @@ const AnimatedBackgroundImage = ({ children, source, additionalImage }) => {
                     useNativeDriver: false,
                 }),
                 Animated.timing(additionalImageMarginTop, {
-                    toValue: -20, // Back to the initial margin top
+                    toValue: -20 - statusBarHeight, // Back to the initial margin top
                     duration: 300,
                     useNativeDriver: false,
                   }),

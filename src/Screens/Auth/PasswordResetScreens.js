@@ -25,7 +25,7 @@ export default function PasswordResetScreens() {
             <AnimatedBackgroundImage
                 additionalImage={screen == 2 ? verification_child : screen === 3 ? reset_pass_child : forgot_child}
             />
-            <View style={[styles.bottomContainer, {flex: (screen == 1 || screen == 2) ? 1 : 2}]}>
+            <View style={[styles.bottomContainer, {flex: (screen == 1 || screen == 2) ? 1 : 1.3}]}>
                 {screen == 1 && (<ForgotPassword handleScreen={handleScreen}/>)}
                 {screen == 2 && (<VerificationCode handleScreen={handleScreen}/>)}
                 {screen == 3 && (<ResetPassword handleScreen={handleScreen}/>)}
