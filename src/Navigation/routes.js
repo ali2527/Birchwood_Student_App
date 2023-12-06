@@ -9,6 +9,9 @@ const routes = {
     parentContact:'ParentContact',
     experience:'Experience'
   },
+  screens:{
+    homeScreen:'HomeScreen'
+  }
 };
 
 export default routes;
