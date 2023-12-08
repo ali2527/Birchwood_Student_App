@@ -1,3 +1,4 @@
+import { Platform } from "react-native";
 const colors = {
   input:{
     background:'#EBEBEB',
@@ -14,6 +15,8 @@ const colors = {
     greyAlt: '#E1E1E1',
     greyAlt2: '#989BA5',
     white: '#ffffff',
+    yellow0:'#FCF3E2',
+    pink0:'#FFD8FF'
   },
   background: {
     primary: '#ffffff',
@@ -35,17 +38,24 @@ const colors = {
     themeAlt: '#010127',
     black:'#000000'
   },
+  card:{
+    card1:'#E0E5FF'
+  }
 };
 
 const appShadow = {
-  shadowColor: '#000000',
-  shadowOffset: {
-    width: 0,
-    height: 2,
-  },
-  shadowOpacity: 0.2,
-  shadowRadius: 3.84,
-  elevation: 2,
+        backgroundColor: 'white', // Set your box background color
+        ...Platform.select({
+          ios: {
+            shadowColor: 'black',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.3,
+            shadowRadius: 4,
+          },
+          android: {
+            elevation: 4,
+          },
+        }),
 };
 
 export {colors, appShadow};

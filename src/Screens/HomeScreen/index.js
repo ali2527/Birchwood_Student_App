@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, ImageBackground, StatusBar, Image, FlatList } from 'react-native'
+import { StyleSheet, Text, View, ImageBackground, StatusBar, Image, FlatList, Platform } from 'react-native'
 import React, { useState } from 'react'
 import { vh, vw } from '../../theme/units'
 import main_bg_img from '../../Assets/images/animated_bg.png';
@@ -7,6 +7,11 @@ import profile_icon from '../../Assets/images/profile_bg.png';
 import { colors } from '../../theme/colors';
 import UserProfileCircle from '../../Components/ProfileCircle';
 import student from '../../Assets/icons/student.png';
+import { appShadow } from '../../theme/colors';
+import { featureIcons } from '../../Assets';
+import { icons } from '../../Assets/icons';
+import GrayMediumText from '../../Components/GrayMediumText';
+
 
 export default function HomeScreen() {
     const [profile, setProfile] = useState({
@@ -15,26 +20,92 @@ export default function HomeScreen() {
         photo: ''
     })
 
-    const data = Array.from({ length: 10 }, (_, index) => ({ id: index.toString(), title: `Item ${index + 1}` }));
+    const data = [
+        { id: 1, title: 'Profile' },
+        { id: 2, title: 'Activity' },
+        { id: 3, title: 'Time Table' },
+        { id: 4, title: 'Assignment' },
+        { id: 5, title: 'Result' },
+        { id: 6, title: 'Events' },
+        { id: 7, title: 'Ask Doubts' },
+        { id: 8, title: 'School Gallery' },
+        { id: 9, title: 'Leave Application' },
+        { id: 10, title: 'School Holiday' },
+        { id: 11, title: 'Logout' },
+        { id: 12, title: 'Change Password' },
+    ];
 
-    const renderItem = ({ item, index }) => {
-        const isFirstColumn = index % 2 === 0;
-        const isFirstChild = index === 0;
-        const cardHeight = isFirstColumn ? (isFirstChild ? 60 : 40) : 40;
+    // const data = Array.from({ length: 10 }, (_, index) => ({ id: index.toString(), title: `item${index + 1}` }));
+
+    const renderItem = ({ item, indx }) => {
 
         return (
-            <View style={[styles.card, { height: cardHeight }]}>
-                <Text>{item.title}</Text>
+            <View style={[styles.card]}>
+                <View style={styles.iconContainer}>
+                    <Image source={
+                        item.id == 1 ? featureIcons.profile
+                            : item.id == 2 ? featureIcons.activity
+                                : item.id == 3 ? featureIcons.time_table
+                                    : item.id == 4 ? featureIcons.assignment
+                                        : item.id == 5 ? featureIcons.result
+                                            : item.id == 6 ? featureIcons.events
+                                                : item.id == 7 ? featureIcons.ask_doubts
+                                                    : item.id == 8 ? featureIcons.school_gallery
+                                                        : item.id == 9 ? featureIcons.leave_application
+                                                            : item.id == 10 ? featureIcons.school_holiday
+                                                                : item.id == 11 ? featureIcons.logout
+                                                                    : item.id == 12 ? featureIcons.change_password
+                                                                        : featureIcons.profile
+                    }
+                        style={styles.featureIcons}
+                    />
+                </View>
+                <GlroyBold
+                    text={item.title}
+                    _style={{ fontSize: 12, color: colors.text.black, marginTop: 8 }}
+                />
             </View>
         );
     };
+
+    const headerCards = () => {
+        return (
+            <View style={styles.twoCardsTopContainer}>
+                <View style={[styles.twoCardsTop, { marginRight: 10 }]}>
+                    <View style={[styles.cardInnerView, { backgroundColor: colors.theme.yellow0 }]}>
+                        <Image source={icons.usr} style={styles.topCardIcon} />
+                    </View>
+                    <GlroyBold
+                        text={'80.39%'}
+                        _style={{ fontSize: 20, color: colors.text.black, marginVertical: 3 }}
+                    />
+                    <GrayMediumText
+                    text={'Attendance'}
+                    />
+                </View>
+                <View style={[styles.twoCardsTop, { marginLeft: 10 }]}>
+                    <View style={[styles.cardInnerView, { backgroundColor: colors.theme.pink0 }]}>
+                        <Image source={icons.dollar} style={styles.topCardIcon} />
+                    </View>
+                    <GlroyBold
+                        text={'$00.00'}
+                        _style={{ fontSize: 20, color: colors.text.black, marginVertical: 3 }}
+                    />
+                    <GrayMediumText
+                    text={'Fees Due'}
+                    />
+                </View>
+
+            </View>
+        )
+    }
 
     return (
         <>
             <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
             <ImageBackground
                 source={main_bg_img}
-                style={styles.bg_img}
+                style={[styles.bg_img]}
                 resizeMode='cover'
             >
                 <View style={styles.profile_container}>
@@ -63,13 +134,16 @@ export default function HomeScreen() {
                         _style={styles.profilePhoto}
                     />
                 </View>
+
             </ImageBackground>
+            {/* <View style={styles.borderLine}/> */}
             <FlatList
                 data={data}
                 keyExtractor={(item) => item.id}
                 renderItem={renderItem}
                 numColumns={2}
-                columnWrapperStyle={styles.columnWrapper}
+                ListHeaderComponent={headerCards}
+                contentContainerStyle={styles.flatListContainer}
             />
         </>
     )
@@ -83,6 +157,42 @@ const styles = StyleSheet.create({
         borderBottomLeftRadius: 40,
         borderBottomRightRadius: 40,
     },
+    topCardIcon: {
+        height: 35,
+        width: 35,
+        resizeMode: 'contain'
+    },
+    iconContainer: {
+        height: 24,
+        width: 24,
+        borderRadius: 12
+    },
+    featureIcons: {
+        height: '100%',
+        width: '100%',
+        resizeMode: 'contain'
+    },
+    twoCardsTopContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    cardInnerView: {
+        margin: 15,
+        height: 70,
+        width: 70,
+        borderRadius: 35,
+        alignItems: 'center',
+        justifyContent: 'center'
+    },
+    twoCardsTop: {
+        ...appShadow,
+        borderRadius: 10,
+        height: vh * 23,
+        width: vw * 38,
+        marginBottom: 12,
+        alignItems: 'center'
+    },
+
     profile_text: {
         fontSize: 16,
         fontWeight: 'bold',
@@ -119,13 +229,21 @@ const styles = StyleSheet.create({
         borderColor: colors.theme.white
     },
     card: {
-        flex: 1,
-        margin: 8,
-        backgroundColor: '#ececec',
+        margin: 10,
+        backgroundColor: colors.card.card1,
         justifyContent: 'center',
-        alignItems: 'center',
+        // alignItems: 'center',
+        height: vh * 15,
+        width: vw * 38,
+        borderRadius: 10,
+        paddingLeft: 15
     },
     columnWrapper: {
         justifyContent: 'space-between',
-      },
+    },
+    flatListContainer: {
+        // backgroundColor:'red',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    }
 })
