@@ -31,15 +31,6 @@ const SampleInputField = ({
         >
             <Text style={{fontSize: placeholderFontSize || 12, color: 'black'}}>{value !== '' ? value : placeholder}</Text>
         </TouchableOpacity>
-        {/* <TextInput
-          placeholder={placeholder}
-          style={[styles.textInputField, {fontSize: placeholderFontSize || 12, color: 'black'}]}
-          placeholderTextColor={colors.text.black}
-          value={value}
-          name={name}
-          secureTextEntry={secureTextEntry}
-          onChangeText={(value)=> onChangeText(name, value)}
-        /> */}
         {icon && (
             <IonicIcon name={icon} size={20} color={colors.text.altGrey} />
         )}
@@ -56,7 +47,7 @@ const styles = StyleSheet.create({
         borderColor: colors.input.background,
         borderRadius:10,
         paddingHorizontal: 7,
-        height:40,
+        height:50,
         flex: 1,
         backgroundColor:colors.input.background,
         justifyContent:'center',

@@ -6,7 +6,7 @@ const colors = {
   },
   theme: {
     primary: '#035392',
-    secondary: '#01C190',
+    secondary: '#6688CA',
     input: '#A4A4A4' + '24',
     black: '#000000',
     borderColor: '#CCCCCC',

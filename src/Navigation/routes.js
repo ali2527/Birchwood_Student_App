@@ -10,7 +10,10 @@ const routes = {
     experience:'Experience'
   },
   screens:{
-    homeScreen:'HomeScreen'
+    homeScreen:'HomeScreen',
+    profile:'Profile',
+    childProfile:"ChildProfile",
+    healthDetails:"HealthDetails"
   }
 };
 

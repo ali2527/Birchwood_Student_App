@@ -12,6 +12,9 @@ import Education from '../../Screens/Auth/Education';
 import ParentContact from '../../Screens/Auth/ParentContact';
 import Experience from '../../Screens/Auth/Experience';
 import HomeScreen from '../../Screens/HomeScreen';
+import Profile from '../../Screens/Profile';
+import ChildProfile from '../../Screens/ChildProfile';
+import HealthDetails from '../../Screens/HealthDetails';
 
 
 const Stack = createNativeStackNavigator();
@@ -28,6 +31,9 @@ const MainStack = () => {
       <Stack.Screen name={routes.navigator.parentContact} component={ParentContact} />
       <Stack.Screen name={routes.navigator.experience} component={Experience} />
       <Stack.Screen name={routes.navigator.passwordresetscreens} component={PasswordResetScreens} />
+      <Stack.Screen name={routes.screens.profile} component={Profile} />
+      <Stack.Screen name={routes.screens.childProfile} component={ChildProfile} />
+      <Stack.Screen name={routes.screens.healthDetails} component={HealthDetails} />
 
     </Stack.Navigator>
   );

@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, ImageBackground, StatusBar, Image, FlatList, Platform } from 'react-native'
+import { StyleSheet, Text, View, ImageBackground, StatusBar, Image, FlatList, TouchableOpacity } from 'react-native'
 import React, { useState } from 'react'
 import { vh, vw } from '../../theme/units'
 import main_bg_img from '../../Assets/images/animated_bg.png';
@@ -11,9 +11,11 @@ import { appShadow } from '../../theme/colors';
 import { featureIcons } from '../../Assets';
 import { icons } from '../../Assets/icons';
 import GrayMediumText from '../../Components/GrayMediumText';
-
+import { useNavigation } from '@react-navigation/native';
+import routes from '../../Navigation/routes';
 
 export default function HomeScreen() {
+    const navigation = useNavigation();
     const [profile, setProfile] = useState({
         name: 'Allen',
         year: '2023 - 2024',
@@ -35,12 +37,18 @@ export default function HomeScreen() {
         { id: 12, title: 'Change Password' },
     ];
 
+    const handleNavigate=(value)=>{
+       if(value === 'Profile') navigation.navigate(routes.screens.profile);
+       else if(value === 'Activity') navigation.navigate(routes.screens.childProfile);
+       else if(value === 'Time Table') navigation.navigate(routes.screens.healthDetails)
+    }
+
     // const data = Array.from({ length: 10 }, (_, index) => ({ id: index.toString(), title: `item${index + 1}` }));
 
     const renderItem = ({ item, indx }) => {
 
         return (
-            <View style={[styles.card]}>
+            <TouchableOpacity style={[styles.card]} onPress={()=> handleNavigate(item.title)}>
                 <View style={styles.iconContainer}>
                     <Image source={
                         item.id == 1 ? featureIcons.profile
@@ -64,7 +72,7 @@ export default function HomeScreen() {
                     text={item.title}
                     _style={{ fontSize: 12, color: colors.text.black, marginTop: 8 }}
                 />
-            </View>
+            </TouchableOpacity>
         );
     };
 
