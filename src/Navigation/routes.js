@@ -13,7 +13,8 @@ const routes = {
     homeScreen:'HomeScreen',
     profile:'Profile',
     childProfile:"ChildProfile",
-    healthDetails:"HealthDetails"
+    healthDetails:"HealthDetails",
+    profileForm:"ProfileForm"
   }
 };
 

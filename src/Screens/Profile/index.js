@@ -10,8 +10,12 @@ import dp1 from '../../Assets/icons/dp1.png';
 import dp2 from '../../Assets/icons/dp2.png';
 import dp3 from '../../Assets/icons/dp3.png';
 import edit from '../../Assets/icons/edit.png';
+import { useNavigation } from '@react-navigation/native';
+import routes from '../../Navigation/routes';
 
 export default function Profile() {
+
+    const navigation = useNavigation();
 
     const studentData = [
         {
@@ -44,7 +48,10 @@ export default function Profile() {
                     _style={{fontSize:12}}
                    />
                </View>
-               <TouchableOpacity style={{alignSelf:'flex-start', flexDirection:'row', alignItems:'center', padding:5}}>
+               <TouchableOpacity 
+               onPress={()=> navigation.navigate(routes.screens.profileForm)}
+               style={{alignSelf:'flex-start', flexDirection:'row', alignItems:'center', padding:5}}
+               >
                    <Text style={{fontSize:10,fontWeight:'bold', marginHorizontal:3}}>
                       Edit
                    </Text>

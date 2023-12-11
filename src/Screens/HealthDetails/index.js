@@ -28,7 +28,8 @@ export default function HealthDetails() {
     const [formData, setFormData] = useState({
         allergi: '',
         fear: '',
-        condition: ''
+        condition: '',
+        brief: ''
     })
     const [rememberPassword, setRememberPassword] = useState(false);
     const navigation = useNavigation();
@@ -47,23 +48,65 @@ export default function HealthDetails() {
 
     const listAllergi = [
         {
-            id: 1,
-            title: 'Alergi 1',
+            label: 'Alergi 1',
+            value: 'alergi_1',
         },
         {
-            id: 2,
-            title: 'Alergi 2'
+            label: 'Alergi 2',
+            value: 'alergi_2'
         },
         {
-            id: 3,
-            title: 'Alergi 3'
+            label: 'Alergi 3',
+            value: 'alergi_3'
         },
         {
-            id: 4,
-            title: 'Alergi 4'
+            label: 'Alergi 4',
+            value: 'alergi_4'
         }
 
     ];
+
+    const fearList = [
+        {
+            label: 'Fear 1',
+            value: 'fear_1',
+        },
+        {
+            label: 'Fear 2',
+            value: 'fear_2'
+        },
+        {
+            label: 'Fear 3',
+            value: 'fear_3'
+        },
+        {
+            label: 'Fear 4',
+            value: 'fear_4'
+        }
+
+    ];
+
+    const conditions = [
+        {
+            label: 'Condition 1',
+            value: 'condition_1',
+        },
+        {
+            label: 'Condition 2',
+            value: 'condition_2'
+        },
+        {
+            label: 'Condition 3',
+            value: 'condition_3'
+        },
+        {
+            label: 'Condition 4',
+            value: 'condition_4'
+        }
+
+    ];
+
+
 
 
     return (
@@ -106,70 +149,49 @@ export default function HealthDetails() {
                             required
                         />
 
-                        <SampleInputField
-                            label="Date Of Birth"
-                            name={'dob'}
-                            onChangeText={(name, value) => handleChange(name, value)}
-                            placeholder={'date of birt'}
-                            value={formData.dod}
+                        <DropDown
+                            label={'Any Fears'}
+                            placeholder={'Select any'}
+                            list={fearList}
+                            onChange={(value) => handleChange('fear', value())}
+                            value={formData.fear}
+                            open={openFear}
+                            style={styles.dropdown_inner_style}
+                            setOpen={() => setOpenFear(openFear => !openFear)}
+                            listMode="MODAL"
                             required
                         />
-                        <SampleInputField
-                            label="Age"
-                            name={'age'}
-                            onChangeText={(name, value) => handleChange(name, value)}
-                            placeholder={'12-12-1995'}
-                            value={formData.age}
+                        <DropDown
+                            label={'Health Condition'}
+                            placeholder={'Select any'}
+                            list={conditions}
+                            onChange={(value) => handleChange('fear', value())}
+                            value={formData.condition}
+                            open={openCondition}
+                            style={styles.dropdown_inner_style}
+                            setOpen={() => setOpenCondition(openCondition => !openCondition)}
+                            listMode="MODAL"
                             required
                         />
-                        <SampleInputField
-                            label="Gender"
-                            name={'gender'}
-                            onChangeText={(name, value) => handleChange(name, value)}
-                            placeholder={'gender'}
-                            value={formData.gender}
-                            required
-                        />
+                    
                         <CustomTextInput
-                            label="Address"
-                            name={'address'}
-                            placeholder={'address'}
-                            value={formData.address}
+                            label="Brief Summary"
+                            name={'brief'}
+                            placeholder={'Describe...'}
+                            value={formData.brief}
                             required
                             onChangeText={(name, value) => handleChange(name, value)}
+                            multiple
                         />
-                        <CustomTextInput
-                            label="City"
-                            name={'city'}
-                            placeholder={'city'}
-                            value={formData.city}
-                            required
-                            onChangeText={(name, value) => handleChange(name, value)}
-                        />
-
+            
                         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-                            <BackArrow />
                             <CustomButton
                                 isFocused={true}
-                                title={'Next'}
-                                onPress={() => navigation.navigate(routes.navigator.education)}
+                                title={'Finish'}
+                                onPress={() => console.log('Finish')}
                             />
                         </View>
 
-                        <View style={{ alignItems: 'center', flexDirection: 'row', justifyContent: 'center' }}>
-                            <GrayMediumText
-                                text={'Already have account?'}
-                            />
-                            <TouchableOpacity
-                                style={{ marginHorizontal: 2 }}
-                                onPress={() => navigation.navigate(routes.navigator.signin)}
-                            >
-                                <Text style={{ color: colors.theme.primary, fontWeight: 'bold' }}>Login</Text>
-                            </TouchableOpacity>
-                        </View>
-
-
-                        {/* Add more TextInput fields as needed */}
                     </ScrollView>
                 </KeyboardAvoidingView>
             </View>

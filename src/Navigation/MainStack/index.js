@@ -15,6 +15,7 @@ import HomeScreen from '../../Screens/HomeScreen';
 import Profile from '../../Screens/Profile';
 import ChildProfile from '../../Screens/ChildProfile';
 import HealthDetails from '../../Screens/HealthDetails';
+import ProfileForm from '../../Screens/ProfileForm';
 
 
 const Stack = createNativeStackNavigator();
@@ -34,6 +35,8 @@ const MainStack = () => {
       <Stack.Screen name={routes.screens.profile} component={Profile} />
       <Stack.Screen name={routes.screens.childProfile} component={ChildProfile} />
       <Stack.Screen name={routes.screens.healthDetails} component={HealthDetails} />
+      <Stack.Screen name={routes.screens.profileForm} component={ProfileForm} />
+
 
     </Stack.Navigator>
   );

@@ -3,6 +3,7 @@ import { View, TextInput, Text, TouchableOpacity, StyleSheet } from 'react-nativ
 import Icon from 'react-native-vector-icons/FontAwesome'; // You may need to install this package
 import { colors } from '../../theme/colors';
 import { useColorScheme } from 'react-native';
+import { vh } from '../../theme/units';
 
 const CustomTextInput = ({ 
     label, 
@@ -13,7 +14,8 @@ const CustomTextInput = ({
     password, 
     onChangeText,
     placeholderFontSize,
-    name
+    name,
+    multiple
 }) => {
   const [secureTextEntry, setSecureTextEntry] = useState(password);
   const colorScheme = useColorScheme();
@@ -26,7 +28,7 @@ const CustomTextInput = ({
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <TextInput
           placeholder={placeholder}
-          style={[styles.textInputField, {fontSize: placeholderFontSize || 12, color: 'black'}]}
+          style={[styles.textInputField, {fontSize: placeholderFontSize || 12, color: 'black', height: multiple ? vh * 20 : 40}]}
           placeholderTextColor={colors.text.black}
           value={value}
           name={name}
@@ -54,7 +56,7 @@ const styles = StyleSheet.create({
         borderColor: colors.input.background,
         borderRadius:10,
         paddingHorizontal: 7,
-        height:40,
+        // height:40,
         flex: 1,
         backgroundColor:colors.input.background,
     },

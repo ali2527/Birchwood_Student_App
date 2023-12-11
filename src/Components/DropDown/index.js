@@ -35,11 +35,11 @@ export default function DropDown({
   starColor
 }) {
 
-    const ArrowUpIconComponent=() => <Ionicon name='chevron-up' size={20} color={colors.text.grey} />
-    const ArrowDownIconComponent=() => <Ionicon name='chevron-down' size={20} color={colors.text.grey} />
+    const ArrowUpIconComponent=() => <Ionicon name='chevron-up' size={20} color={colors.text.altGrey} />
+    const ArrowDownIconComponent=() => <Ionicon name='chevron-down' size={20} color={colors.text.altGrey} />
   
   return (
-     <View>
+     <View style={{marginVertical:10}}>
         <Text style={[styles.labelStyle]}>
         {label} {required && <Text style={{ color: starColor || 'red' }}>*</Text>}
       </Text>
@@ -76,8 +76,8 @@ export default function DropDown({
         disabledStyle={{
           opacity: 0.5
         }}
-        // ArrowDownIconComponent={ArrowDownIconComponent}
-        // ArrowUpIconComponent={ArrowUpIconComponent}
+        ArrowDownIconComponent={ArrowDownIconComponent}
+        ArrowUpIconComponent={ArrowUpIconComponent}
       /> 
    </View>
     
@@ -86,7 +86,7 @@ export default function DropDown({
 
 const styles = StyleSheet.create({
   placeholder:{
-    // color:colors.text.grey
+     color:colors.text.altGrey
   },
   mainContainer_style:{
     borderWidth: 1.5,

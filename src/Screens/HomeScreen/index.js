@@ -40,7 +40,8 @@ export default function HomeScreen() {
     const handleNavigate=(value)=>{
        if(value === 'Profile') navigation.navigate(routes.screens.profile);
        else if(value === 'Activity') navigation.navigate(routes.screens.childProfile);
-       else if(value === 'Time Table') navigation.navigate(routes.screens.healthDetails)
+       else if(value === 'Time Table') navigation.navigate(routes.screens.healthDetails);
+    //    else if(value === 'Assignment') navigation.navigate(routes.screens.profileForm)
     }
 
     // const data = Array.from({ length: 10 }, (_, index) => ({ id: index.toString(), title: `item${index + 1}` }));
