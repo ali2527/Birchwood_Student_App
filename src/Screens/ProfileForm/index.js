@@ -7,6 +7,7 @@ import GrayMediumText from '../../Components/GrayMediumText';
 import Ionicon from 'react-native-vector-icons/Ionicons';
 import TopBar from '../../Components/TopBar';
 import FormContainer from '../../Components/FormContainer';
+import FormTextInput from '../../Components/FormTextInput';
 
 export default function ProfileForm() {
     return (
@@ -24,7 +25,75 @@ export default function ProfileForm() {
                 </View>
             </TopBar>
             <FormContainer>
-                <Text>Test The Form Container</Text>
+                <View style={styles.inputFieldContainer}>
+                    <FormTextInput
+                        label={'Roll Number'}
+                        placeholder={'123 345'}
+                        containerStyle={{ marginRight: 5 }}
+                    // icon={'bag'}
+                    />
+                    <FormTextInput
+                        label={'Acadmic Year'}
+                        placeholder={'2023-2021'}
+                        containerStyle={{ marginLeft: 5 }}
+                    />
+                </View>
+                <View style={styles.inputFieldContainer}>
+                    <FormTextInput
+                        label={'Admission Class'}
+                        placeholder={'V1'}
+                        containerStyle={{ marginRight: 5 }}
+                        icon={'bag'}
+                    />
+                    <FormTextInput
+                        label={'Old Admission No'}
+                        placeholder={'T1022'}
+                        containerStyle={{ marginLeft: 5 }}
+                        icon={'bag'}
+                    />
+                </View>
+                <View style={styles.inputFieldContainer}>
+                    <FormTextInput
+                        label={'Date of Admission'}
+                        placeholder={'01 Apr 2021'}
+                        containerStyle={{ marginRight: 5 }}
+                        icon={'bag'}
+                    />
+                    <FormTextInput
+                        label={'Date of Birth'}
+                        placeholder={'22 July 1996'}
+                        containerStyle={{ marginLeft: 5 }}
+                        icon={'bag'}
+                    />
+                </View>
+                <View style={styles.inputFieldContainer}>
+                    <FormTextInput
+                        label={'Parent Mail ID'}
+                        placeholder={'admin@mail.com'}
+                        icon={'bag'}
+                    />
+                </View>
+                <View style={styles.inputFieldContainer}>
+                    <FormTextInput
+                        label={'Mother Name'}
+                        placeholder={'Monica Larson'}
+                        icon={'bag'}
+                    />
+                </View>
+                <View style={styles.inputFieldContainer}>
+                    <FormTextInput
+                        label={'Father Name'}
+                        placeholder={'Bermad Tylor'}
+                        icon={'bag'}
+                    />
+                </View>
+                <View style={styles.inputFieldContainer}>
+                    <FormTextInput
+                        label={'Permanent Address'}
+                        placeholder={'address'}
+                        icon={'bag'}
+                    />
+                </View>
             </FormContainer>
         </>
     )
@@ -54,8 +123,13 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         marginHorizontal: 5
     },
-    container:{
-        flex:1,
-        marginHorizontal:20
+    container: {
+        flex: 1,
+        marginHorizontal: 20
+    },
+    inputFieldContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop:10
     }
 })
