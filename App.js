@@ -22,6 +22,7 @@ import {SafeAreaProvider} from 'react-native-safe-area-context';
 
 import SplashScreen from 'react-native-splash-screen';
 import MainNavigator from './src/Navigation';
+import CustomStatusBar from './src/Components/StatusBar';
 
 function Section({children, title}) {
   const isDarkMode = useColorScheme() === 'dark';
@@ -62,7 +63,8 @@ function App() {
   }, []);
 
   return (
-    <SafeAreaProvider>
+    <>
+      {/* <CustomStatusBar /> */}
       <MainNavigator />
       {/* <ScrollView
           contentInsetAdjustmentBehavior="automatic"
@@ -88,7 +90,7 @@ function App() {
             <LearnMoreLinks />
           </View>
         </ScrollView> */}
-    </SafeAreaProvider>
+    </>
   );
 }
 

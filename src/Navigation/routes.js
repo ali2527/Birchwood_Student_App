@@ -3,19 +3,20 @@ const routes = {
     onboard: 'OnBoard',
     signin: 'SignIn',
     signup: 'SignUP',
-    passwordresetscreens:'PasswordResetScreens',
-    personalInfo:'PersonalInfo',
-    education:'Education',
-    parentContact:'ParentContact',
-    experience:'Experience'
+    passwordresetscreens: 'PasswordResetScreens',
+    personalInfo: 'PersonalInfo',
+    education: 'Education',
+    parentContact: 'ParentContact',
+    experience: 'Experience',
   },
-  screens:{
-    homeScreen:'HomeScreen',
-    profile:'Profile',
-    childProfile:"ChildProfile",
-    healthDetails:"HealthDetails",
-    profileForm:"ProfileForm"
-  }
+  screens: {
+    homeScreen: 'HomeScreen',
+    profile: 'Profile',
+    childProfile: 'ChildProfile',
+    healthDetails: 'HealthDetails',
+    profileForm: 'ProfileForm',
+    attendanceLog: 'AttendanceLog',
+  },
 };
 
 export default routes;
