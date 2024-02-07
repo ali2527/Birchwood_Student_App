@@ -13,6 +13,7 @@ export const styles = StyleSheet.create({
   container: {
     flex: 1,
     zIndex: 1,
+    padding: 10,
     // position: 'absolute',
     top: -35,
     borderTopLeftRadius: vh * 5,

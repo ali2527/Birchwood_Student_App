@@ -19,6 +19,11 @@ const colors = {
     pink0: '#FFD8FF',
     red: '#FF0000',
     weekendClr: '#D4E2FF',
+    lightGreen: '#A9F2A4',
+    mehron: '#E92020',
+    lightRed: '#FFB1B1',
+    darkGreen: '#0BAC00',
+    lightGray: '#E1E3E8',
   },
   background: {
     primary: '#ffffff',
@@ -26,6 +31,7 @@ const colors = {
     header: '#000000',
     green: '#00FF00',
     date: '#0BAC00',
+    sky: '#96B1E5',
   },
   text: {
     white: '#ffffff',

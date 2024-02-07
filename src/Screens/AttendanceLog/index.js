@@ -5,6 +5,7 @@ import {
   SafeAreaView,
   ScrollView,
   ImageBackground,
+  FlatList,
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import {styles} from './style';
@@ -14,41 +15,54 @@ import CalendarPickerComponent from '../../Components/TemplateComponents/Calenda
 import moment from 'moment';
 import {colors} from '../../theme/colors';
 import BottomLogo from '../../Components/BottomLogo';
+import {AttendanceItems} from '../../Components/AttendanceItems';
+import {HolidayItems} from '../../Components/HolidayItems';
 
 const AttendanceLog = () => {
   const [selectedStartDate, setSelectedStartDate] = useState(null);
-  let today = moment();
-  let day = today.clone().startOf('month');
-  let customDatesStyles = [];
+  const [btn, setBtn] = useState({
+    left: 'Attendance',
+    right: 'Holiday',
+    selected: 'Attendance',
+  });
 
-  // let dates = [12, 13, 14];
-  // dates.map(item => {
-  //   customDatesStyles.push({
-  //     date: item,
-  //     style: {
-  //       backgroundColor: '#000',
-  //     },
-  //     textStyle: {color: '#fff'},
-  //     containerStyle: [],
-  //     allowDisabled: true,
-  //   });
-  // });
+  const attendanceData = [
+    {
+      id: 1,
+      title: 'Absent',
+      data: '03',
+    },
+    {
+      id: 2,
+      title: 'Festival & Holiday',
+      data: '05',
+    },
+  ];
 
-  while (day.isSameOrBefore(today.endOf('month'), 'day')) {
-    customDatesStyles.push({
-      date: day.clone(),
-      style: {
-        backgroundColor:
-          '#' +
-          ('00000' + ((Math.random() * (1 << 24)) | 0).toString(16)).slice(-6),
-      },
-      textStyle: {color: 'black'},
-      containerStyle: [],
-      allowDisabled: true,
+  const holidaysData = [
+    {
+      id: 1,
+      title: 'Easter',
+      date: '11th november',
+    },
+    {
+      id: 2,
+      title: 'Good Friday',
+      date: '14th november',
+    },
+    {
+      id: 3,
+      title: 'Chritsmas',
+      date: '25th november',
+    },
+  ];
+
+  const handlePress = (value, title) => {
+    setBtn({
+      ...btn,
+      [value]: title,
     });
-
-    day.add(1, 'day');
-  }
+  };
 
   const customDatesStylesCallback = date => {
     const day = moment(date).date();
@@ -132,6 +146,25 @@ const AttendanceLog = () => {
     console.log('Date date >>>', date);
   };
 
+  const renderItems = ({item, index}) => {
+    if (btn.selected === 'Attendance') {
+      return <AttendanceItems item={item} />;
+    } else {
+      return <HolidayItems item={item} index={index} />;
+    }
+  };
+
+  const HeaderComponent = () => {
+    return (
+      <View style={{padding: 15}}>
+        <CalendarPickerComponent
+          onDateChange={handleDate}
+          customDatesStyles={customDatesStylesCallback}
+        />
+      </View>
+    );
+  };
+
   return (
     <>
       <StatusBar
@@ -139,17 +172,23 @@ const AttendanceLog = () => {
         // backgroundColor="#035392"
         barStyle="light-content"
       />
-      <SecondaryHeader />
+      <SecondaryHeader
+        btn={btn}
+        handlePress={handlePress}
+        iconName="chevron-back-outline"
+      />
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
-          <ScrollView contentContainerStyle={{flexGrow: 1}}>
-            <View style={{padding: 15}}>
-              <CalendarPickerComponent
-                onDateChange={handleDate}
-                customDatesStyles={customDatesStylesCallback}
-              />
-            </View>
-          </ScrollView>
+          {/* <ScrollView contentContainerStyle={{flexGrow: 1}}> */}
+
+          {/* </ScrollView> */}
+          <FlatList
+            data={btn.selected === 'Attendance' ? attendanceData : holidaysData}
+            renderItem={renderItems}
+            ListHeaderComponent={() => <HeaderComponent />}
+            keyExtractor={item => item.id}
+            ItemSeparatorComponent={() => <View style={{margin: 10}} />}
+          />
         </View>
         {/* Bottom View */}
         <BottomLogo />

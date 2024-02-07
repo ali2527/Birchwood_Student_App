@@ -4,8 +4,8 @@ import {vh, vw} from '../../theme/units';
 
 export const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    // paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+    // flex: 1,
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
     // backgroundColor: 'green',
     // alignItems: 'center',
     justifyContent: 'center',
