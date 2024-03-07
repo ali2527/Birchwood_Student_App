@@ -54,6 +54,7 @@ export default function HomeScreen() {
       navigation.navigate(routes.screens.healthDetails);
     else if (value === 'Assignment')
       navigation.navigate(routes.screens.attendanceLog);
+    else if (value === 'Fees Due') navigation.navigate(routes.screens.feesDue);
   };
 
   // const data = Array.from({ length: 10 }, (_, index) => ({ id: index.toString(), title: `item${index + 1}` }));
@@ -106,7 +107,9 @@ export default function HomeScreen() {
   const headerCards = () => {
     return (
       <View style={styles.twoCardsTopContainer}>
-        <View style={[styles.twoCardsTop, {marginRight: 10}]}>
+        <TouchableOpacity
+          style={[styles.twoCardsTop, {marginRight: 10}]}
+          onPress={() => handleNavigate('Attendance')}>
           <View
             style={[
               styles.cardInnerView,
@@ -119,8 +122,10 @@ export default function HomeScreen() {
             _style={{fontSize: 20, color: colors.text.black, marginVertical: 3}}
           />
           <GrayMediumText text={'Attendance'} />
-        </View>
-        <View style={[styles.twoCardsTop, {marginLeft: 10}]}>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.twoCardsTop, {marginLeft: 10}]}
+          onPress={() => handleNavigate('Fees Due')}>
           <View
             style={[
               styles.cardInnerView,
@@ -133,7 +138,7 @@ export default function HomeScreen() {
             _style={{fontSize: 20, color: colors.text.black, marginVertical: 3}}
           />
           <GrayMediumText text={'Fees Due'} />
-        </View>
+        </TouchableOpacity>
       </View>
     );
   };

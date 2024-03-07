@@ -7,25 +7,20 @@ import {
   View,
   Text,
 } from 'react-native';
+import CustomStatusBar from '../StatusBar';
 
-const ContainerComponent = ({
-  children,
-  barStyle,
-  backgroundColor,
-  translucent,
-  style,
-}) => {
+const ContainerComponent = ({children, scrollview}) => {
   return (
     <>
-      <StatusBar
-        translucent
-        // backgroundColor="#035392"
-        barStyle="dark-content"
-      />
+      <CustomStatusBar backgroundColor="#035392" />
       <SafeAreaView style={styles.container}>
-        <View>
-          <Text>Your content goes here</Text>
-        </View>
+        {scrollview ? (
+          <ScrollView contentContainerStyle={{flexGrow: 1}}>
+            {children}
+          </ScrollView>
+        ) : (
+          <>{children}</>
+        )}
       </SafeAreaView>
     </>
   );
@@ -34,8 +29,6 @@ const ContainerComponent = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
-    backgroundColor: 'white', // Set your desired background color here
   },
 });
 

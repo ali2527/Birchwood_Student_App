@@ -6,19 +6,33 @@ import {vh, vw} from '../../theme/units';
 import ToggleButton from '../ToggleButton';
 import VectorIcon from '../VectorIcons';
 import {colors} from '../../theme/colors';
+import {useNavigation} from '@react-navigation/native';
+import GlroyBold from '../GlroyBoldText';
 
-export const SecondaryHeader = ({btn, handlePress, iconName}) => {
+export const SecondaryHeader = ({
+  btn,
+  handlePress,
+  iconName,
+  headerHeight,
+  navigateHandler,
+  title,
+  color,
+}) => {
+  const navigation = useNavigation();
   return (
-    <GradientComponent style={{height: vh * 17}}>
+    <GradientComponent style={{height: headerHeight}}>
       <View style={styles.container}>
         <View
           style={{
             flexDirection: 'row',
             alignItems: 'center',
-            marginTop: vh * 3,
+            marginTop: vh * 2,
             marginHorizontal: 15,
           }}>
-          <TouchableOpacity>
+          <TouchableOpacity
+            onPress={() =>
+              navigateHandler ? navigateHandler() : navigation.goBack()
+            }>
             <VectorIcon
               type={'Ionicons'}
               name={iconName}
@@ -26,6 +40,12 @@ export const SecondaryHeader = ({btn, handlePress, iconName}) => {
               color={colors.theme.white}
             />
           </TouchableOpacity>
+          {title && (
+            <GlroyBold
+              text={title}
+              _style={{color: color, marginHorizontal: 8}}
+            />
+          )}
           {btn && (
             <View
               style={{

@@ -16,6 +16,7 @@ const routes = {
     healthDetails: 'HealthDetails',
     profileForm: 'ProfileForm',
     attendanceLog: 'AttendanceLog',
+    feesDue: 'FeesDue',
   },
 };
 

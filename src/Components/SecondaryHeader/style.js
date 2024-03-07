@@ -11,4 +11,10 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
     // margin: vh * 3,
   },
+  borderDesign: {
+    // marginTop: vh * 2,
+    height: vh * 7,
+    width: vw * 100,
+    backgroundColor: 'white',
+  },
 });

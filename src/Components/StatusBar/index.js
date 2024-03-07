@@ -1,19 +1,29 @@
 // CustomStatusBar.js
 import React from 'react';
-import {StatusBar, SafeAreaView, Platform} from 'react-native';
+import {
+  StatusBar,
+  SafeAreaView,
+  Platform,
+  StyleSheet,
+  View,
+} from 'react-native';
 
-const CustomStatusBar = ({backgroundColor, barStyle}) => {
+const STATUSBAR_HEIGHT = StatusBar.currentHeight;
+
+const CustomStatusBar = ({backgroundColor, ...props}) => {
   return (
-    <SafeAreaView
-      style={{
-        backgroundColor,
-      }}>
-      <StatusBar
-        backgroundColor={backgroundColor || 'transparent'}
-        barStyle={barStyle || 'dark-content'}
-      />
-    </SafeAreaView>
+    <View style={[styles.statusBar, {backgroundColor}]}>
+      <SafeAreaView>
+        <StatusBar translucent backgroundColor={backgroundColor} {...props} />
+      </SafeAreaView>
+    </View>
   );
 };
 
 export default CustomStatusBar;
+
+const styles = StyleSheet.create({
+  statusBar: {
+    height: STATUSBAR_HEIGHT,
+  },
+});

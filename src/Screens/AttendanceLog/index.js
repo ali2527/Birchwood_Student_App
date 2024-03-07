@@ -17,6 +17,7 @@ import {colors} from '../../theme/colors';
 import BottomLogo from '../../Components/BottomLogo';
 import {AttendanceItems} from '../../Components/AttendanceItems';
 import {HolidayItems} from '../../Components/HolidayItems';
+import {vh} from '../../theme/units';
 
 const AttendanceLog = () => {
   const [selectedStartDate, setSelectedStartDate] = useState(null);
@@ -176,6 +177,7 @@ const AttendanceLog = () => {
         btn={btn}
         handlePress={handlePress}
         iconName="chevron-back-outline"
+        headerHeight={vh * 17}
       />
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
