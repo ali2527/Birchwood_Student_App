@@ -17,6 +17,7 @@ const routes = {
     profileForm: 'ProfileForm',
     attendanceLog: 'AttendanceLog',
     feesDue: 'FeesDue',
+    timeTable: 'TimeTable',
   },
 };
 

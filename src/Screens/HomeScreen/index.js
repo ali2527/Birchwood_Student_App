@@ -51,7 +51,8 @@ export default function HomeScreen() {
     else if (value === 'Activity')
       navigation.navigate(routes.screens.childProfile);
     else if (value === 'Time Table')
-      navigation.navigate(routes.screens.healthDetails);
+      navigation.navigate(routes.screens.timeTable);
+    // navigation.navigate(routes.screens.healthDetails);
     else if (value === 'Assignment')
       navigation.navigate(routes.screens.attendanceLog);
     else if (value === 'Fees Due') navigation.navigate(routes.screens.feesDue);

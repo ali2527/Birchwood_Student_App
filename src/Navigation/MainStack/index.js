@@ -18,6 +18,7 @@ import HealthDetails from '../../Screens/HealthDetails';
 import ProfileForm from '../../Screens/ProfileForm';
 import AttendanceLog from '../../Screens/AttendanceLog';
 import FeesDue from '../../Screens/FeesDue';
+import TimeTable from '../../Screens/TimeTable';
 
 const Stack = createNativeStackNavigator();
 
@@ -57,6 +58,7 @@ const MainStack = () => {
         component={AttendanceLog}
       />
       <Stack.Screen name={routes.screens.feesDue} component={FeesDue} />
+      <Stack.Screen name={routes.screens.timeTable} component={TimeTable} />
     </Stack.Navigator>
   );
 };

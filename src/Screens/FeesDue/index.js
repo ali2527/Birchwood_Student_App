@@ -1,10 +1,8 @@
-import {StyleSheet, Text, View, FlatList, TouchableOpacity} from 'react-native';
+import {Text, View, FlatList, TouchableOpacity} from 'react-native';
 import React from 'react';
 import {styles} from './style';
 import ContainerComponent from '../../Components/ContainerComponent';
-import {SecondaryHeader} from '../../Components/SecondaryHeader';
 import ScreenWrapperContainer from '../../Components/ScreenWrapperContainer';
-import {vh} from '../../theme/units';
 import VectorIcon from '../../Components/VectorIcons';
 import {colors} from '../../theme/colors';
 
