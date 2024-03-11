@@ -16,10 +16,7 @@ const featureIcons = {
   school_holiday: require('./icons/ic_holiday.png'),
   logout: require('./icons/ic_logout.png'),
   change_password: require('./icons/ic_password.png'),
-  
-}
-
-export {
-  logo,
-  featureIcons
+  lunch_break: require('./images/lunch_break.png'),
 };
+
+export {logo, featureIcons};

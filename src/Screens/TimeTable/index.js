@@ -1,12 +1,14 @@
-import {View, Text, FlatList} from 'react-native';
-import React from 'react';
+import {View, Text, FlatList, TouchableOpacity, Image} from 'react-native';
+import React, {useState} from 'react';
 import {styles} from './style';
 import ContainerComponent from '../../Components/ContainerComponent';
 import ScreenWrapperContainer from '../../Components/ScreenWrapperContainer';
 import VectorIcon from '../../Components/VectorIcons';
 import {colors} from '../../theme/colors';
+import {featureIcons} from '../../Assets';
 
 export default function TimeTable() {
+  const [selectedDay, setSelectedDay] = useState('MON');
   const data = [
     {
       id: '123',
@@ -67,6 +69,8 @@ export default function TimeTable() {
     },
   ];
 
+  const days = ['MON', 'TUE', 'WED', 'THU', 'FRI'];
+
   const renderItem = ({item}) => {
     return (
       <View style={styles.cardContainer}>
@@ -83,7 +87,11 @@ export default function TimeTable() {
                 <Text style={{fontSize: 12}}>{item.time}</Text>
               </View>
               <View>
-                <Text>Lunch Image</Text>
+                <Image
+                  source={featureIcons.lunch_break}
+                  resizeMode="contain"
+                  style={styles.lunch_break_icon}
+                />
               </View>
             </View>
           ) : (
@@ -91,7 +99,13 @@ export default function TimeTable() {
               <View style={styles.itemContent}>
                 <Text style={styles.titleText}>{item.class_name}</Text>
                 <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                  <Text>Icon</Text>
+                  <VectorIcon
+                    type={'Ionicons'}
+                    name={'checkmark-circle'}
+                    size={20}
+                    color={colors.theme.lightGreen}
+                    style={{marginHorizontal: 3}}
+                  />
                   <Text style={{fontSize: 12}}>
                     {item.status === 'seen' ? 'Seen' : null}
                   </Text>
@@ -111,10 +125,36 @@ export default function TimeTable() {
       </View>
     );
   };
+
+  const onSelectDay = value => {
+    setSelectedDay(value);
+  };
+
   return (
     <ContainerComponent>
       <ScreenWrapperContainer title="Timetable">
         <View style={styles.container}>
+          <View style={styles.stepperContainer}>
+            {days.map((item, indx) => (
+              <TouchableOpacity
+                key={indx}
+                style={
+                  selectedDay === item
+                    ? styles.stepperBtnSelected
+                    : styles.stepperBtnUnSelected
+                }
+                onPress={() => onSelectDay(item)}>
+                <Text
+                  style={
+                    selectedDay === item
+                      ? styles.selectedTitle
+                      : styles.unSelectedTitle
+                  }>
+                  {item}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
           <FlatList
             data={data}
             keyExtractor={item => `item_${item.id}`}
