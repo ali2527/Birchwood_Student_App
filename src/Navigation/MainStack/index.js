@@ -19,6 +19,7 @@ import ProfileForm from '../../Screens/ProfileForm';
 import AttendanceLog from '../../Screens/AttendanceLog';
 import FeesDue from '../../Screens/FeesDue';
 import TimeTable from '../../Screens/TimeTable';
+import SchoolAlbums from '../../Screens/Albums';
 
 const Stack = createNativeStackNavigator();
 
@@ -59,6 +60,10 @@ const MainStack = () => {
       />
       <Stack.Screen name={routes.screens.feesDue} component={FeesDue} />
       <Stack.Screen name={routes.screens.timeTable} component={TimeTable} />
+      <Stack.Screen
+        name={routes.screens.schoolAlbums}
+        component={SchoolAlbums}
+      />
     </Stack.Navigator>
   );
 };

@@ -56,6 +56,8 @@ export default function HomeScreen() {
     else if (value === 'Assignment')
       navigation.navigate(routes.screens.attendanceLog);
     else if (value === 'Fees Due') navigation.navigate(routes.screens.feesDue);
+    else if (value === 'School Gallery')
+      navigation.navigate(routes.screens.schoolAlbums);
   };
 
   // const data = Array.from({ length: 10 }, (_, index) => ({ id: index.toString(), title: `item${index + 1}` }));

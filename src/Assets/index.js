@@ -19,4 +19,17 @@ const featureIcons = {
   lunch_break: require('./images/lunch_break.png'),
 };
 
-export {logo, featureIcons};
+const schoolGallery = {
+  friends: require('./images/friends.png'),
+  family: require('./images/family.png'),
+  trips: require('./images/trips.png'),
+  trip: require('./images/trip.png'),
+  architecture: require('./images/architecture.png'),
+  band: require('./images/band.png'),
+  concerts: require('./images/concerts.png'),
+  food: require('./images/food.png'),
+  work: require('./images/work.png'),
+  mycat: require('./images/mycat.png'),
+};
+
+export {logo, featureIcons, schoolGallery};

@@ -18,6 +18,7 @@ const routes = {
     attendanceLog: 'AttendanceLog',
     feesDue: 'FeesDue',
     timeTable: 'TimeTable',
+    schoolAlbums: 'SchoolAlbums',
   },
 };
 
