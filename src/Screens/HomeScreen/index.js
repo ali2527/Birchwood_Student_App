@@ -7,6 +7,7 @@ import {
   Image,
   FlatList,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
 import React, {useState} from 'react';
 import {vh, vw} from '../../theme/units';
@@ -58,6 +59,7 @@ export default function HomeScreen() {
     else if (value === 'Fees Due') navigation.navigate(routes.screens.feesDue);
     else if (value === 'School Gallery')
       navigation.navigate(routes.screens.schoolAlbums);
+    else if (value === 'Result') navigation.navigate(routes.screens.result);
   };
 
   // const data = Array.from({ length: 10 }, (_, index) => ({ id: index.toString(), title: `item${index + 1}` }));

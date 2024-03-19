@@ -13,6 +13,7 @@ const ScreenWrapperContainer = ({children, title}) => {
         title={title}
         color={colors.theme.white}
       />
+
       <View style={styles.childContainer}>{children}</View>
     </View>
   );

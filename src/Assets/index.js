@@ -32,4 +32,9 @@ const schoolGallery = {
   mycat: require('./images/mycat.png'),
 };
 
-export {logo, featureIcons, schoolGallery};
+const resultScreenImgs = {
+  bg_img: require('./images/bottom_border.png'),
+  grade: require('./images/grade_percentage.png'),
+};
+
+export {logo, featureIcons, schoolGallery, resultScreenImgs};
