@@ -32,6 +32,8 @@ const colors = {
     green: '#00FF00',
     date: '#0BAC00',
     sky: '#96B1E5',
+    lightSky: '#E6EFFF',
+    dimWhite: '#6AC259' + '10.2',
   },
   text: {
     white: '#ffffff',

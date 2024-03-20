@@ -19,115 +19,95 @@ import {vh} from '../../theme/units';
 import {resultScreenImgs} from '../../Assets';
 import GlroyBold from '../../Components/GlroyBoldText';
 import BottomLogo from '../../Components/BottomLogo';
+import Button from '../../Components/Button';
 
 const Result = () => {
   const data = [
     {
       id: '123',
-      receipt_no: '983344',
-      month: 'October',
-      payment_date: '10 Oct 20',
-      pending_amount: '$999',
-      status: 'pending',
+      subject: 'English',
+      total_numbers: '100',
+      gain_number: '74',
+      grade: 'B',
     },
     {
       id: '1234',
-      receipt_no: '983344',
-      month: 'October',
-      payment_date: '10 Oct 20',
-      pay_mode: 'Cash on counter',
-      total_amount: '$999',
-      status: 'success',
+      subject: 'Art',
+      total_numbers: '100',
+      gain_number: '84',
+      grade: 'B',
     },
     {
       id: '12345',
-      receipt_no: '983344',
-      month: 'October',
-      payment_date: '10 Oct 20',
-      pay_mode: 'Cash on counter',
-      total_amount: '$999',
-      status: 'success',
+      subject: 'Science',
+      total_numbers: '100',
+      gain_number: '74',
+      grade: 'B',
     },
     {
       id: '123456',
-      receipt_no: '983344',
-      month: 'October',
-      payment_date: '10 Oct 20',
-      pay_mode: 'Cash on counter',
-      total_amount: '$999',
-      status: 'success',
+      subject: 'Math',
+      total_numbers: '100',
+      gain_number: '87',
+      grade: 'B',
     },
     {
       id: '1234567',
-      receipt_no: '983344',
-      month: 'October',
-      payment_date: '10 Oct 20',
-      pay_mode: 'Cash on counter',
-      total_amount: '$999',
-      status: 'success',
+      subject: 'Social Study',
+      total_numbers: '100',
+      gain_number: '89',
+      grade: 'B',
+    },
+    {
+      id: '12345678',
+      subject: 'Drawing',
+      total_numbers: '100',
+      gain_number: '78',
+      grade: 'B',
+    },
+    {
+      id: '123456789',
+      subject: 'Computer',
+      total_numbers: '100',
+      gain_number: '96',
+      grade: 'A',
     },
   ];
 
-  const renderItem = ({item}) => {
+  const renderItem = (item, indx) => {
     return (
-      <View style={styles.cardContainer}>
-        <View style={{padding: 15}}>
-          <View style={styles.itemContent}>
-            <Text style={styles.titleText}>Receipt No.</Text>
-            <Text style={{fontSize: 12}}>{item.receipt_no}</Text>
-          </View>
-          <View style={styles.borderLine} />
-          <View style={styles.itemContent}>
-            <Text style={styles.titleText}>Month</Text>
-            <Text style={{fontSize: 12}}>{item.month}</Text>
-          </View>
-          <View style={styles.itemContent}>
-            <Text style={styles.titleText}>Payment Date</Text>
-            <Text style={{fontSize: 12}}>{item.payment_date}</Text>
-          </View>
-          {item.status === 'success' && (
-            <View style={styles.itemContent}>
-              <Text style={styles.titleText}>Pay Mode</Text>
-              <Text style={{fontSize: 12}}>{item.pay_mode}</Text>
-            </View>
-          )}
-          <View style={styles.borderLine} />
-          <View style={styles.itemContent}>
-            <Text style={styles.titleText}>
-              {item.status === 'success'
-                ? 'Total Amount'
-                : 'Total Pending Amount'}
-            </Text>
-            <Text style={{fontSize: 12}}>
-              {item.status === 'pending'
-                ? item.pending_amount
-                : item.total_amount}
-            </Text>
-          </View>
+      <View style={styles.cardContainer} key={indx}>
+        <View
+          style={{
+            flex: 1,
+            paddingHorizontal: 10,
+            paddingVertical: 4,
+          }}>
+          <GlroyBold text={item.subject} _style={styles.titleText} />
         </View>
-        <TouchableOpacity style={styles.statusContainer}>
-          <View style={{flexDirection: 'row', alignItems: 'center'}}>
-            <Text
-              style={{
-                fontSize: 14,
-                fontWeight: 'bold',
-                marginHorizontal: 5,
-                color: colors.theme.white,
-              }}>
-              {item.status === 'pending' ? 'Pay Now' : 'Download'}
-            </Text>
-            <VectorIcon
-              type={'Ionicons'}
-              name={
-                item.status === 'pending'
-                  ? 'arrow-forward-outline'
-                  : 'cloud-download-outline'
-              }
-              size={15}
-              color={colors.theme.white}
-            />
-          </View>
-        </TouchableOpacity>
+        <View
+          style={{
+            backgroundColor: colors.background.lightSky,
+            alignItems: 'center',
+            paddingHorizontal: 25,
+            paddingVertical: 4,
+          }}>
+          <GlroyBold text={item.total_numbers} _style={styles.titleText} />
+        </View>
+        <View
+          style={{
+            backgroundColor: colors.background.dimWhite,
+            alignItems: 'center',
+            paddingHorizontal: 16.5,
+            paddingVertical: 4,
+            borderTopRightRadius: indx == 0 ? 10 : 0,
+            borderBottomRightRadius: data.length == indx + 1 ? 10 : 0,
+          }}>
+          <GlroyBold
+            text={`${item.gain_number} - ${item.grade}`}
+            _style={styles.titleText}
+          />
+        </View>
       </View>
     );
   };
@@ -146,7 +126,7 @@ const Result = () => {
                   style={styles.gradePercentImg}>
                   <GlroyBold
                     text={'83%'}
-                    _style={{fontSize: 40, color: '#000'}}
+                    _style={{fontSize: 40, color: colors.text.black}}
                   />
                   <GlroyBold
                     text={'A+'}
@@ -154,7 +134,7 @@ const Result = () => {
                       fontSize: 20,
                       marginLeft: 30,
                       bottom: 8,
-                      color: '#000',
+                      color: colors.text.black,
                     }}
                   />
                 </ImageBackground>
@@ -165,7 +145,24 @@ const Result = () => {
 
         <View style={styles.childContainer}>
           <ScrollView contentContainerStyle={{flexGrow: 1}}>
-            <Text>This is Result Screen</Text>
+            <View style={{alignItems: 'center', marginTop: 10}}>
+              <GlroyBold
+                text={'You are Excellent,'}
+                _style={{
+                  fontSize: 17,
+                  color: colors.text.black,
+                }}
+              />
+              <GlroyBold
+                text={'Jamie Allen !!'}
+                _style={{fontSize: 25, color: colors.text.black}}
+              />
+              <View style={styles.resultTableContainer}>
+                {data.map((item, indx) => renderItem(item, indx))}
+              </View>
+              <View style={{margin: 15}} />
+              <Button title={'Download PDF'} isFocused={true} />
+            </View>
           </ScrollView>
         </View>
         {/* <FlatList

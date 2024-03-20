@@ -8,10 +8,10 @@ export const styles = StyleSheet.create({
     flex: 1,
   },
   childContainer: {
-    flex: 2,
+    flex: 1,
     position: 'absolute',
     backgroundColor: colors.theme.white,
-    height: vh * 100,
+    height: vh * 60,
     width: vw * 100,
     // zIndex: 100,
     top: vh * 30,
@@ -42,38 +42,22 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  flatListContainer: {
-    // flex: 1,
-    alignItems: 'center',
-    padding: 10,
-  },
-  cardContainer: {
+
+  resultTableContainer: {
     borderWidth: 1,
     borderColor: colors.theme.borderColor,
     width: vw * 80,
     borderRadius: 10,
+    marginTop: vh * 5,
   },
-  statusContainer: {
-    borderWidth: 1,
-    borderColor: colors.theme.primary,
-    backgroundColor: colors.theme.primary,
-    borderBottomLeftRadius: 10,
-    borderBottomRightRadius: 10,
-    padding: 10,
-    alignItems: 'center',
-  },
-  borderLine: {
-    borderBottomWidth: 1,
-    borderBottomColor: colors.theme.borderColor,
-    marginVertical: 5,
+  cardContainer: {
+    flexDirection: 'row',
   },
   itemContent: {
-    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
   },
   titleText: {
-    fontSize: 13,
-    marginVertical: 5,
+    fontSize: 12,
+    color: colors.text.black,
   },
 });
