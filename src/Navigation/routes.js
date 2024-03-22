@@ -20,6 +20,7 @@ const routes = {
     timeTable: 'TimeTable',
     schoolAlbums: 'SchoolAlbums',
     result: 'Result',
+    checkIn: 'CheckIn',
   },
 };
 

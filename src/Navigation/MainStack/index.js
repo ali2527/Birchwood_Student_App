@@ -21,6 +21,7 @@ import FeesDue from '../../Screens/FeesDue';
 import TimeTable from '../../Screens/TimeTable';
 import SchoolAlbums from '../../Screens/Albums';
 import Result from '../../Screens/Result';
+import CheckIn from '../../Screens/CheckIn';
 
 const Stack = createNativeStackNavigator();
 
@@ -66,6 +67,7 @@ const MainStack = () => {
         component={SchoolAlbums}
       />
       <Stack.Screen name={routes.screens.result} component={Result} />
+      <Stack.Screen name={routes.screens.checkIn} component={CheckIn} />
     </Stack.Navigator>
   );
 };

@@ -48,6 +48,7 @@ export default function HomeScreen() {
   ];
 
   const handleNavigate = value => {
+    console.log('Valueee >>>>', value);
     if (value === 'Profile') navigation.navigate(routes.screens.profile);
     else if (value === 'Activity')
       navigation.navigate(routes.screens.childProfile);
@@ -60,6 +61,8 @@ export default function HomeScreen() {
     else if (value === 'School Gallery')
       navigation.navigate(routes.screens.schoolAlbums);
     else if (value === 'Result') navigation.navigate(routes.screens.result);
+    else if (value === 'Attendance')
+      navigation.navigate(routes.screens.checkIn);
   };
 
   // const data = Array.from({ length: 10 }, (_, index) => ({ id: index.toString(), title: `item${index + 1}` }));
