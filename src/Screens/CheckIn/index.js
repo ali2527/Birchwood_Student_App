@@ -1,58 +1,67 @@
-import {Text, View, FlatList, TouchableOpacity} from 'react-native';
-import React from 'react';
+import {
+  Text,
+  View,
+  FlatList,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  ScrollView,
+} from 'react-native';
+import React, {useState} from 'react';
 import {styles} from './style';
 import ContainerComponent from '../../Components/ContainerComponent';
 import ScreenWrapperContainer from '../../Components/ScreenWrapperContainer';
 import VectorIcon from '../../Components/VectorIcons';
 import {colors} from '../../theme/colors';
+import GlroyBold from '../../Components/GlroyBoldText';
+import GrayMediumText from '../../Components/GrayMediumText';
+import UserProfileCircle from '../../Components/ProfileCircle';
+import dp1 from '../../Assets/icons/dp1.png';
+import CustomTextInput from '../../Components/InputField';
+import CustomButton from '../../Components/Button';
 
 const CheckIn = () => {
   const data = [
     {
       id: '123',
-      receipt_no: '983344',
-      month: 'October',
-      payment_date: '10 Oct 20',
-      pending_amount: '$999',
-      status: 'pending',
+      name: 'John Doe',
+      class: 'Class 1',
+      checkIn: '08:00 AM',
+      checkOut: '01:00 PM',
     },
     {
       id: '1234',
-      receipt_no: '983344',
-      month: 'October',
-      payment_date: '10 Oct 20',
-      pay_mode: 'Cash on counter',
-      total_amount: '$999',
-      status: 'success',
+      name: 'Jane Lee',
+      class: 'Class 2',
+      checkIn: '08:00 am',
+      checkOut: '01:00 PM',
     },
     {
       id: '12345',
-      receipt_no: '983344',
-      month: 'October',
-      payment_date: '10 Oct 20',
-      pay_mode: 'Cash on counter',
-      total_amount: '$999',
-      status: 'success',
+      name: 'John Smith',
+      class: 'Class 3',
+      checkIn: '08:00 am',
+      checkOut: '01:00 PM',
     },
     {
       id: '123456',
-      receipt_no: '983344',
-      month: 'October',
-      payment_date: '10 Oct 20',
-      pay_mode: 'Cash on counter',
-      total_amount: '$999',
-      status: 'success',
-    },
-    {
-      id: '1234567',
-      receipt_no: '983344',
-      month: 'October',
-      payment_date: '10 Oct 20',
-      pay_mode: 'Cash on counter',
-      total_amount: '$999',
-      status: 'success',
+      name: 'Bom Smith',
+      class: 'Class 4',
+      checkIn: '08:00 am',
+      checkOut: '01:00 PM',
     },
   ];
+
+  const [formData, setFormData] = useState({
+    name: '',
+    class: '',
+  });
+
+  function handleChange(name, value) {
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+  }
 
   const renderItem = ({item}) => {
     return (
@@ -119,10 +128,122 @@ const CheckIn = () => {
   };
 
   return (
-    <ContainerComponent scrollview={true}>
-      <ScreenWrapperContainer title="Check In">
+    <ScreenWrapperContainer title="Check In">
+      <ScrollView contentContainerStyle={{flexGrow: 1}}>
         <View style={styles.container}>
-          <Text>Profile Image</Text>
+          <View style={{alignItems: 'center'}}>
+            <UserProfileCircle
+              profileUri={dp1}
+              disabled={true}
+              _style={styles.dp}
+            />
+            <GlroyBold
+              text={'Allien'}
+              _style={{marginVertical: 8, color: colors.theme.black}}
+            />
+            <View style={{flexDirection: 'row', alignItems: 'center'}}>
+              <GrayMediumText text={'Class XI-B'} />
+              <GrayMediumText
+                text={'|'}
+                _style={{
+                  fontSize: 18,
+                  fontWeight: 'bold',
+                  marginHorizontal: 5,
+                }}
+              />
+              <GrayMediumText text={'Roll no. 04'} />
+            </View>
+          </View>
+          <View style={{margin: 10, marginHorizontal: 20}}>
+            <CustomTextInput
+              label="Student Name"
+              name={'name'}
+              onChangeText={(name, value) => handleChange(name, value)}
+              placeholder={'Name'}
+              value={formData.name}
+              required
+            />
+            <CustomTextInput
+              label="Class"
+              name={'class'}
+              onChangeText={(name, value) => handleChange(name, value)}
+              placeholder={'Name'}
+              value={formData.name}
+              required
+            />
+          </View>
+          <View style={{alignItems: 'center'}}>
+            <CustomButton title={'Check In'} isFocused={true} />
+            <TouchableOpacity>
+              <GrayMediumText
+                text={'Apply for sick leave'}
+                _style={{color: colors.theme.primary, margin: 10}}
+              />
+            </TouchableOpacity>
+          </View>
+          <View style={{alignItems: 'center', margin: 5, marginTop: 10}}>
+            <GrayMediumText
+              text={'Attendance'}
+              _style={{
+                color: colors.theme.black,
+              }}
+            />
+          </View>
+          <View style={styles.attendanceTableContainer}>
+            <View style={styles.tableHeading}>
+              {['Student Name', 'Class', 'Check-in', 'Check-out'].map(
+                (item, indx) => {
+                  return (
+                    <View
+                      style={{
+                        flex: 1,
+                        alignItems: 'center',
+                        paddingVertical: 5,
+                      }}
+                      key={indx}>
+                      <Text style={{fontSize: 14}}>{item}</Text>
+                    </View>
+                  );
+                },
+              )}
+            </View>
+            <View style={{margin: 1}} />
+            {data.map((item, indx) => {
+              return (
+                <View
+                  style={[
+                    styles.tableItems,
+                    {borderBottomWidth: data.length - 1 == indx ? 0 : 1},
+                  ]}
+                  key={indx}>
+                  <GrayMediumText
+                    text={item.name}
+                    _style={styles.attendanceItem}
+                  />
+                  <GrayMediumText
+                    text={item.class}
+                    _style={styles.attendanceItem}
+                  />
+                  <GrayMediumText
+                    text={item.checkIn}
+                    _style={styles.attendanceItem}
+                  />
+                  <GrayMediumText
+                    text={item.checkOut}
+                    _style={styles.attendanceItem}
+                  />
+                </View>
+              );
+            })}
+          </View>
+          <View style={{alignItems: 'center', margin: 5, marginTop: 10}}>
+            <GrayMediumText
+              text={'Reports'}
+              _style={{
+                color: colors.theme.black,
+              }}
+            />
+          </View>
           {/* <FlatList
             data={data}
             keyExtractor={item => `item_${item.id}`}
@@ -131,8 +252,8 @@ const CheckIn = () => {
             contentContainerStyle={styles.flatListContainer}
           /> */}
         </View>
-      </ScreenWrapperContainer>
-    </ContainerComponent>
+      </ScrollView>
+    </ScreenWrapperContainer>
   );
 };
 

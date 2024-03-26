@@ -42,4 +42,43 @@ export const styles = StyleSheet.create({
     fontSize: 13,
     marginVertical: 5,
   },
+  dp: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+  },
+  attendanceTableContainer: {
+    borderWidth: 1,
+    borderColor: colors.theme.borderColor,
+    borderRadius: 10,
+    backgroundColor: colors.table.background,
+  },
+  tableHeading: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: colors.theme.borderColor,
+    padding: 5,
+  },
+  tableItemsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  tableItems: {
+    // padding: 15,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderTopWidth: 1,
+    borderTopColor: colors.theme.borderColor,
+    borderBottomColor: colors.theme.borderColor,
+  },
+  attendanceItem: {
+    padding: 15,
+    flex: 1,
+    textAlign: 'center',
+    color: colors.theme.black,
+    fontSize: 13,
+    alignSelf: 'center',
+  },
 });

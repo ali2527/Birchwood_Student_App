@@ -52,6 +52,9 @@ const colors = {
   card: {
     card1: '#E0E5FF',
   },
+  table: {
+    background: '#F7F7F7',
+  },
 };
 
 const appShadow = {
