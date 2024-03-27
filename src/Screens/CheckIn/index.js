@@ -51,6 +51,24 @@ const CheckIn = () => {
     },
   ];
 
+  const reports = [
+    {
+      id: '123',
+      title: 'Daily Report',
+      description: 'View the daily attendance report',
+    },
+    {
+      id: '1234',
+      title: 'Weekly Report',
+      description: 'View the weekly attendance report',
+    },
+    {
+      id: '12345',
+      title: 'Monthly Report',
+      description: 'View the monthly attendance report',
+    },
+  ];
+
   const [formData, setFormData] = useState({
     name: '',
     class: '',
@@ -123,6 +141,35 @@ const CheckIn = () => {
             />
           </View>
         </TouchableOpacity>
+      </View>
+    );
+  };
+
+  const reportsCards = (items, indx) => {
+    return (
+      <View
+        key={indx}
+        style={[styles.reportCard, {marginTop: indx != 0 ? 20 : 5}]}>
+        <View style={{flex: 1}}>
+          <GrayMediumText
+            text={items.title}
+            _style={{
+              color: colors.theme.black,
+            }}
+          />
+          <GrayMediumText
+            text={items.description}
+            _style={{
+              fontSize: 12,
+            }}
+          />
+        </View>
+        <CustomButton
+          title={'View Report'}
+          isFocused={true}
+          containerStyle={{paddingHorizontal: 10, paddingVertical: 6}}
+          _style={{fontSize: 10}}
+        />
       </View>
     );
   };
@@ -244,6 +291,7 @@ const CheckIn = () => {
               }}
             />
           </View>
+          {reports.map((items, indx) => reportsCards(items, indx))}
           {/* <FlatList
             data={data}
             keyExtractor={item => `item_${item.id}`}

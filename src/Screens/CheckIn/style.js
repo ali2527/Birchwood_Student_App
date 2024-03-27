@@ -81,4 +81,13 @@ export const styles = StyleSheet.create({
     fontSize: 13,
     alignSelf: 'center',
   },
+  reportCard: {
+    borderWidth: 1,
+    padding: 10,
+    backgroundColor: colors.table.background,
+    borderColor: colors.theme.borderColor,
+    borderRadius: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
 });
