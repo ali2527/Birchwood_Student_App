@@ -21,6 +21,7 @@ const routes = {
     schoolAlbums: 'SchoolAlbums',
     result: 'Result',
     checkIn: 'CheckIn',
+    leaveApplication: 'LeaveApplication',
   },
 };
 

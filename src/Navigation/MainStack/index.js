@@ -22,6 +22,7 @@ import TimeTable from '../../Screens/TimeTable';
 import SchoolAlbums from '../../Screens/Albums';
 import Result from '../../Screens/Result';
 import CheckIn from '../../Screens/CheckIn';
+import LeaveApplication from '../../Screens/LeaveApplication';
 
 const Stack = createNativeStackNavigator();
 
@@ -68,6 +69,10 @@ const MainStack = () => {
       />
       <Stack.Screen name={routes.screens.result} component={Result} />
       <Stack.Screen name={routes.screens.checkIn} component={CheckIn} />
+      <Stack.Screen
+        name={routes.screens.leaveApplication}
+        component={LeaveApplication}
+      />
     </Stack.Navigator>
   );
 };

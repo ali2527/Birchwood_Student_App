@@ -63,6 +63,8 @@ export default function HomeScreen() {
     else if (value === 'Result') navigation.navigate(routes.screens.result);
     else if (value === 'Attendance')
       navigation.navigate(routes.screens.checkIn);
+    else if (value === 'Leave Application')
+      navigation.navigate(routes.screens.leaveApplication);
   };
 
   // const data = Array.from({ length: 10 }, (_, index) => ({ id: index.toString(), title: `item${index + 1}` }));
