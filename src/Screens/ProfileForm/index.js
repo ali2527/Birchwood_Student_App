@@ -8,6 +8,7 @@ import Ionicon from 'react-native-vector-icons/Ionicons';
 import TopBar from '../../Components/TopBar';
 import FormContainer from '../../Components/FormContainer';
 import FormTextInput from '../../Components/FormTextInput';
+import { BackArrow } from '../../Components/BackArrow';
 
 export default function ProfileForm() {
     return (
@@ -15,8 +16,9 @@ export default function ProfileForm() {
             <TopBar>
                 <View style={styles.header}>
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <Ionicon name="chevron-back-outline" size={18} color={colors.theme.white} />
-                        <Text style={{ color: colors.text.white, marginLeft: 10, fontWeight: 'bold', bottom: 1 }}>My Profile</Text>
+                        <BackArrow/>
+                        {/* <Ionicon name="chevron-back-outline" size={18} color={colors.theme.white} /> */}
+                        <Text style={{ color: colors.text.white, marginLeft: 10, fontWeight: 'bold', bottom: 1 }}>My Profile fff</Text>
                     </View>
                     <TouchableOpacity style={styles.editContainer}>
                         <Ionicon name="checkmark" size={15} color={colors.theme.white} style={styles.addIcon} />

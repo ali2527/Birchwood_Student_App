@@ -29,10 +29,10 @@ const Stack = createNativeStackNavigator();
 const MainStack = () => {
   return (
     <Stack.Navigator screenOptions={NavigationOptions}>
-      <Stack.Screen name={routes.screens.homeScreen} component={HomeScreen} />
       <Stack.Screen name={routes.navigator.onboard} component={OnBoardScreen} />
       <Stack.Screen name={routes.navigator.signin} component={SignIn} />
       <Stack.Screen name={routes.navigator.signup} component={SignUp} />
+      <Stack.Screen name={routes.screens.homeScreen} component={HomeScreen} />
       <Stack.Screen
         name={routes.navigator.personalInfo}
         component={PersonalInfo}

@@ -110,7 +110,7 @@ export default function Experience() {
                             <CustomButton
                                 isFocused={true}
                                 title={'Finish'}
-                                onPress={() => console.log('finish details')}
+                                onPress={() => console.log('experience add')}
                             />
                         </View>
 

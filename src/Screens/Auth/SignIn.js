@@ -62,7 +62,7 @@ const SignIn = () => {
                     <CustomButton
                         isFocused={true}
                         title={'Sign In'}
-                        onPress={() => console.log('Login')}
+                        onPress={() => navigation.navigate(routes.screens.homeScreen)}
                     />
                 </View>
                 <View style={{ alignItems: 'center',marginVertical:10 }}>

@@ -188,7 +188,7 @@ export default function HealthDetails() {
                             <CustomButton
                                 isFocused={true}
                                 title={'Finish'}
-                                onPress={() => console.log('Finish')}
+                                onPress={() => navigation.navigate(routes.screens.homeScreen)}
                             />
                         </View>
 

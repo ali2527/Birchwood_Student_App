@@ -20,6 +20,7 @@ import {resultScreenImgs} from '../../Assets';
 import GlroyBold from '../../Components/GlroyBoldText';
 import BottomLogo from '../../Components/BottomLogo';
 import Button from '../../Components/Button';
+import { BackArrow } from '../../Components/BackArrow';
 
 const Result = () => {
   const data = [
@@ -161,7 +162,11 @@ const Result = () => {
                 {data.map((item, indx) => renderItem(item, indx))}
               </View>
               <View style={{margin: 15}} />
+              <View style={{flexDirection:'row', alignItems:'center'}}>
+              <BackArrow/>
               <Button title={'Download PDF'} isFocused={true} />
+
+              </View>
             </View>
           </ScrollView>
         </View>

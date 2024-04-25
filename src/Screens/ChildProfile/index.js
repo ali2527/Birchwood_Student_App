@@ -116,6 +116,7 @@ export default function ChildProfile() {
                             />
 
                             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                                <BackArrow/>
                                 <CustomButton
                                     isFocused={true}
                                     title={'Next'}

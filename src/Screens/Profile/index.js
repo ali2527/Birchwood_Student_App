@@ -12,6 +12,7 @@ import dp3 from '../../Assets/icons/dp3.png';
 import edit from '../../Assets/icons/edit.png';
 import { useNavigation } from '@react-navigation/native';
 import routes from '../../Navigation/routes';
+import { BackArrow } from '../../Components/BackArrow';
 
 export default function Profile() {
 
@@ -40,23 +41,23 @@ export default function Profile() {
 
     const renderItem = ({ item }) => (
         <View style={styles.item}>
-            <View style={{flexDirection:'row', alignItems:'center', position:'relative'}}>
-               <Image source={item.id == 3 ? dp3 : item.id == 2 ? dp2 : dp1} style={styles.dpStyle}/>
-               <View style={{marginLeft:10, flex:1}}>
-                   <GlroyBold text={item.name}/>
-                   <GrayMediumText text={`Class ${item.class} | Roll no: ${item.roll_no}`} 
-                    _style={{fontSize:12}}
-                   />
-               </View>
-               <TouchableOpacity 
-               onPress={()=> navigation.navigate(routes.screens.profileForm)}
-               style={{alignSelf:'flex-start', flexDirection:'row', alignItems:'center', padding:5}}
-               >
-                   <Text style={{fontSize:10,fontWeight:'bold', marginHorizontal:3}}>
-                      Edit
-                   </Text>
-                   <Image source={edit} style={styles.editIcon}/>
-               </TouchableOpacity>
+            <View style={{ flexDirection: 'row', alignItems: 'center', position: 'relative' }}>
+                <Image source={item.id == 3 ? dp3 : item.id == 2 ? dp2 : dp1} style={styles.dpStyle} />
+                <View style={{ marginLeft: 10, flex: 1 }}>
+                    <GlroyBold text={item.name} />
+                    <GrayMediumText text={`Class ${item.class} | Roll no: ${item.roll_no}`}
+                        _style={{ fontSize: 12 }}
+                    />
+                </View>
+                <TouchableOpacity
+                    onPress={() => navigation.navigate(routes.screens.profileForm)}
+                    style={{ alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', padding: 5 }}
+                >
+                    <Text style={{ fontSize: 10, fontWeight: 'bold', marginHorizontal: 3 }}>
+                        Edit
+                    </Text>
+                    <Image source={edit} style={styles.editIcon} />
+                </TouchableOpacity>
             </View>
         </View>
     );
@@ -67,7 +68,9 @@ export default function Profile() {
             <TopBar>
                 <View style={styles.header}>
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <Ionicon name="chevron-back-outline" size={18} color={colors.theme.white} />
+                        <TouchableOpacity onPress={() => navigation.goBack()}>
+                            <Ionicon name="chevron-back-outline" size={18} color={colors.theme.white} />
+                        </TouchableOpacity>
                         <Text style={{ color: colors.text.white, marginLeft: 10, fontWeight: 'bold', bottom: 1 }}>My Profile</Text>
                     </View>
                     <TouchableOpacity style={styles.editContainer}>
@@ -114,19 +117,19 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: colors.theme.secondary,
         borderRadius: 10,
-        margin:15,
-        padding:10
+        margin: 15,
+        padding: 10
     },
-    dpStyle:{
-        height:50,
-        width:50,
-        borderRadius:25,
-        resizeMode:'contain'
+    dpStyle: {
+        height: 50,
+        width: 50,
+        borderRadius: 25,
+        resizeMode: 'contain'
     },
-    editIcon:{
-        height:10,
-        width:10,
-        resizeMode:'contain'
+    editIcon: {
+        height: 10,
+        width: 10,
+        resizeMode: 'contain'
     }
-    
+
 })

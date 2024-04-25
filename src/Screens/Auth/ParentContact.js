@@ -114,7 +114,7 @@ export default function ParentContact() {
                             <CustomButton
                                 isFocused={true}
                                 title={'Next'}
-                                onPress={() => navigation.navigate(routes.navigator.experience)}
+                                onPress={() => navigation.navigate(routes.screens.healthDetails)}
                             />
                         </View>
 

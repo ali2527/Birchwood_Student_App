@@ -5,10 +5,13 @@ import GrayMediumText from '../../Components/GrayMediumText'
 import CustomTextInput from '../../Components/InputField'
 import CustomButton from '../../Components/Button'
 import { colors } from '../../theme/colors'
+import routes from '../../Navigation/routes'
+import { useNavigation } from '@react-navigation/native'
 
 export default function ResetPassword({handleScreen}) {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const navigation = useNavigation();
     return (
         <View style={styles.contanier}>
             <View style={styles.heading}>
@@ -39,8 +42,8 @@ export default function ResetPassword({handleScreen}) {
             <View style={{ alignItems: 'center' }}>
                 <CustomButton
                     isFocused={true}
-                    title={'Nex'}
-                    onPress={() => handleScreen(2)}
+                    title={'Next'}
+                    onPress={() => navigation.navigate(routes.navigator.education)}
                 />
             </View>
         </View>
