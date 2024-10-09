@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View, TouchableOpacity, StatusBar } from 'react-native'
-import React, {useState} from 'react'
+import React, { useState } from 'react'
 import AnimatedBackgroundImage from '../../Components/AnimatedBackgroundImage'
 import forgot_child from '../../Assets/images/forgot_child.png';
 import verification_child from '../../Assets/images/verification_child.png';
@@ -10,14 +10,17 @@ import VerificationCode from './VerificationCode';
 import ResetPassword from './ResetPassword';
 
 export default function PasswordResetScreens() {
-    const [screen, setScreen] = useState(1);
-    function handleForgotPassword(params) {
-        console.log('Clicked On Forgot Password')
+    const [screensData, setScreensData] = {
+        index: 1,
+        email: "",
+        code: ""
     }
 
-    function handleScreen(params) {
-        setScreen(params)
+    function handleScreen(data) {
+        setScreensData(prevData = ({ ...prevData, ...data }))
     }
+
+    const screen = screensData.index
 
     return (
         <View style={styles.container}>
@@ -25,11 +28,10 @@ export default function PasswordResetScreens() {
             <AnimatedBackgroundImage
                 additionalImage={screen == 2 ? verification_child : screen === 3 ? reset_pass_child : forgot_child}
             />
-            <View style={[styles.bottomContainer, {flex: (screen == 1 || screen == 2) ? 1 : 1.3}]}>
-                {screen == 1 && (<ForgotPassword handleScreen={handleScreen}/>)}
-                {screen == 2 && (<VerificationCode handleScreen={handleScreen}/>)}
-                {screen == 3 && (<ResetPassword handleScreen={handleScreen}/>)}
-                
+            <View style={[styles.bottomContainer, { flex: (screen == 1 || screen == 2) ? 1 : 1.3 }]}>
+                {screen == 1 && (<ForgotPassword data={screensData} handleScreen={handleScreen} />)}
+                {screen == 2 && (<VerificationCode data={screensData} handleScreen={handleScreen} />)}
+                {screen == 3 && (<ResetPassword data={screensData} />)}
             </View>
         </View>
     )
@@ -40,10 +42,9 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     bottomContainer: {
-        justifyContent: 'center', // Align content to the top
+        justifyContent: 'center',
         alignItems: 'center',
         paddingHorizontal: 20,
-        // backgroundColor:'red',
         paddingTop: 20,
     },
 })

@@ -38,6 +38,10 @@ const MainStack = () => {
       {!token ?
         <Stack.Group>
           <Stack.Screen name={routes.navigator.onboard} component={OnBoardScreen} />
+          <Stack.Screen
+            name={routes.navigator.passwordresetscreens}
+            component={PasswordResetScreens}
+          />
           <Stack.Screen name={routes.navigator.signin} component={SignIn} />
           <Stack.Screen name={routes.navigator.signup} component={SignUp} />
           <Stack.Screen
@@ -58,10 +62,6 @@ const MainStack = () => {
         <Stack.Group>
           <Stack.Screen name={routes.screens.homeScreen} component={HomeScreen} />
           <Stack.Screen name={routes.navigator.experience} component={Experience} />
-          <Stack.Screen
-            name={routes.navigator.passwordresetscreens}
-            component={PasswordResetScreens}
-          />
           <Stack.Screen name={routes.screens.profile} component={Profile} />
           <Stack.Screen
             name={routes.screens.childProfile}

@@ -1,39 +1,88 @@
-import { StyleSheet, Text, View, } from 'react-native'
-import React, { useState } from 'react'
+import React, { useCallback } from 'react'
+import { Controller, useForm } from 'react-hook-form'
+import { StyleSheet, View } from 'react-native'
+import CustomButton from '../../Components/Button'
 import GlroyBold from '../../Components/GlroyBoldText'
 import GrayMediumText from '../../Components/GrayMediumText'
-import CustomButton from '../../Components/Button'
-import CustomTextInput from '../../Components/InputField'
+import { asyncEmailVerification } from '../../Stores/actions/user.action'
 import { colors } from '../../theme/colors'
+import { useAppDispatch } from '../../Stores/hooks'
 
-export default function ForgotPassword({handleScreen}) {
-    const [email, setEmail] = useState('');
+export default function ForgotPassword({ data, handleScreen }) {
+    const dispatch = useAppDispatch();
+
+    const {
+        control,
+        handleSubmit,
+        formState: { errors },
+    } = useForm({
+        defaultValues: {
+            email: '',
+        },
+    });
+
+    const onSubmit = useCallback(
+        async (body) => {
+            const res = await dispatch(asyncEmailVerification(body)).unwrap();
+
+            if (res?.data?.encodedEmail) {
+                handleScreen({
+                    index: 2,
+                    email: encodedEmail
+                })
+            }
+        },
+        [navigation, dispatch]
+    );
+
     return (
         <View style={styles.contanier}>
             <View style={styles.heading}>
-                <GlroyBold text={'Forgot Password'} _style={{ color: colors.text.black }} />
+                <GlroyBold text={'Forgot Password ?'} _style={{ color: colors.text.black }} />
             </View>
             <GrayMediumText
-                text={'Lorem Ipsum is simply dummy text of the printing and typesetting industry.'}
+                text={'Please enter the email address associated with your account below. We will send you a verification code to reset your password.'}
                 _style={styles.para}
             />
             <View>
-                <CustomTextInput
-                    label="Enter your Email"
-                    placeholder={'Email'}
-                    value={email}
-                    required
-                    onChangeText={setEmail}
+                <Controller
+                    name="email"
+                    control={control}
+                    rules={{
+                        required: {
+                            value: true,
+                            message: 'Email is required',
+                        },
+                        pattern: {
+                            value: /\S+@\S+\.\S+/,
+                            message: 'Email format is Invalid',
+                        },
+                    }}
+                    render={({ field: { onChange, value } }) => (
+                        <CustomTextInput
+                            label="Enter Address"
+                            placeholder="Email your email"
+                            value={value}
+                            required
+                            onChangeText={onChange}
+                        />
+                    )}
                 />
+                {errors.email?.message && (
+                    <GrayMediumText
+                        _style={{ color: colors.theme.lightRed }}
+                        text={errors.email.message}
+                    />
+                )}
             </View>
             <View style={{ alignItems: 'center' }}>
                 <CustomButton
                     isFocused={true}
                     title={'Submit'}
-                    onPress={() => handleScreen(2)}
+                    onPress={handleSubmit(onSubmit)}
                 />
             </View>
-        </View>
+        </View >
     )
 }
 

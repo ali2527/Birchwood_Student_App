@@ -18,7 +18,6 @@ const SignIn = ({ navigation }) => {
     const dispatch = useAppDispatch();
 
     const handleForgotPassword = () => {
-        console.log('Forgot Password clicked');
         navigation.navigate(routes.navigator.passwordresetscreens)
     };
 
