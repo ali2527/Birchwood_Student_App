@@ -1,36 +1,31 @@
+import { CheckBox } from '@rneui/themed';
+import React, { useCallback, useState } from 'react';
 import {
-  View,
-  ScrollView,
-  TextInput,
-  StyleSheet,
-  KeyboardAvoidingView,
-  TouchableWithoutFeedback,
   Keyboard,
-  TouchableOpacity,
+  KeyboardAvoidingView,
+  ScrollView,
+  StyleSheet,
   Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View
 } from 'react-native';
-import React, {useState} from 'react';
-import CustomStatusBar from '../../Components/StatusBar';
-import {colors} from '../../theme/colors';
-import MainLogo from '../../Components/MainLogo';
 import CustomButton from '../../Components/Button';
 import GlroyBold from '../../Components/GlroyBoldText';
-import {useNavigation} from '@react-navigation/native';
-import routes from '../../Navigation/routes';
 import GrayMediumText from '../../Components/GrayMediumText';
 import CustomTextInput from '../../Components/InputField';
-import {CheckBox} from '@rneui/themed';
+import MainLogo from '../../Components/MainLogo';
+import CustomStatusBar from '../../Components/StatusBar';
+import routes from '../../Navigation/routes';
+import { colors } from '../../theme/colors';
+import { Controller, useForm } from 'react-hook-form';
+import { asyncSignup } from '../../Stores/actions/user.action';
+import { useAppDispatch } from '../../Stores/hooks';
 
-export default function SignUp() {
-  const [formData, setFormData] = useState({
-    first_name: '',
-    last_name: '',
-    email: '',
-    password: '',
-    confirm_password: '',
-  });
+export default function SignUp({ navigation }) {
+
+  const dispatch = useAppDispatch()
   const [rememberPassword, setRememberPassword] = useState(false);
-  const navigation = useNavigation();
 
   function handleChange(name, value) {
     setFormData({
@@ -38,6 +33,33 @@ export default function SignUp() {
       [name]: value,
     });
   }
+
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+    getValues
+  } = useForm({
+    defaultValues: {
+      fatherFirstName: "",
+      fatherLastName: "",
+      motherFirstName: "",
+      motherLastName: "",
+      phone: "",
+      email: "",
+      password: ""
+    }
+  })
+
+  const onSubmit = useCallback(
+    async (body) => {
+      const res = await dispatch(asyncSignup(body)).unwrap();
+      if (res.status) {
+        navigation.navigate(routes.screens.homeScreen);
+      }
+    },
+    [navigation, dispatch]
+  );
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
@@ -47,48 +69,149 @@ export default function SignUp() {
           barStyle="dark-content"
         />
         <KeyboardAvoidingView
-          style={{flex: 1}}
-          // behavior="padding"
-          // enabled
+          style={{ flex: 1 }}
+        // behavior="padding"
+        // enabled
         >
-          <View style={{alignItems: 'center', paddingVertical: 20}}>
+          <View style={{ alignItems: 'center', paddingVertical: 20 }}>
             <MainLogo />
           </View>
           <ScrollView contentContainerStyle={styles.scrollContainer}>
             {/* Your other components/content here */}
-            <View style={{alignItems: 'center'}}>
+            <View style={{ alignItems: 'center' }}>
               <GlroyBold text={'Sign UP'} _style={styles.head} />
             </View>
 
-            <CustomTextInput
-              label="First Name"
-              name={'first_name'}
-              onChangeText={(name, value) => handleChange(name, value)}
-              placeholder={'first name'}
-              value={formData.first_name}
-              required
-            />
-            <CustomTextInput
+            <Controller
+              name="fatherFirstName"
+              control={control}
+              rules={{
+                required: {
+                  value: true,
+                  message: 'Father first name is required',
+                },
+              }}
+              render={({ field: { onChange, value } }) => (
+                <CustomTextInput
+                  label="Father First Name"
+                  name={'fatherFirstName'}
+                  onChangeText={onChange}
+                  placeholder={'Enter father first name'}
+                  value={value}
+                  required
+                />
+              )} />
+
+            {errors.fatherFirstName?.message && (
+              <GrayMediumText
+                _style={{ color: colors.theme.lightRed }}
+                text={errors.fatherFirstName.message}
+              />
+            )}
+
+            <Controller
+              name="fatherLastName"
+              control={control}
+              rules={{
+                required: {
+                  value: true,
+                  message: 'Father last name is required',
+                },
+              }}
+              render={({ field: { onChange, value } }) => (
+                <CustomTextInput
+                  label="Father Last Name"
+                  name={'fatherLastName'}
+                  onChangeText={onChange}
+                  placeholder={'Enter father last name'}
+                  value={value}
+                  required
+                />
+              )} />
+
+            {errors.fatherLastName?.message && (
+              <GrayMediumText
+                _style={{ color: colors.theme.lightRed }}
+                text={errors.fatherLastName.message}
+              />
+            )}
+           
+            <Controller
+              name="motherFirstName"
+              control={control}
+              rules={{
+                required: {
+                  value: true,
+                  message: 'Mother first name is required',
+                },
+              }}
+              render={({ field: { onChange, value } }) => (
+                <CustomTextInput
+                  label="Mother First Name"
+                  name={'motherFirstName'}
+                  onChangeText={onChange}
+                  placeholder={'Enter mother first name'}
+                  value={value}
+                  required
+                />
+              )} />
+
+            {errors.fatherFirstName?.message && (
+              <GrayMediumText
+                _style={{ color: colors.theme.lightRed }}
+                text={errors.fatherFirstName.message}
+              />
+            )}
+
+            <Controller
+              name="fatherLastName"
+              control={control}
+              rules={{
+                required: {
+                  value: true,
+                  message: 'Father last name is required',
+                },
+              }}
+              render={({ field: { onChange, value } }) => (
+                <CustomTextInput
+                  label="Father Last Name"
+                  name={'fatherLastName'}
+                  onChangeText={onChange}
+                  placeholder={'Enter father last name'}
+                  value={value}
+                  required
+                />
+              )} />
+
+            {errors.fatherLastName?.message && (
+              <GrayMediumText
+                _style={{ color: colors.theme.lightRed }}
+                text={errors.fatherLastName.message}
+              />
+            )}
+
+            {/* <CustomTextInput
               label="Last Name"
               name={'last_name'}
               onChangeText={(name, value) => handleChange(name, value)}
               placeholder={'last name'}
-              value={formData.last_name}
+              // value={formData.last_name}
               required
-            />
-            <CustomTextInput
+            /> */}
+
+            {/* <CustomTextInput
               label="Email Address"
               name={'email'}
               onChangeText={(name, value) => handleChange(name, value)}
               placeholder={'email'}
               value={formData.email}
               required
-            />
+            /> */}
             <CustomTextInput
               label="Password"
               name={'password'}
               placeholder={'password'}
-              value={formData.password}
+              // value={formData.password}
               required
               password={true}
               onChangeText={(name, value) => handleChange(name, value)}
@@ -97,7 +220,7 @@ export default function SignUp() {
               label="Confirm Password"
               name={'confirm_password'}
               placeholder={'confirm password'}
-              value={formData.confirm_password}
+              // value={formData.confirm_password}
               required
               password={true}
               onChangeText={(name, value) => handleChange(name, value)}
@@ -115,7 +238,7 @@ export default function SignUp() {
                 setRememberPassword(rememberPassword => !rememberPassword)
               }
             />
-            <View style={{alignItems: 'center'}}>
+            <View style={{ alignItems: 'center' }}>
               <CustomButton
                 isFocused={true}
                 title={'Next'}
@@ -133,9 +256,9 @@ export default function SignUp() {
               }}>
               <GrayMediumText text={'Already have account?'} />
               <TouchableOpacity
-                style={{marginHorizontal: 2}}
+                style={{ marginHorizontal: 2 }}
                 onPress={() => navigation.navigate(routes.navigator.signin)}>
-                <Text style={{color: colors.theme.primary, fontWeight: 'bold'}}>
+                <Text style={{ color: colors.theme.primary, fontWeight: 'bold' }}>
                   Login
                 </Text>
               </TouchableOpacity>

@@ -18,7 +18,7 @@ export default function ProfileForm() {
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                         <BackArrow/>
                         {/* <Ionicon name="chevron-back-outline" size={18} color={colors.theme.white} /> */}
-                        <Text style={{ color: colors.text.white, marginLeft: 10, fontWeight: 'bold', bottom: 1 }}>My Profile fff</Text>
+                        <Text style={{ color: colors.text.white, marginLeft: 10, fontWeight: 'bold', bottom: 1 }}>My Profile</Text>
                     </View>
                     <TouchableOpacity style={styles.editContainer}>
                         <Ionicon name="checkmark" size={15} color={colors.theme.white} style={styles.addIcon} />
