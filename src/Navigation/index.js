@@ -17,6 +17,8 @@ const MyTheme = {
 
 const MainNavigator = () => {
   const loader = useAppSelector(selectAppLoader);
+  
+  console.log('MainNavigator rendered, loader:', loader);
 
   return (
     <NavigationContainer theme={MyTheme}>

@@ -31,7 +31,7 @@ const Stack = createNativeStackNavigator();
 const MainStack = () => {
   const token = useAppSelector(selectUserToken);
 
-  console.log(token, 'checking token')
+  console.log('MainStack rendered, token:', token);
 
   return (
     <Stack.Navigator screenOptions={NavigationOptions} initialRouteName={routes.navigator.onboard}>
