@@ -1,11 +1,10 @@
-import React, { useCallback, useState } from 'react';
-import { KeyboardAvoidingView, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, TouchableOpacity, View, Keyboard } from 'react-native';
 import CustomButton from '../../Components/Button';
 import ChildLogo from '../../Components/ChildLogo';
 import CustomTextInput from '../../Components/InputField';
 import MainLogo from '../../Components/MainLogo';
 import SmallText from '../../Components/SmallText';
-import SocialMediaIcons from '../../Components/SocialMediaIcons';
 import { colors } from '../../theme/colors';
 import { Controller, useForm } from 'react-hook-form';
 import { useAppDispatch } from '../../Stores/hooks';
@@ -16,6 +15,26 @@ import { asyncLogin } from '../../Stores/actions/user.action';
 const SignIn = ({ navigation }) => {
 
     const dispatch = useAppDispatch();
+    // Track keyboard visibility to enable/disable scrolling
+    const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+
+    useEffect(() => {
+        // Listen to keyboard show/hide events
+        // Enable scrolling only when keyboard is visible (input field focused)
+        const keyboardDidShowListener = Keyboard.addListener(
+            Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+            () => setKeyboardVisible(true)
+        );
+        const keyboardDidHideListener = Keyboard.addListener(
+            Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+            () => setKeyboardVisible(false)
+        );
+
+        return () => {
+            keyboardDidShowListener.remove();
+            keyboardDidHideListener.remove();
+        };
+    }, []);
 
     const handleForgotPassword = () => {
         navigation.navigate(routes.navigator.passwordresetscreens)
@@ -27,8 +46,8 @@ const SignIn = ({ navigation }) => {
         formState: { errors },
     } = useForm({
         defaultValues: {
-            email: 'waqas@gmail.com',
-            password: 'Waqas@123456',
+            email: '',
+            password: '',
         },
     });
 
@@ -45,10 +64,18 @@ const SignIn = ({ navigation }) => {
     return (
         <KeyboardAvoidingView
             style={styles.container}
-            behavior={Platform.OS === 'ios' ? 'padding' : 0}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
         >
-            <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-                <View style={{ alignItems: 'center' }}>
+            <ScrollView 
+                contentContainerStyle={styles.scrollContent}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+                // Enable scrolling only when keyboard is visible (input field focused)
+                scrollEnabled={isKeyboardVisible}
+                bounces={isKeyboardVisible}
+            >
+                <View style={styles.logoContainer}>
                     <MainLogo />
                 </View>
                 <View style={styles.formContainer}>
@@ -122,17 +149,16 @@ const SignIn = ({ navigation }) => {
                         </TouchableOpacity>
                     </View>
                 </View>
-                <View style={{ alignItems: 'center' }}>
+                <View style={styles.buttonContainer}>
                     <CustomButton
                         isFocused={true}
                         title={'Sign In'}
                         onPress={handleSubmit(onSubmit)}
                     />
                 </View>
-                <View style={{ alignItems: 'center', marginVertical: 10 }}>
+                <View style={styles.childLogoContainer}>
                     <ChildLogo _style={styles.childLogo} />
                 </View>
-                <SocialMediaIcons />
             </ScrollView>
         </KeyboardAvoidingView>
     );
@@ -142,13 +168,20 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 20,
+    },
+    scrollContent: {
+        flexGrow: 1,
         justifyContent: 'center',
+        paddingVertical: 20,
+    },
+    logoContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 30,
     },
     formContainer: {
-        flex: 1,
-        //  marginTop:30,
-        justifyContent: 'flex-end',
-        // backgroundColor:'red'
+        width: '100%',
+        marginBottom: 20,
     },
     forgotPasswordContainer: {
         marginTop: 10,
@@ -157,11 +190,19 @@ const styles = StyleSheet.create({
     forgotPasswordText: {
         textDecorationLine: 'underline',
         color: colors.theme.primary
-
+    },
+    buttonContainer: {
+        alignItems: 'center',
+        marginTop: 20,
+        marginBottom: 30,
+    },
+    childLogoContainer: {
+        alignItems: 'center',
+        marginTop: 20,
     },
     childLogo: {
-        height: 180,
-        width: 320
+        height: 120,
+        width: 220
     }
 });
 

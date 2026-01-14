@@ -12,6 +12,7 @@
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		7D1A48652EAA6E9200F8EA86 /* main.jsbundle in Sources */ = {isa = PBXBuildFile; fileRef = 7D86CFB32EAA29B000311316 /* main.jsbundle */; };
+		7DBE97EA2EC5C4D1009D375B /* main.jsbundle in Resources */ = {isa = PBXBuildFile; fileRef = 7D86CFB32EAA29B000311316 /* main.jsbundle */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		C24D16688DFFDF0E779FA005 /* libPods-BirchwoodStudent-BirchwoodStudentTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BE77068361D67854AF98DF4E /* libPods-BirchwoodStudent-BirchwoodStudentTests.a */; };
 		FFC1D187F7598DDADD201B76 /* libPods-BirchwoodStudent.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 23C523A94B97A13E9E5BDFC0 /* libPods-BirchwoodStudent.a */; };
@@ -243,6 +244,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7DBE97EA2EC5C4D1009D375B /* main.jsbundle in Resources */,
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 			);
@@ -319,9 +321,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-BirchwoodStudent/Pods-BirchwoodStudent-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-BirchwoodStudent/Pods-BirchwoodStudent-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -336,9 +342,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-BirchwoodStudent-BirchwoodStudentTests/Pods-BirchwoodStudent-BirchwoodStudentTests-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-BirchwoodStudent-BirchwoodStudentTests/Pods-BirchwoodStudent-BirchwoodStudentTests-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -453,12 +463,11 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_IDENTITY = "iPhone Distribution: Birchwood Montessori Academy Limited (66BYBJAGN2)";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution: Birchwood Montessori Academy Limited (66BYBJAGN2)";
-				CODE_SIGN_STYLE = Manual;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
-				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 66BYBJAGN2;
+				DEVELOPMENT_TEAM = 66BYBJAGN2;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = BirchwoodStudent/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Birchwood;
@@ -475,8 +484,6 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.app.BirchwoodStudents;
 				PRODUCT_NAME = BirchwoodStudent;
-				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = ProvisionalProfileStudents_V2;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = YES;
@@ -493,12 +500,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_IDENTITY = "iPhone Distribution: Birchwood Montessori Academy Limited (66BYBJAGN2)";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution: Birchwood Montessori Academy Limited (66BYBJAGN2)";
-				CODE_SIGN_STYLE = Manual;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
-				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 66BYBJAGN2;
+				DEVELOPMENT_TEAM = 66BYBJAGN2;
 				INFOPLIST_FILE = BirchwoodStudent/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Birchwood;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
@@ -515,7 +520,6 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.app.BirchwoodStudents;
 				PRODUCT_NAME = BirchwoodStudent;
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = ProvisionalProfileStudents_V2;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = YES;

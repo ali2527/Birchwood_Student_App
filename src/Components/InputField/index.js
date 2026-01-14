@@ -8,7 +8,6 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome'; // You may need to install this package
 import {colors} from '../../theme/colors';
-import {useColorScheme} from 'react-native';
 import {vh} from '../../theme/units';
 
 const CustomTextInput = ({
@@ -27,7 +26,6 @@ const CustomTextInput = ({
   placeholderClr,
 }) => {
   const [secureTextEntry, setSecureTextEntry] = useState(password);
-  const colorScheme = useColorScheme();
   return (
     <View style={{marginVertical: 10}}>
       <Text style={{...styles.labelStyle, ...labelStyle}}>
@@ -43,11 +41,20 @@ const CustomTextInput = ({
             color: 'black',
             height: multiple ? vh * 20 : 40,
           }}
-          placeholderTextColor={[colors.text.black, placeholderClr]}
+          placeholderTextColor={placeholderClr || colors.text.altGrey}
           value={value}
           name={name}
           secureTextEntry={secureTextEntry}
-          onChangeText={value => onChangeText(name, value)}
+          onChangeText={(text) => {
+            if (!onChangeText) return;
+            if (name) {
+              // If name is provided, call with (name, value) for form handlers
+              onChangeText(name, text);
+            } else {
+              // If no name, call with just value (for react-hook-form)
+              onChangeText(text);
+            }
+          }}
         />
         {password && (
           <TouchableOpacity

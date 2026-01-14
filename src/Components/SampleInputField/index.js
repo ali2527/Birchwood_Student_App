@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
-import { View, TextInput, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import React from 'react';
+import { View, TextInput, Text, StyleSheet } from 'react-native';
 import IonicIcon from 'react-native-vector-icons/Ionicons'; // You may need to install this package
 import { colors } from '../../theme/colors';
-import { useColorScheme } from 'react-native';
 
 
 const SampleInputField = ({ 
@@ -16,8 +15,6 @@ const SampleInputField = ({
     placeholderFontSize,
     name
 }) => {
-
-  const colorScheme = useColorScheme();
   return (
     <View style={{ marginVertical: 10 }}>
       
@@ -25,14 +22,16 @@ const SampleInputField = ({
         {label} {required && <Text style={{ color: starColor || 'red' }}>*</Text>}
       </Text>
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <TouchableOpacity
-        style={styles.textInputField}
-        onPress={()=> onChangeText(name, value)}
-        >
-            <Text style={{fontSize: placeholderFontSize || 12, color: 'black'}}>{value !== '' ? value : placeholder}</Text>
-        </TouchableOpacity>
+        <TextInput
+          placeholder={placeholder}
+          style={[styles.textInputField, {fontSize: placeholderFontSize || 12}]}
+          placeholderTextColor={colors.text.altGrey}
+          value={value}
+          name={name}
+          onChangeText={(text) => onChangeText(name, text)}
+        />
         {icon && (
-            <IonicIcon name={icon} size={20} color={colors.text.altGrey} />
+            <IonicIcon name={icon} size={20} color={colors.text.altGrey} style={{ marginLeft: 10 }} />
         )}
       </View>
     </View>
@@ -50,7 +49,7 @@ const styles = StyleSheet.create({
         height:50,
         flex: 1,
         backgroundColor:colors.input.background,
-        justifyContent:'center',
+        color: 'black',
     },
     labelStyle:{
         marginBottom: 5,

@@ -70,7 +70,7 @@ export default function Experience() {
                         </View>
                         <CustomTextInput
                             label="Institute Name"
-                            name={'institue_name'}
+                            name={'institut_name'}
                             placeholder={'institute name'}
                             value={formData.institut_name}
                             required

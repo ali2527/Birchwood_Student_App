@@ -7,7 +7,6 @@ import ChildLogo from '../../Components/ChildLogo';
 import CustomButton from '../../Components/Button';
 import GlroyBold from '../../Components/GlroyBoldText';
 import GrayMediumText from '../../Components/GrayMediumText';
-import SocialMediaIcons from '../../Components/SocialMediaIcons';
 import { useNavigation } from '@react-navigation/native';
 import routes from '../../Navigation/routes';
 
@@ -53,7 +52,6 @@ export default function OnBoardScreen() {
                 onPress={()=> navigation.navigate(routes.navigator.signin)}
               />
             </View>
-            <SocialMediaIcons />
           </View>
         </View>
       </ScrollView>

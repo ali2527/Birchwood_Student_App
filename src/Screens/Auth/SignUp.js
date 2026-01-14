@@ -27,13 +27,6 @@ export default function SignUp({ navigation }) {
   const dispatch = useAppDispatch()
   const [rememberPassword, setRememberPassword] = useState(false);
 
-  function handleChange(name, value) {
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
-  }
-
   const {
     control,
     handleSubmit,
@@ -47,7 +40,8 @@ export default function SignUp({ navigation }) {
       motherLastName: "",
       phone: "",
       email: "",
-      password: ""
+      password: "",
+      confirmPassword: ""
     }
   })
 
@@ -94,7 +88,6 @@ export default function SignUp({ navigation }) {
               render={({ field: { onChange, value } }) => (
                 <CustomTextInput
                   label="Father First Name"
-                  name={'fatherFirstName'}
                   onChangeText={onChange}
                   placeholder={'Enter father first name'}
                   value={value}
@@ -121,7 +114,6 @@ export default function SignUp({ navigation }) {
               render={({ field: { onChange, value } }) => (
                 <CustomTextInput
                   label="Father Last Name"
-                  name={'fatherLastName'}
                   onChangeText={onChange}
                   placeholder={'Enter father last name'}
                   value={value}
@@ -148,7 +140,6 @@ export default function SignUp({ navigation }) {
               render={({ field: { onChange, value } }) => (
                 <CustomTextInput
                   label="Mother First Name"
-                  name={'motherFirstName'}
                   onChangeText={onChange}
                   placeholder={'Enter mother first name'}
                   value={value}
@@ -156,37 +147,36 @@ export default function SignUp({ navigation }) {
                 />
               )} />
 
-            {errors.fatherFirstName?.message && (
+            {errors.motherFirstName?.message && (
               <GrayMediumText
                 _style={{ color: colors.theme.lightRed }}
-                text={errors.fatherFirstName.message}
+                text={errors.motherFirstName.message}
               />
             )}
 
             <Controller
-              name="fatherLastName"
+              name="motherLastName"
               control={control}
               rules={{
                 required: {
                   value: true,
-                  message: 'Father last name is required',
+                  message: 'Mother last name is required',
                 },
               }}
               render={({ field: { onChange, value } }) => (
                 <CustomTextInput
-                  label="Father Last Name"
-                  name={'fatherLastName'}
+                  label="Mother Last Name"
                   onChangeText={onChange}
-                  placeholder={'Enter father last name'}
+                  placeholder={'Enter mother last name'}
                   value={value}
                   required
                 />
               )} />
 
-            {errors.fatherLastName?.message && (
+            {errors.motherLastName?.message && (
               <GrayMediumText
                 _style={{ color: colors.theme.lightRed }}
-                text={errors.fatherLastName.message}
+                text={errors.motherLastName.message}
               />
             )}
 
@@ -199,32 +189,123 @@ export default function SignUp({ navigation }) {
               required
             /> */}
 
-            {/* <CustomTextInput
-              label="Email Address"
-              name={'email'}
-              onChangeText={(name, value) => handleChange(name, value)}
-              placeholder={'email'}
-              value={formData.email}
-              required
-            /> */}
-            <CustomTextInput
-              label="Password"
-              name={'password'}
-              placeholder={'password'}
-              // value={formData.password}
-              required
-              password={true}
-              onChangeText={(name, value) => handleChange(name, value)}
-            />
-            <CustomTextInput
-              label="Confirm Password"
-              name={'confirm_password'}
-              placeholder={'confirm password'}
-              // value={formData.confirm_password}
-              required
-              password={true}
-              onChangeText={(name, value) => handleChange(name, value)}
-            />
+            <Controller
+              name="phone"
+              control={control}
+              rules={{
+                required: {
+                  value: true,
+                  message: 'Phone number is required',
+                },
+              }}
+              render={({ field: { onChange, value } }) => (
+                <CustomTextInput
+                  label="Phone Number"
+                  placeholder={'Enter phone number'}
+                  value={value}
+                  required
+                  onChangeText={onChange}
+                />
+              )} />
+
+            {errors.phone?.message && (
+              <GrayMediumText
+                _style={{ color: colors.theme.lightRed }}
+                text={errors.phone.message}
+              />
+            )}
+
+            <Controller
+              name="email"
+              control={control}
+              rules={{
+                required: {
+                  value: true,
+                  message: 'Email is required',
+                },
+                pattern: {
+                  value: /\S+@\S+\.\S+/,
+                  message: 'Email format is invalid',
+                },
+              }}
+              render={({ field: { onChange, value } }) => (
+                <CustomTextInput
+                  label="Email Address"
+                  placeholder={'Enter email address'}
+                  value={value}
+                  required
+                  onChangeText={onChange}
+                />
+              )} />
+
+            {errors.email?.message && (
+              <GrayMediumText
+                _style={{ color: colors.theme.lightRed }}
+                text={errors.email.message}
+              />
+            )}
+
+            <Controller
+              name="password"
+              control={control}
+              rules={{
+                required: {
+                  value: true,
+                  message: 'Password is required',
+                },
+                minLength: {
+                  value: 8,
+                  message: 'Password must be minimum 8 characters',
+                },
+              }}
+              render={({ field: { onChange, value } }) => (
+                <CustomTextInput
+                  label="Password"
+                  placeholder={'Enter password'}
+                  value={value}
+                  required
+                  password
+                  onChangeText={onChange}
+                />
+              )} />
+
+            {errors.password?.message && (
+              <GrayMediumText
+                _style={{ color: colors.theme.lightRed }}
+                text={errors.password.message}
+              />
+            )}
+
+            <Controller
+              name="confirmPassword"
+              control={control}
+              rules={{
+                required: {
+                  value: true,
+                  message: 'Please confirm your password',
+                },
+                validate: (value) => {
+                  const password = getValues('password');
+                  return value === password || 'Passwords do not match';
+                },
+              }}
+              render={({ field: { onChange, value } }) => (
+                <CustomTextInput
+                  label="Confirm Password"
+                  placeholder={'Confirm password'}
+                  value={value}
+                  required
+                  password
+                  onChangeText={onChange}
+                />
+              )} />
+
+            {errors.confirmPassword?.message && (
+              <GrayMediumText
+                _style={{ color: colors.theme.lightRed }}
+                text={errors.confirmPassword.message}
+              />
+            )}
 
             <CheckBox
               checked={rememberPassword}

@@ -17,9 +17,9 @@ export default MainLogo
 const styles = StyleSheet.create({
     img:{
         //  backgroundColor:'red',
-        marginTop:5,
-        height:70,
-        width:'80%'
+        marginTop:30,
+        height:50,
+        width:'60%'
         // flex:1
     }
 })
