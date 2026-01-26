@@ -26,7 +26,7 @@ import { BackArrow } from '../../Components/BackArrow'
 
 export default function PersonalInfo() {
     const [formData, setFormData] = useState({
-        dod: '',
+        dob: '',
         age: '',
         gender: '',
         address: '',
@@ -76,15 +76,15 @@ export default function PersonalInfo() {
                             label="Date Of Birth"
                             name={'dob'}
                             onChangeText={(name, value) => handleChange(name, value)}
-                            placeholder={'date of birt'}
-                            value={formData.dod}
+                            placeholder={'date of birth'}
+                            value={formData.dob}
                             required
                         />
                         <SampleInputField
                             label="Age"
                             name={'age'}
                             onChangeText={(name, value) => handleChange(name, value)}
-                            placeholder={'12-12-1995'}
+                            placeholder={'age'}
                             value={formData.age}
                             required
                         />

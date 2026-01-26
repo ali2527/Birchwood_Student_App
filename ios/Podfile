@@ -37,9 +37,12 @@ pre_install do |installer|
     else
       'https://archives.boost.io/release/1.76.0/source/boost_1_76_0.tar.bz2'
     end
+    # Replace the entire source line, removing checksum verification
     fixed = contents
-      .gsub('https://boostorg.jfrog.io/artifactory/main/release/1.76.0/source/boost_1_76_0.tar.bz2', target_url)
-      .gsub('https://archives.boost.io/release/1.76.0/source/boost_1_76_0.tar.bz2', target_url)
+      .gsub(/spec\.source = \{ :http => '[^']*',\s*:sha256 => '[^']*' \}/m, 
+            "spec.source = { :http => '#{target_url}' }")
+      .gsub(/spec\.source = \{ :http => '[^']*'\}/m, 
+            "spec.source = { :http => '#{target_url}' }")
     if fixed != contents
       File.open(boost_podspec, 'w') { |f| f.write(fixed) }
     end

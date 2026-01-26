@@ -47,8 +47,9 @@ export default function SignUp({ navigation }) {
 
   const onSubmit = useCallback(
     async (body) => {
+      console.log('body', body);
       const res = await dispatch(asyncSignup(body)).unwrap();
-      if (res.status) {
+      if (res.status  === true) {
         navigation.navigate(routes.screens.homeScreen);
       }
     },
@@ -322,10 +323,8 @@ export default function SignUp({ navigation }) {
             <View style={{ alignItems: 'center' }}>
               <CustomButton
                 isFocused={true}
-                title={'Next'}
-                onPress={() =>
-                  navigation.navigate(routes.navigator.personalInfo)
-                }
+                title={'Sign Up'}
+                onPress={handleSubmit(onSubmit)}
               />
             </View>
 

@@ -9,23 +9,26 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
-import React, {useState} from 'react';
-import {vh, vw} from '../../theme/units';
+import React, { useState } from 'react';
+import { vh, vw } from '../../theme/units';
 import main_bg_img from '../../Assets/images/animated_bg.png';
 import GlroyBold from '../../Components/GlroyBoldText';
 import profile_icon from '../../Assets/images/profile_bg.png';
-import {colors} from '../../theme/colors';
+import { colors } from '../../theme/colors';
 import UserProfileCircle from '../../Components/ProfileCircle';
 import student from '../../Assets/icons/student.png';
-import {appShadow} from '../../theme/colors';
-import {featureIcons} from '../../Assets';
-import {icons} from '../../Assets/icons';
+import { appShadow } from '../../theme/colors';
+import { featureIcons } from '../../Assets';
+import { icons } from '../../Assets/icons';
 import GrayMediumText from '../../Components/GrayMediumText';
-import {useNavigation} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import routes from '../../Navigation/routes';
+import { useDispatch } from 'react-redux';
+import { asyncSignOut } from '../../Stores/actions/user.action';
 
 export default function HomeScreen() {
   const navigation = useNavigation();
+  const dispatch = useDispatch()
   const [profile, setProfile] = useState({
     name: 'Allen',
     year: '2023 - 2024',
@@ -33,23 +36,24 @@ export default function HomeScreen() {
   });
 
   const data = [
-    {id: 1, title: 'Profile'},
-    {id: 2, title: 'Activity'},
-    {id: 3, title: 'Time Table'},
-    {id: 4, title: 'Assignment'},
-    {id: 5, title: 'Result'},
-    {id: 6, title: 'Events'},
-    {id: 7, title: 'Ask Doubts'},
-    {id: 8, title: 'School Gallery'},
-    {id: 9, title: 'Leave Application'},
-    {id: 10, title: 'School Holiday'},
-    {id: 11, title: 'Logout'},
-    {id: 12, title: 'Change Password'},
+    { id: 1, title: 'Profile' },
+    { id: 2, title: 'Activity' },
+    { id: 3, title: 'Time Table' },
+    { id: 4, title: 'Assignment' },
+    { id: 5, title: 'Result' },
+    { id: 6, title: 'Events' },
+    { id: 7, title: 'Ask Doubts' },
+    { id: 8, title: 'School Gallery' },
+    { id: 9, title: 'Leave Application' },
+    { id: 10, title: 'School Holiday' },
+    { id: 11, title: 'Logout' },
+    { id: 12, title: 'Change Password' },
   ];
 
   const handleNavigate = value => {
     console.log('Valueee >>>>', value);
     if (value === 'Profile') navigation.navigate(routes.screens.profile);
+
     else if (value === 'Activity')
       navigation.navigate(routes.screens.childProfile);
     else if (value === 'Time Table')
@@ -65,11 +69,15 @@ export default function HomeScreen() {
       navigation.navigate(routes.screens.checkIn);
     else if (value === 'Leave Application')
       navigation.navigate(routes.screens.leaveApplication);
+    else if (value === "Logout") {
+      dispatch(asyncSignOut())
+    }
+
   };
 
   // const data = Array.from({ length: 10 }, (_, index) => ({ id: index.toString(), title: `item${index + 1}` }));
 
-  const renderItem = ({item, indx}) => {
+  const renderItem = ({ item, indx }) => {
     return (
       <TouchableOpacity
         style={[styles.card]}
@@ -80,35 +88,35 @@ export default function HomeScreen() {
               item.id == 1
                 ? featureIcons.profile
                 : item.id == 2
-                ? featureIcons.activity
-                : item.id == 3
-                ? featureIcons.time_table
-                : item.id == 4
-                ? featureIcons.assignment
-                : item.id == 5
-                ? featureIcons.result
-                : item.id == 6
-                ? featureIcons.events
-                : item.id == 7
-                ? featureIcons.ask_doubts
-                : item.id == 8
-                ? featureIcons.school_gallery
-                : item.id == 9
-                ? featureIcons.leave_application
-                : item.id == 10
-                ? featureIcons.school_holiday
-                : item.id == 11
-                ? featureIcons.logout
-                : item.id == 12
-                ? featureIcons.change_password
-                : featureIcons.profile
+                  ? featureIcons.activity
+                  : item.id == 3
+                    ? featureIcons.time_table
+                    : item.id == 4
+                      ? featureIcons.assignment
+                      : item.id == 5
+                        ? featureIcons.result
+                        : item.id == 6
+                          ? featureIcons.events
+                          : item.id == 7
+                            ? featureIcons.ask_doubts
+                            : item.id == 8
+                              ? featureIcons.school_gallery
+                              : item.id == 9
+                                ? featureIcons.leave_application
+                                : item.id == 10
+                                  ? featureIcons.school_holiday
+                                  : item.id == 11
+                                    ? featureIcons.logout
+                                    : item.id == 12
+                                      ? featureIcons.change_password
+                                      : featureIcons.profile
             }
             style={styles.featureIcons}
           />
         </View>
         <GlroyBold
           text={item.title}
-          _style={{fontSize: 12, color: colors.text.black, marginTop: 8}}
+          _style={{ fontSize: 12, color: colors.text.black, marginTop: 8 }}
         />
       </TouchableOpacity>
     );
@@ -118,34 +126,34 @@ export default function HomeScreen() {
     return (
       <View style={styles.twoCardsTopContainer}>
         <TouchableOpacity
-          style={[styles.twoCardsTop, {marginRight: 10}]}
+          style={[styles.twoCardsTop, { marginRight: 10 }]}
           onPress={() => handleNavigate('Attendance')}>
           <View
             style={[
               styles.cardInnerView,
-              {backgroundColor: colors.theme.yellow0},
+              { backgroundColor: colors.theme.yellow0 },
             ]}>
             <Image source={icons.usr} style={styles.topCardIcon} />
           </View>
           <GlroyBold
             text={'80.39%'}
-            _style={{fontSize: 20, color: colors.text.black, marginVertical: 3}}
+            _style={{ fontSize: 20, color: colors.text.black, marginVertical: 3 }}
           />
           <GrayMediumText text={'Attendance'} />
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.twoCardsTop, {marginLeft: 10}]}
+          style={[styles.twoCardsTop, { marginLeft: 10 }]}
           onPress={() => handleNavigate('Fees Due')}>
           <View
             style={[
               styles.cardInnerView,
-              {backgroundColor: colors.theme.pink0},
+              { backgroundColor: colors.theme.pink0 },
             ]}>
             <Image source={icons.dollar} style={styles.topCardIcon} />
           </View>
           <GlroyBold
             text={'$00.00'}
-            _style={{fontSize: 20, color: colors.text.black, marginVertical: 3}}
+            _style={{ fontSize: 20, color: colors.text.black, marginVertical: 3 }}
           />
           <GrayMediumText text={'Fees Due'} />
         </TouchableOpacity>
@@ -177,7 +185,7 @@ export default function HomeScreen() {
                 marginTop: 3,
               }}>
               <View style={styles.student_year}>
-                <Text style={{fontSize: 12}}>{profile.year}</Text>
+                <Text style={{ fontSize: 12 }}>{profile.year}</Text>
               </View>
               <View style={styles.student_icon}>
                 <Image

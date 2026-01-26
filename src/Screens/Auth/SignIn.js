@@ -53,6 +53,7 @@ const SignIn = ({ navigation }) => {
 
     const onSubmit = useCallback(
         async (body) => {
+            console.log('body', body);
             const res = await dispatch(asyncLogin(body)).unwrap();
             if (res.status) {
                 navigation.navigate(routes.screens.homeScreen);
@@ -102,10 +103,10 @@ const SignIn = ({ navigation }) => {
                             />
                         )} />
 
-                    {errors.password?.message && (
+                    {errors.email?.message && (
                         <GrayMediumText
                             _style={{ color: colors.theme.lightRed }}
-                            text={errors.password.message}
+                            text={errors.email.message}
                         />
                     )}
 

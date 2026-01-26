@@ -65,7 +65,7 @@ export const asyncSignup = createAsyncThunk(
   'signup',
   async (data: any, { dispatch }) => {
     dispatch(setLoading(true));
-
+console.log('data:::', data);
     const res = await callApi<any, any>({
       method: 'POST',
       path: allApiPaths.getPath('signup'),
@@ -78,6 +78,8 @@ export const asyncSignup = createAsyncThunk(
     } else {
       if (res.data?.token) {
         let { todayAttendance, user, token } = res.data ?? {}
+
+        console.log('user', user);
         dispatch(
           setUserState({
             user: { ...user, todayAttendance },

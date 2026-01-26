@@ -78,8 +78,10 @@ export const callApi = async <RT, T = undefined>({
     .then((response: AxiosResponse<ResponseCallback<RT>>) => responseCallback<RT>(response))
     .catch((error: AxiosError<ResponseCallback<RT>>) => {
       if (error.response) {
+        console.log('error.responseff', error.response);
         return responseCallback<RT>(error.response);
       } else if (error.request) {
+        console.log('error.requestddd', error.request);
         return responseCallback<RT>(error.request);
       } else {
         return {

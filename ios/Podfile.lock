@@ -284,9 +284,9 @@ PODS:
   - React-jsinspector (0.72.6)
   - React-logger (0.72.6):
     - glog
-  - react-native-image-resizer (3.0.8):
+  - react-native-image-resizer (3.0.11):
     - React-Core
-  - react-native-safe-area-context (4.10.1):
+  - react-native-safe-area-context (4.14.1):
     - React-Core
   - react-native-splash-screen (3.3.0):
     - React-Core
@@ -395,13 +395,13 @@ PODS:
     - React-jsi (= 0.72.6)
     - React-logger (= 0.72.6)
     - React-perflogger (= 0.72.6)
-  - RNCAsyncStorage (2.0.0):
+  - RNCAsyncStorage (2.2.0):
     - React-Core
-  - RNScreens (3.31.1):
+  - RNScreens (3.37.0):
     - RCT-Folly (= 2021.07.22.00)
     - React-Core
     - React-RCTImage
-  - RNVectorIcons (10.0.3):
+  - RNVectorIcons (10.3.0):
     - RCT-Folly (= 2021.07.22.00)
     - React-Core
   - SocketRocket (0.6.1)
@@ -553,7 +553,7 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  boost: 24acc43fca163b4b9e27c3fa5d8d5d2e337916ba
+  boost: d9857fa6515e4f9985f29bf6f2e40cb03f54f859
   BVLinearGradient: cb006ba232a1f3e4f341bb62c42d1098c284da70
   DoubleConversion: 5189b271737e1565bdce30deb4a08d647e3f5f54
   FBLazyVector: 748c0ef74f2bf4b36cfcccf37916806940a64c32
@@ -575,8 +575,8 @@ SPEC CHECKSUMS:
   React-jsiexecutor: e50b839f530379929217443355d754be4567566d
   React-jsinspector: 194e32c6aab382d88713ad3dd0025c5f5c4ee072
   React-logger: 39440454dfd719978689203a9d18b94e98de09eb
-  react-native-image-resizer: 087b146d7ab240a2f8b8dbed58fb3e76840a191a
-  react-native-safe-area-context: 8c70551c8688cd584a53487aa1b9361e991a3b4a
+  react-native-image-resizer: 24c5d06fae2176dc0caed4b6396e02befb44064a
+  react-native-safe-area-context: 758e894ca5a9bd1868d2a9cfbca7326a2b6bf9dc
   react-native-splash-screen: 95994222cc95c236bd3cdc59fe45ed5f27969594
   React-NativeModulesApple: 3369884d84790e4a46be33fe7f141245ea55d585
   React-perflogger: e3596db7e753f51766bceadc061936ef1472edc3
@@ -595,12 +595,12 @@ SPEC CHECKSUMS:
   React-runtimescheduler: 78ae3872d28313f5038035ca03e0749a0f9aeb79
   React-utils: ee4e6bf16d6882500500d517d36f9035874c5f6a
   ReactCommon: 3a7c359a28c6973c304fb1b0152b096b195dd5fc
-  RNCAsyncStorage: 40367e8d25522dca9c3513c7b9815a184669bd97
-  RNScreens: 448026fcd1beb88770b0a67a871a3d1bf9cdde0a
-  RNVectorIcons: 2bb1ff267624f4e79188d65908c959fd284c5003
+  RNCAsyncStorage: b44e8a4e798c3e1f56bffccd0f591f674fb9198f
+  RNScreens: c1a851e518284641160aa5af4894479773a6e719
+  RNVectorIcons: 2a7ec3ea0e8af048e16f8d30bfaedc21d649c502
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   Yoga: b76f1acfda8212aa16b7e26bcce3983230c82603
 
-PODFILE CHECKSUM: f0633a16db4c47cd73a1f6a61fcb8c65b00d2b70
+PODFILE CHECKSUM: 2b685e195ecdcef358b8adf40bb5aaef532808eb
 
 COCOAPODS: 1.16.2

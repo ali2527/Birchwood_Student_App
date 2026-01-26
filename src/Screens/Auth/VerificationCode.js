@@ -8,10 +8,11 @@ import { asyncOtpVerification } from '../../Stores/actions/user.action'
 import { useAppDispatch } from '../../Stores/hooks'
 import { colors } from '../../theme/colors'
 import { Controller, useForm } from 'react-hook-form'
+import { useNavigation } from '@react-navigation/native'
 
 export default function VerificationCode({ data, handleScreen }) {
     const dispatch = useAppDispatch();
-
+    const navigation = useNavigation();
     const {
         control,
         handleSubmit,
