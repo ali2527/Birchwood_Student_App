@@ -13,11 +13,13 @@ export enum ProfileApiPaths {
   profile = 'profile/getProfile',
   updateProfile = 'profile/updateProfile',
   changePassword = 'profile/changePassword',
+  getAllMyChildren = 'profile/getAllMyChildren',
   checkIn = 'children/attendance/markCheckIn',
   checkOut = 'children/attendance/markCheckOut',
   markLeave = 'children/attendance/markLeave',
   monthlyAttendance = 'children/attendance/getAttendanceByMonth/:childId',
   // getAllHolidays = 'holiday/getAllHolidays',
+  assignChild = 'profile/assignChild',
 }
 
 export enum ClassApiPaths {

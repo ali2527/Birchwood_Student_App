@@ -12,6 +12,7 @@ const routes = {
   screens: {
     homeScreen: 'HomeScreen',
     profile: 'Profile',
+    addChild: 'AddChild',
     childProfile: 'ChildProfile',
     healthDetails: 'HealthDetails',
     profileForm: 'ProfileForm',

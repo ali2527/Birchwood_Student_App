@@ -18,6 +18,8 @@ import {
   UserEducation,
   UserExperience
 } from '../../types/User';
+import { Child, ClassResponse } from '../../Types/Class';
+import { setChildren } from '../slices/class.slice';
 import { setLoading } from '../slices/common.slice';
 import {
   resetUserState,
@@ -65,7 +67,7 @@ export const asyncSignup = createAsyncThunk(
   'signup',
   async (data: any, { dispatch }) => {
     dispatch(setLoading(true));
-console.log('data:::', data);
+    console.log('data:::', data);
     const res = await callApi<any, any>({
       method: 'POST',
       path: allApiPaths.getPath('signup'),
@@ -208,15 +210,43 @@ export const asyncGetUserProfile = createAsyncThunk(
   }
 );
 
+export const asyncGetAllMyChildren = createAsyncThunk(
+  'profile/getAllMyChildren',
+  async (_, { dispatch }) => {
+    dispatch(setLoading(true));
+    const res = await callApi<ClassResponse | Child[]>({
+      path: allApiPaths.getPath('getAllMyChildren'),
+    });
+    console.log('res:::', res);
+    if (!res.status) {
+      dispatch(asyncShowError(res.message));
+    } else {
+      if (res.data) {
+        // Transform array response to ClassResponse format
+        const childrenData = Array.isArray(res.data)
+          ? { docs: res.data }
+          : res.data;
+        dispatch(setChildren(childrenData as ClassResponse));
+      }
+    }
+
+    dispatch(setLoading(false));
+    return res;
+  }
+);
+
 export const asyncUpdateProfile = createAsyncThunk(
   'updateProfile',
-  async (data: FormData, { dispatch }) => {
+  async (data: FormData | Record<string, any>, { dispatch }) => {
     dispatch(setLoading(true));
 
-    const res = await callApi<User, FormData>({
+    // Check if data is FormData (for image upload) or regular object (for profile update)
+    const isFormData = data instanceof FormData;
+
+    const res = await callApi<User, FormData | Record<string, any>>({
       method: 'POST',
       path: allApiPaths.getPath('updateProfile'),
-      isFormData: true,
+      isFormData: isFormData,
       body: data,
     });
 
@@ -224,7 +254,14 @@ export const asyncUpdateProfile = createAsyncThunk(
       dispatch(asyncShowError(res.message));
     } else {
       if (res.data) {
-        dispatch(setUser(res.data));
+        // Map API response fields to User type
+        const responseData = res.data as any;
+        const userData = {
+          ...responseData,
+          firstName: responseData.fatherFirstName || responseData.firstName || '',
+          lastName: responseData.fatherLastName || responseData.lastName || '',
+        };
+        dispatch(setUser(userData));
       }
       dispatch(asyncShowSuccess(res.message));
     }
@@ -393,5 +430,28 @@ export const asyncSignOut = createAsyncThunk(
   'signOut',
   async (_, { dispatch }) => {
     dispatch(resetUserState());
+  }
+);
+
+export const asyncAssignChild = createAsyncThunk(
+  'assignChild',
+  async (data: any, { dispatch }) => {
+    dispatch(setLoading(true));
+
+    const res = await callApi<any, any>({
+      method: 'POST',
+      path: allApiPaths.getPath('assignChild'),
+      body: data,
+    });
+
+    if (!res?.status) {
+      dispatch(asyncShowError(res.message));
+    } else {
+      dispatch(asyncShowSuccess(res.message));
+      // Refresh children list
+      dispatch(asyncGetAllMyChildren());
+    }
+    dispatch(setLoading(false));
+    return res;
   }
 );

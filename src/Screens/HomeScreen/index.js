@@ -24,16 +24,38 @@ import GrayMediumText from '../../Components/GrayMediumText';
 import { useNavigation } from '@react-navigation/native';
 import routes from '../../Navigation/routes';
 import { useDispatch } from 'react-redux';
-import { asyncSignOut } from '../../Stores/actions/user.action';
+import { asyncSignOut, asyncGetUserProfile } from '../../Stores/actions/user.action';
+
+import { useAppSelector } from '../../Stores/hooks';
+import { selectUserProfile } from '../../Stores/slices/user.slice';
 
 export default function HomeScreen() {
   const navigation = useNavigation();
   const dispatch = useDispatch()
+  const userProfile = useAppSelector(selectUserProfile);
   const [profile, setProfile] = useState({
-    name: 'Allen',
+    name: `${userProfile?.fatherFirstName || userProfile?.firstName || ''} ${userProfile?.fatherLastName || userProfile?.lastName || ''}`.trim() || 'User',
     year: '2023 - 2024',
     photo: '',
   });
+
+
+
+  // Update profile state when userProfile changes
+  React.useEffect(() => {
+    dispatch(asyncGetUserProfile());
+  }, [dispatch]);
+
+  // Update profile state when userProfile changes
+  React.useEffect(() => {
+    if (userProfile) {
+      setProfile(prev => ({
+        ...prev,
+        name: `${userProfile?.fatherFirstName || userProfile?.firstName || ''} ${userProfile?.fatherLastName || userProfile?.lastName || ''}`.trim() || 'User',
+        photo: userProfile?.image,
+      }));
+    }
+  }, [userProfile]);
 
   const data = [
     { id: 1, title: 'Profile' },
@@ -178,27 +200,10 @@ export default function HomeScreen() {
               text={`Hi ${profile.name}`}
               _style={styles.profile_text}
             />
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                marginTop: 3,
-              }}>
-              <View style={styles.student_year}>
-                <Text style={{ fontSize: 12 }}>{profile.year}</Text>
-              </View>
-              <View style={styles.student_icon}>
-                <Image
-                  source={student}
-                  style={styles.student_icon_img}
-                  resizeMode="contain"
-                  tintColor={colors.theme.primary}
-                />
-              </View>
-            </View>
+
           </View>
           <UserProfileCircle
-            profileUri={profile_icon}
+            profileUri={profile.photo || profile_icon}
             disabled={true}
             _style={styles.profilePhoto}
           />

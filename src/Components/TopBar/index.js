@@ -28,8 +28,8 @@ const styles = StyleSheet.create({
     },
     whiteBorder: {
         height: vh * 3,
-        borderTopLeftRadius: 48,
-        borderTopRightRadius: 48,
+        borderTopLeftRadius: 100,
+        borderTopRightRadius: 100,
         backgroundColor: '#fff'
     },
 })

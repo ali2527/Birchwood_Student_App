@@ -1,102 +1,199 @@
-import { StyleSheet, Text, View, FlatList, Platform, TouchableOpacity, Image } from 'react-native'
-import React, { useState } from 'react'
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native'
+import React, { useState, useEffect } from 'react'
 import { vh, vw } from '../../theme/units'
-import GlroyBold from '../../Components/GlroyBoldText';
 import { colors } from '../../theme/colors';
-import GrayMediumText from '../../Components/GrayMediumText';
 import Ionicon from 'react-native-vector-icons/Ionicons';
 import TopBar from '../../Components/TopBar';
 import FormContainer from '../../Components/FormContainer';
 import FormTextInput from '../../Components/FormTextInput';
 import { BackArrow } from '../../Components/BackArrow';
+import { useNavigation } from '@react-navigation/native';
+import { useAppDispatch, useAppSelector } from '../../Stores/hooks';
+import { selectUserProfile } from '../../Stores/slices/user.slice';
+import { asyncUpdateProfile } from '../../Stores/actions/user.action';
 
 export default function ProfileForm() {
+    const navigation = useNavigation();
+    const dispatch = useAppDispatch();
+    const profile = useAppSelector(selectUserProfile);
+
+    const [formData, setFormData] = useState({
+        fatherFirstName: '',
+        fatherLastName: '',
+        motherFirstName: '',
+        motherLastName: '',
+        email: '',
+        phone: '',
+        address: '',
+        city: '',
+        state: '',
+    });
+
+    useEffect(() => {
+        if (profile?._id) {
+            setFormData({
+                fatherFirstName: profile?.fatherFirstName || '',
+                fatherLastName: profile?.fatherLastName || '',
+                motherFirstName: profile?.motherFirstName || '',
+                motherLastName: profile?.motherLastName || '',
+                email: profile?.email || '',
+                phone: profile?.phone || '',
+                address: profile?.address || '',
+                city: profile?.city || '',
+                state: profile?.state || '',
+            });
+        }
+    }, [profile]);
+
+    const handleChange = (name, value) => {
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
+
+    const handleSubmit = async () => {
+        const payload = {
+            fatherFirstName: formData.fatherFirstName,
+            fatherLastName: formData.fatherLastName,
+            motherFirstName: formData.motherFirstName,
+            motherLastName: formData.motherLastName,
+            email: formData.email,
+            phone: formData.phone,
+            address: formData.address,
+            city: formData.city,
+            state: formData.state,
+        };
+
+        const result = await dispatch(asyncUpdateProfile(payload));
+        if (result.type === 'updateProfile/fulfilled' && result.payload?.status) {
+            navigation.goBack();
+        }
+    };
+
     return (
         <>
             <TopBar>
                 <View style={styles.header}>
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                         <BackArrow/>
-                        {/* <Ionicon name="chevron-back-outline" size={18} color={colors.theme.white} /> */}
-                        <Text style={{ color: colors.text.white, marginLeft: 10, fontWeight: 'bold', bottom: 1 }}>My Profile</Text>
+                        <Text style={{ color: colors.text.white, marginLeft: 10, fontWeight: 'bold', bottom: 1 }}>Edit Profile</Text>
                     </View>
-                    <TouchableOpacity style={styles.editContainer}>
+                    <TouchableOpacity 
+                        style={styles.editContainer}
+                        onPress={handleSubmit}
+                    >
                         <Ionicon name="checkmark" size={15} color={colors.theme.white} style={styles.addIcon} />
                         <Text style={{ color: colors.theme.secondary, fontWeight: 'bold', fontSize: 13 }}>Done</Text>
                     </TouchableOpacity>
                 </View>
             </TopBar>
-            <FormContainer>
-                <View style={styles.inputFieldContainer}>
-                    <FormTextInput
-                        label={'Roll Number'}
-                        placeholder={'123 345'}
-                        containerStyle={{ marginRight: 5 }}
-                    // icon={'bag'}
-                    />
-                    <FormTextInput
-                        label={'Acadmic Year'}
-                        placeholder={'2023-2021'}
-                        containerStyle={{ marginLeft: 5 }}
-                    />
-                </View>
-                <View style={styles.inputFieldContainer}>
-                    <FormTextInput
-                        label={'Admission Class'}
-                        placeholder={'V1'}
-                        containerStyle={{ marginRight: 5 }}
-                        icon={'bag'}
-                    />
-                    <FormTextInput
-                        label={'Old Admission No'}
-                        placeholder={'T1022'}
-                        containerStyle={{ marginLeft: 5 }}
-                        icon={'bag'}
-                    />
-                </View>
-                <View style={styles.inputFieldContainer}>
-                    <FormTextInput
-                        label={'Date of Admission'}
-                        placeholder={'01 Apr 2021'}
-                        containerStyle={{ marginRight: 5 }}
-                        icon={'bag'}
-                    />
-                    <FormTextInput
-                        label={'Date of Birth'}
-                        placeholder={'22 July 1996'}
-                        containerStyle={{ marginLeft: 5 }}
-                        icon={'bag'}
-                    />
-                </View>
-                <View style={styles.inputFieldContainer}>
-                    <FormTextInput
-                        label={'Parent Mail ID'}
-                        placeholder={'admin@mail.com'}
-                        icon={'bag'}
-                    />
-                </View>
-                <View style={styles.inputFieldContainer}>
-                    <FormTextInput
-                        label={'Mother Name'}
-                        placeholder={'Monica Larson'}
-                        icon={'bag'}
-                    />
-                </View>
-                <View style={styles.inputFieldContainer}>
-                    <FormTextInput
-                        label={'Father Name'}
-                        placeholder={'Bermad Tylor'}
-                        icon={'bag'}
-                    />
-                </View>
-                <View style={styles.inputFieldContainer}>
-                    <FormTextInput
-                        label={'Permanent Address'}
-                        placeholder={'address'}
-                        icon={'bag'}
-                    />
-                </View>
-            </FormContainer>
+            <KeyboardAvoidingView 
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                style={{ flex: 1 }}
+            >
+                <ScrollView 
+                    style={{ flex: 1 }}
+                    contentContainerStyle={{ paddingBottom: 20 }}
+                    showsVerticalScrollIndicator={false}
+                >
+                    <FormContainer>
+                        {/* Father Name */}
+                        <View style={styles.inputFieldContainer}>
+                            <FormTextInput
+                                label={'Father First Name'}
+                                placeholder={'Enter first name'}
+                                containerStyle={{ marginRight: 5 }}
+                                value={formData.fatherFirstName}
+                                onChangeText={handleChange}
+                                name="fatherFirstName"
+                            />
+                            <FormTextInput
+                                label={'Father Last Name'}
+                                placeholder={'Enter last name'}
+                                containerStyle={{ marginLeft: 5 }}
+                                value={formData.fatherLastName}
+                                onChangeText={handleChange}
+                                name="fatherLastName"
+                            />
+                        </View>
+
+                        {/* Mother Name */}
+                        <View style={styles.inputFieldContainer}>
+                            <FormTextInput
+                                label={'Mother First Name'}
+                                placeholder={'Enter first name'}
+                                containerStyle={{ marginRight: 5 }}
+                                value={formData.motherFirstName}
+                                onChangeText={handleChange}
+                                name="motherFirstName"
+                            />
+                            <FormTextInput
+                                label={'Mother Last Name'}
+                                placeholder={'Enter last name'}
+                                containerStyle={{ marginLeft: 5 }}
+                                value={formData.motherLastName}
+                                onChangeText={handleChange}
+                                name="motherLastName"
+                            />
+                        </View>
+
+                        {/* Contact Information */}
+                        <View style={styles.inputFieldContainer}>
+                            <FormTextInput
+                                label={'Email'}
+                                placeholder={'parent@email.com'}
+                                value={formData.email}
+                                onChangeText={handleChange}
+                                name="email"
+                                icon={'mail-outline'}
+                            />
+                        </View>
+
+                        <View style={styles.inputFieldContainer}>
+                            <FormTextInput
+                                label={'Phone'}
+                                placeholder={'923091245985'}
+                                value={formData.phone}
+                                onChangeText={handleChange}
+                                name="phone"
+                                icon={'call-outline'}
+                            />
+                        </View>
+
+                        {/* Address */}
+                        <View style={styles.inputFieldContainer}>
+                            <FormTextInput
+                                label={'Address'}
+                                placeholder={'Enter address'}
+                                value={formData.address}
+                                onChangeText={handleChange}
+                                name="address"
+                                icon={'location-outline'}
+                            />
+                        </View>
+
+                        <View style={styles.inputFieldContainer}>
+                            <FormTextInput
+                                label={'City'}
+                                placeholder={'Enter city'}
+                                containerStyle={{ marginRight: 5 }}
+                                value={formData.city}
+                                onChangeText={handleChange}
+                                name="city"
+                            />
+                            <FormTextInput
+                                label={'State'}
+                                placeholder={'Enter state'}
+                                containerStyle={{ marginLeft: 5 }}
+                                value={formData.state}
+                                onChangeText={handleChange}
+                                name="state"
+                            />
+                        </View>
+                    </FormContainer>
+                </ScrollView>
+            </KeyboardAvoidingView>
         </>
     )
 }

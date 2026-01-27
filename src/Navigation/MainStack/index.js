@@ -13,6 +13,7 @@ import ParentContact from '../../Screens/Auth/ParentContact';
 import Experience from '../../Screens/Auth/Experience';
 import HomeScreen from '../../Screens/HomeScreen';
 import Profile from '../../Screens/Profile';
+import AddChild from '../../Screens/AddChild';
 import ChildProfile from '../../Screens/ChildProfile';
 import HealthDetails from '../../Screens/HealthDetails';
 import ProfileForm from '../../Screens/ProfileForm';
@@ -63,6 +64,7 @@ const MainStack = () => {
           <Stack.Screen name={routes.screens.homeScreen} component={HomeScreen} />
           <Stack.Screen name={routes.navigator.experience} component={Experience} />
           <Stack.Screen name={routes.screens.profile} component={Profile} />
+          <Stack.Screen name={routes.screens.addChild} component={AddChild} />
           <Stack.Screen
             name={routes.screens.childProfile}
             component={ChildProfile}
