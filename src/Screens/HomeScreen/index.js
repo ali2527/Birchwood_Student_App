@@ -62,12 +62,12 @@ export default function HomeScreen() {
     { id: 2, title: 'Activity' },
     { id: 3, title: 'Time Table' },
     { id: 4, title: 'Assignment' },
-    { id: 5, title: 'Result' },
-    { id: 6, title: 'Events' },
-    { id: 7, title: 'Ask Doubts' },
+    // { id: 5, title: 'Result' },
+    // { id: 6, title: 'Events' },
+    // { id: 7, title: 'Ask Doubts' },
     { id: 8, title: 'School Gallery' },
     { id: 9, title: 'Leave Application' },
-    { id: 10, title: 'School Holiday' },
+    // { id: 10, title: 'School Holiday' },
     { id: 11, title: 'Logout' },
     { id: 12, title: 'Change Password' },
   ];
@@ -77,7 +77,7 @@ export default function HomeScreen() {
     if (value === 'Profile') navigation.navigate(routes.screens.profile);
 
     else if (value === 'Activity')
-      navigation.navigate(routes.screens.childProfile);
+      navigation.navigate(routes.screens.activityScreen);
     else if (value === 'Time Table')
       navigation.navigate(routes.screens.timeTable);
     // else if(value === 'Health') navigation.navigate(routes.screens.healthDetails);
@@ -217,6 +217,7 @@ export default function HomeScreen() {
         numColumns={2}
         ListHeaderComponent={headerCards}
         contentContainerStyle={styles.flatListContainer}
+        style={styles.flatList}
       />
     </>
   );
@@ -319,4 +320,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+  flatList: {
+    marginTop: -vh * 7
+
+  }
 });

@@ -31,7 +31,7 @@ export const asyncGetAllActivities = createAsyncThunk(
 
 export const asyncGetAllPosts = createAsyncThunk(
   'getAllPosts',
-  async (_, { getState, dispatch }) => {
+  async (params: any, { getState, dispatch }) => {
     const { page, totalPages } = (getState() as RootState).post?.pagination ?? {}
 
     if (page >= totalPages) {
@@ -45,10 +45,18 @@ export const asyncGetAllPosts = createAsyncThunk(
       dispatch(setLoading(true));
     }
 
+    let url = allApiPaths.getPath('getAllPosts') + `?limit=${10}&page=${(page ?? 0) + 1}`;
+
+    if (params) {
+      if (params.classroom) url += `&classroom=${params.classroom}`;
+      if (params.children) url += `&children=${params.children}`;
+    }
+
     const res = await callApi<GetAllClassPosts>({
-      path: (allApiPaths.getPath('getAllPosts') +
-        `?limit=${10}&page=${(page ?? 0) + 1}`) as ApiPaths,
+      path: url as ApiPaths,
     });
+
+    console.log('asyncGetAllPosts response:', JSON.stringify(res, null, 2));
 
     if (!res.status) {
       dispatch(asyncShowError(res.message));

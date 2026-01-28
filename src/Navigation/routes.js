@@ -23,6 +23,7 @@ const routes = {
     result: 'Result',
     checkIn: 'CheckIn',
     leaveApplication: 'LeaveApplication',
+    activityScreen: 'ActivityScreen',
   },
 };
 

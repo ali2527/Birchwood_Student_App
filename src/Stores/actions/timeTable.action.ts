@@ -9,21 +9,44 @@ import { RootState } from '..';
 
 export const asyncGetAllClassTimeTable = createAsyncThunk(
   'getAllClassTimeTable',
-  async (_, { dispatch, getState }) => {
+  async (day: string | undefined, { dispatch, getState }) => {
     dispatch(setLoading(true));
 
-    const classRoomId: string = (getState() as RootState).user.user?.classroom?._id
+    // Get classroom ID from first child instead of user
+    const state = getState() as RootState;
+    const children = Object.values(state.class.children || {});
+    const classRoomId: string = children[0]?.classroom?._id;
 
-    const res = await callApi<TimeTable>({
-      path: allApiPaths.getPath('getAllClassTimeTable', {
-        classRoomId
-      }),
+    console.log('Fetching timetable for classRoomId:', classRoomId, 'day:', day);
+
+    if (!classRoomId) {
+      console.log('No classroom ID found, skipping timetable fetch');
+      dispatch(setLoading(false));
+      return {
+        status: false,
+        message: 'No classroom ID available'
+      };
+    }
+
+    let path = allApiPaths.getPath('getAllClassTimeTable', {
+      classRoomId
     });
 
-    // console.log(res, 'respons is here')
+    // Add day query parameter if provided
+    if (day) {
+      path = `${path}?day=${day}` as any;
+    }
+
+    const res = await callApi<TimeTable>({
+      path,
+    });
+
+    console.log('TimeTable API response:', JSON.stringify(res, null, 2));
+
     if (!res.status) {
       dispatch(asyncShowError(res.message));
     } else {
+      console.log('TimeTable data:', res.data);
       dispatch(
         setTimeTable(res.data!)
       );
