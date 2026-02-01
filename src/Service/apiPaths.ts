@@ -18,7 +18,7 @@ export enum ProfileApiPaths {
   checkOut = 'children/attendance/markCheckOut',
   markLeave = 'children/attendance/markLeave',
   monthlyAttendance = 'children/attendance/getAttendanceByMonth/:childId',
-  // getAllHolidays = 'holiday/getAllHolidays',
+  getAllHolidays = 'holiday/getAllHolidays',
   assignChild = 'profile/assignChild',
 }
 

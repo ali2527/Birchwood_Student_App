@@ -32,22 +32,24 @@ export default function DropDown({
   badge,
   label,
   required,
-  starColor
+  starColor,
+  dropDownContainerStyle,
+  customLabelStyle
 }) {
 
-    const ArrowUpIconComponent=() => <Ionicon name='chevron-up' size={20} color={colors.text.altGrey} />
-    const ArrowDownIconComponent=() => <Ionicon name='chevron-down' size={20} color={colors.text.altGrey} />
-  
+  const ArrowUpIconComponent = () => <Ionicon name='chevron-up' size={20} color={colors.text.altGrey} />
+  const ArrowDownIconComponent = () => <Ionicon name='chevron-down' size={20} color={colors.text.altGrey} />
+
   return (
-     <View style={{marginVertical:10}}>
-        <Text style={[styles.labelStyle]}>
+    <View style={{ marginVertical: 10 }}>
+      <Text style={[styles.labelStyle, customLabelStyle]}>
         {label} {required && <Text style={{ color: starColor || 'red' }}>*</Text>}
       </Text>
-       <DropDownPicker
+      <DropDownPicker
         items={list}
         placeholder={placeholder}
-        containerStyle={{borderRadius:10}}
-        style={{...styles.mainContainer_style, ...mainContainer_style}}
+        containerStyle={{ borderRadius: 10 }}
+        style={{ ...styles.mainContainer_style, ...mainContainer_style }}
         // maxHeight={100}
         value={value}
         defaultValue={value}
@@ -65,9 +67,10 @@ export default function DropDown({
         selected={selected}
         labelStyle={labelStyle ? labelStyle : null}
         listMode={listMode ? listMode : 'DEFAULT'}
-        placeholderStyle={{...styles.placeholder, ...placeholderStyle}}
+        placeholderStyle={{ ...styles.placeholder, ...placeholderStyle }}
         dropDownContainerStyle={{
-          borderColor:colors.input.background
+          borderColor: colors.input.background,
+          ...dropDownContainerStyle
         }}
         mode={badge ? "BADGE" : "SIMPLE"}
         disabledItemLabelStyle={{
@@ -78,30 +81,30 @@ export default function DropDown({
         }}
         ArrowDownIconComponent={ArrowDownIconComponent}
         ArrowUpIconComponent={ArrowUpIconComponent}
-      /> 
-   </View>
-    
+      />
+    </View>
+
   );
 }
 
 const styles = StyleSheet.create({
-  placeholder:{
-     color:colors.text.altGrey
+  placeholder: {
+    color: colors.text.altGrey
   },
-  mainContainer_style:{
+  mainContainer_style: {
     borderWidth: 1.5,
     borderColor: colors.input.background,
-    borderRadius:10,
+    borderRadius: 10,
     paddingHorizontal: 7,
-    color:colors.text.grey,
+    color: colors.text.grey,
     // flex: 1,
-    backgroundColor:colors.input.background,
+    backgroundColor: colors.input.background,
     // justifyContent:'center',
   },
-  labelStyle:{
+  labelStyle: {
     marginBottom: 5,
-    fontSize:12,
-    fontWeight:'bold',
+    fontSize: 12,
+    fontWeight: 'bold',
     color: colors.text.altGrey
-}
+  }
 })

@@ -46,10 +46,11 @@ export const asyncLogin = createAsyncThunk(
       dispatch(asyncShowError(res.message));
     } else {
       if (res.data?.token) {
-        let { todayAttendance, user, token } = res.data ?? {}
+        let { todayAttendance, user, parent, token } = res.data ?? {}
+        const userData = user || parent;
         dispatch(
           setUserState({
-            user: { ...user, todayAttendance },
+            user: { ...userData, todayAttendance },
             holidays: {},
             attendance: {} as UserAttendance,
             token,
@@ -79,12 +80,13 @@ export const asyncSignup = createAsyncThunk(
       dispatch(asyncShowError(res.message));
     } else {
       if (res.data?.token) {
-        let { todayAttendance, user, token } = res.data ?? {}
+        let { todayAttendance, user, parent, token } = res.data ?? {}
+        const userData = user || parent;
 
-        console.log('user', user);
+        console.log('user', userData);
         dispatch(
           setUserState({
-            user: { ...user, todayAttendance },
+            user: { ...userData, todayAttendance },
             holidays: {},
             attendance: {} as UserAttendance,
             token,
@@ -201,7 +203,13 @@ export const asyncGetUserProfile = createAsyncThunk(
     } else {
       if (res.data?._id) {
         let { classroom, ...teacher } = res.data ?? {}
-        dispatch(setUser({ ...teacher }));
+        // Map fatherFirstName/lastName to firstName/lastName for consistency if needed
+        const userData = {
+          ...teacher,
+          firstName: teacher.fatherFirstName || teacher.firstName || '',
+          lastName: teacher.fatherLastName || teacher.lastName || '',
+        };
+        dispatch(setUser(userData));
       }
     }
 
@@ -448,8 +456,9 @@ export const asyncAssignChild = createAsyncThunk(
       dispatch(asyncShowError(res.message));
     } else {
       dispatch(asyncShowSuccess(res.message));
-      // Refresh children list
+      // Refresh children list and user profile to update childrens array
       dispatch(asyncGetAllMyChildren());
+      dispatch(asyncGetUserProfile());
     }
     dispatch(setLoading(false));
     return res;

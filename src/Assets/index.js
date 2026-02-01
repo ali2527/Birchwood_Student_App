@@ -30,6 +30,7 @@ const schoolGallery = {
   food: require('./images/food.png'),
   work: require('./images/work.png'),
   mycat: require('./images/mycat.png'),
+  smiling_child: require('./images/smiling-girl.jpg'),
 };
 
 const resultScreenImgs = {
@@ -37,4 +38,4 @@ const resultScreenImgs = {
   grade: require('./images/grade_percentage.png'),
 };
 
-export {logo, featureIcons, schoolGallery, resultScreenImgs};
+export { logo, featureIcons, schoolGallery, resultScreenImgs };

@@ -13,6 +13,10 @@ export interface User {
   zip: string;
   image: string;
   bio: string;
+  fatherFirstName?: string;
+  fatherLastName?: string;
+  motherFirstName?: string;
+  motherLastName?: string;
   checkIn: boolean;
   checkOut: boolean;
   status: string;
@@ -22,6 +26,7 @@ export interface User {
   todayAttendance: {
     status: string;
   };
+  childrens?: string[];
   tokens: string[];
   createdAt: string;
   updatedAt: string;
@@ -35,6 +40,7 @@ export interface LoginUserPayload {
 
 export interface LoginUserResponse {
   user: User;
+  parent: User;
   token: string;
   todayAttendance: UserCheckInOutLeave;
 }

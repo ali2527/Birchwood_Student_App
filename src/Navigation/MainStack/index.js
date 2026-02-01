@@ -25,15 +25,17 @@ import Result from '../../Screens/Result';
 import CheckIn from '../../Screens/CheckIn';
 import LeaveApplication from '../../Screens/LeaveApplication';
 import ActivityScreen from '../../Screens/ActivityScreen';
+import EmptyDashboard from '../../Screens/EmptyDashboard';
 import { useAppSelector } from '../../Stores/hooks';
-import { selectUserToken } from '../../Stores/slices/user.slice';
+import { selectUserProfile, selectUserToken } from '../../Stores/slices/user.slice';
 
 const Stack = createNativeStackNavigator();
 
 const MainStack = () => {
   const token = useAppSelector(selectUserToken);
+  const user = useAppSelector(selectUserProfile);
 
-  console.log('MainStack rendered, token:', token);
+  console.log('MainStack rendered, token:', token, 'user children length:', user?.childrens?.length);
 
   return (
     <Stack.Navigator screenOptions={NavigationOptions} initialRouteName={routes.navigator.onboard}>
@@ -62,7 +64,11 @@ const MainStack = () => {
         </Stack.Group>
         :
         <Stack.Group>
-          <Stack.Screen name={routes.screens.homeScreen} component={HomeScreen} />
+          {user?.childrens?.length === 0 ? (
+            <Stack.Screen name={routes.screens.emptyDashboard} component={EmptyDashboard} />
+          ) : (
+            <Stack.Screen name={routes.screens.homeScreen} component={HomeScreen} />
+          )}
           <Stack.Screen name={routes.navigator.experience} component={Experience} />
           <Stack.Screen name={routes.screens.profile} component={Profile} />
           <Stack.Screen name={routes.screens.addChild} component={AddChild} />
