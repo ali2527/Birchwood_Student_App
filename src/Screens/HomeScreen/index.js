@@ -28,7 +28,7 @@ import { asyncSignOut, asyncGetUserProfile } from '../../Stores/actions/user.act
 
 import { useAppSelector } from '../../Stores/hooks';
 import { selectUserProfile } from '../../Stores/slices/user.slice';
-import { selectChildren } from '../../Stores/slices/class.slice';
+import { selectChildren, selectSelectedChild, setSelectedChild } from '../../Stores/slices/class.slice';
 import { spacing } from '../../theme/styles';
 import DropDown from '../../Components/DropDown';
 import { asyncGetAllMyChildren } from '../../Stores/actions/user.action';
@@ -38,9 +38,9 @@ export default function HomeScreen() {
   const dispatch = useDispatch()
   const userProfile = useAppSelector(selectUserProfile);
   const children = useAppSelector(selectChildren);
+  const selectedChild = useAppSelector(selectSelectedChild);
   const [open, setOpen] = useState(false);
-  const [selectedChild, setSelectedChild] = useState(null);
-
+  console.log("selectedChild", selectedChild)
   console.log("userProfile", userProfile)
   console.log("children", children)
 
@@ -56,22 +56,22 @@ export default function HomeScreen() {
     dispatch(asyncGetAllMyChildren());
   }, [dispatch]);
 
-  // Update profile state when userProfile changes
+  // Update profile state when userProfile or selectedChild changes
   React.useEffect(() => {
-    if (userProfile) {
-      setProfile(prev => ({
-        ...prev,
+    if (selectedChild) {
+      setProfile({
+        name: `${selectedChild.firstName} ${selectedChild.lastName}`.trim() || 'Child',
+        year: '2023 - 2024',
+        photo: selectedChild.image,
+      });
+    } else if (userProfile) {
+      setProfile({
         name: `${userProfile?.fatherFirstName || userProfile?.firstName || ''} ${userProfile?.fatherLastName || userProfile?.lastName || ''}`.trim() || 'User',
+        year: '2023 - 2024',
         photo: userProfile?.image,
-      }));
+      });
     }
-  }, [userProfile]);
-
-  React.useEffect(() => {
-    if (children?.length > 0 && !selectedChild) {
-      setSelectedChild(children[0]._id);
-    }
-  }, [children, selectedChild]);
+  }, [userProfile, selectedChild]);
 
   const childrenList = children?.map(child => ({
     label: `${child.firstName} ${child.lastName}`,
@@ -81,7 +81,8 @@ export default function HomeScreen() {
         source={child.image ? { uri: child.image } : profile_icon}
         style={{ width: 24, height: 24, borderRadius: 12 }}
       />
-    )
+    ),
+    child: child
   })) || [];
 
   // const data = [
@@ -127,7 +128,7 @@ export default function HomeScreen() {
   },
   {
     id: 7,
-    title: 'Profile & Settings'
+    title: 'Account & Settings'
   },
 
 
@@ -135,10 +136,10 @@ export default function HomeScreen() {
   ]
   const handleNavigate = (value, id) => {
     console.log('Valueee >>>>', value, id);
-    if (id === 7) navigation.navigate(routes.screens.profile);
+    if (id === 7) navigation.navigate(routes.screens.settings);
     else if (id === 1) navigation.navigate(routes.screens.activityScreen);
     else if (id === 4) navigation.navigate(routes.screens.timeTable);
-    else if (id === 2) navigation.navigate(routes.screens.checkIn);
+    else if (id === 2) navigation.navigate(routes.screens.attendanceLog);
     else if (id === 3) navigation.navigate(routes.screens.attendanceLog);
     else if (id === 5) navigation.navigate(routes.screens.leaveApplication);
     else if (id === 6) navigation.navigate(routes.screens.schoolAlbums);
@@ -174,8 +175,8 @@ export default function HomeScreen() {
             <Image
               source={
                 item.id === 1 ? featureIcons.activity :
-                  item.id === 2 ? featureIcons.school_holiday :
-                    item.id === 3 ? featureIcons.assignment :
+                  item.id === 2 ? featureIcons.attendance :
+                    item.id === 3 ? featureIcons.ask_doubts :
                       item.id === 4 ? featureIcons.time_table :
                         item.id === 5 ? featureIcons.leave_application :
                           item.id === 6 ? featureIcons.events :
@@ -277,8 +278,12 @@ export default function HomeScreen() {
                     label="Switch Child"
                     open={open}
                     setOpen={setOpen}
-                    value={selectedChild}
-                    onChange={setSelectedChild}
+                    value={selectedChild?._id}
+                    onSelectItem={(item) => {
+                      if (item && item.child) {
+                        dispatch(setSelectedChild(item.child));
+                      }
+                    }}
                     list={childrenList}
                     placeholder="Switch Child"
                     mainContainer_style={styles.dropdownContainer}
@@ -325,9 +330,8 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
   iconContainer: {
-    height: 24,
-    width: 24,
-    borderRadius: 12,
+    height: 32,
+    width: 32,
   },
   featureIcons: {
     height: '100%',
@@ -413,15 +417,12 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   iconWrapper: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  iconContainer: {
-    height: 28,
-    width: 28,
+    marginBottom: 5,
   },
   cardText: {
     color: '#1A1A1A',

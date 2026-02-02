@@ -4,7 +4,7 @@ import {
   createSlice,
 } from '@reduxjs/toolkit';
 import { format } from 'date-fns';
-import { Holiday, User, UserAttendance } from '../../types/User';
+import { Holiday, User, UserAttendance } from '../../Types/User';
 import { RootState } from '../index';
 
 interface UserSliceState {
@@ -55,18 +55,18 @@ export const { setUserState, setUser, setUserAttendance, setHolidays, resetUserS
 export default UserSlice.reducer;
 
 export const selectUserToken = createDraftSafeSelector(
-  [(state: RootState) => state.user],
-  state => state.token
+  [(state: RootState) => state.user.token],
+  token => token
 );
 
 export const selectUserProfile = createDraftSafeSelector(
-  [(state: RootState) => state.user],
-  state => state.user
+  [(state: RootState) => state.user.user],
+  user => user
 );
 
 export const selectUserAttendance = createDraftSafeSelector(
-  [(state: RootState) => state.user],
-  state => state.attendance
+  [(state: RootState) => state.user.attendance],
+  attendance => attendance
 );
 
 export const selectHolidaysMonthWise = (monthWithYear: string) =>

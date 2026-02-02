@@ -25,7 +25,9 @@ import Result from '../../Screens/Result';
 import CheckIn from '../../Screens/CheckIn';
 import LeaveApplication from '../../Screens/LeaveApplication';
 import ActivityScreen from '../../Screens/ActivityScreen';
+import ActivityDetail from '../../Screens/ActivityDetail';
 import EmptyDashboard from '../../Screens/EmptyDashboard';
+import Settings from '../../Screens/Settings';
 import { useAppSelector } from '../../Stores/hooks';
 import { selectUserProfile, selectUserToken } from '../../Stores/slices/user.slice';
 
@@ -97,6 +99,11 @@ const MainStack = () => {
             name={routes.screens.activityScreen}
             component={ActivityScreen}
           />
+          <Stack.Screen
+            name={routes.screens.activityDetail}
+            component={ActivityDetail}
+          />
+          <Stack.Screen name={routes.screens.settings} component={Settings} />
         </Stack.Group>
       }
     </Stack.Navigator>

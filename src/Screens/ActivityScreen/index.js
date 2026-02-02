@@ -1,11 +1,12 @@
 
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
 import { useDispatch } from 'react-redux';
 import { useAppSelector } from '../../Stores/hooks';
 import { asyncGetAllPosts } from '../../Stores/actions/post.action';
-import { selectPosts } from '../../Stores/slices/post.slice';
+import { selectPosts, resetPostState } from '../../Stores/slices/post.slice';
 import { selectAppLoader } from '../../Stores/slices/common.slice';
+import { selectSelectedChild } from '../../Stores/slices/class.slice';
 
 import PostItem from '../../Components/PostItem';
 import { colors } from '../../theme/colors';
@@ -13,34 +14,54 @@ import CustomStatusBar from '../../Components/StatusBar';
 import { BackArrow } from '../../Components/BackArrow';
 import GlroyBold from '../../Components/GlroyBoldText';
 import { vh, vw } from '../../theme/units';
+import VectorIcon from '../../Components/VectorIcons';
 
 const ActivityScreen = () => {
     const dispatch = useDispatch();
     const posts = useAppSelector(selectPosts);
     const loading = useAppSelector(selectAppLoader);
-    const [activeTab, setActiveTab] = useState('Reading'); // 'Reading' | 'Writing'
+    const selectedChild = useAppSelector(selectSelectedChild);
+    const [activeFilter, setActiveFilter] = useState('All');
 
-    console.log('ActivityScreen posts:', JSON.stringify(posts, null, 2));
-    console.log('ActivityScreen loading:', loading);
+    const getClassroomId = (child) => {
+        if (!child?.classroom) return null;
+        if (typeof child.classroom === 'string') return child.classroom;
+        return child.classroom._id || child.classroom.classroomId || child.classroom.id;
+    };
+
+    const classroomId = getClassroomId(selectedChild);
+    const childrenId = selectedChild?._id;
+
+    const filters = ['All', 'Reading', 'Playing', 'Eating', 'Sleeping'];
 
     useEffect(() => {
-        dispatch(asyncGetAllPosts({
-            // classroom: '66063d21c2efe1ca511d4438',
-            // children: '661dfc656899986a0a20e094',
-            // pass tab info if API supported it, e.g., type: activeTab
-        }));
-    }, [dispatch]);
+        if (classroomId && childrenId) {
+            dispatch(resetPostState());
+            dispatch(asyncGetAllPosts({
+                classroom: classroomId,
+                children: childrenId
+            }));
+        }
+    }, [dispatch, classroomId, childrenId]);
 
-    const renderTab = (title) => (
-        <TouchableOpacity
-            style={[styles.tab, activeTab === title && styles.activeTab]}
-            onPress={() => setActiveTab(title)}
-        >
-            <Text style={[styles.tabText, activeTab === title && styles.activeTabText]}>
-                {title}
-            </Text>
-        </TouchableOpacity>
-    );
+    const filteredPosts = activeFilter === 'All'
+        ? posts
+        : posts.filter(post => (post.type || post.activityType)?.toLowerCase().includes(activeFilter.toLowerCase()));
+
+    const renderFilterChip = (filter) => {
+        const isActive = activeFilter === filter;
+        return (
+            <TouchableOpacity
+                key={filter}
+                style={[styles.chip, isActive && styles.activeChip]}
+                onPress={() => setActiveFilter(filter)}
+            >
+                <Text style={[styles.chipText, isActive && styles.activeChipText]}>
+                    {filter}
+                </Text>
+            </TouchableOpacity>
+        );
+    };
 
     return (
         <View style={styles.container}>
@@ -48,30 +69,31 @@ const ActivityScreen = () => {
 
             <View style={styles.header}>
                 <BackArrow />
-                <GlroyBold text="Posts" _style={styles.headerTitle} />
+                <GlroyBold text="Today's Activities" _style={styles.headerTitle} />
             </View>
 
-            <View style={styles.tabContainer}>
-                {renderTab('Painting')}
-                {renderTab('Reading')}
-                {renderTab('Play Time')}
-                {renderTab('Story Time')}
+            <View style={styles.filterWrapper}>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterContainer}>
+                    {filters.map(filter => renderFilterChip(filter))}
+                </ScrollView>
             </View>
 
             {loading ? (
-                <View style={[styles.loaderContainer, { flex: 1, justifyContent: 'center' }]}>
+                <View style={styles.loaderContainer}>
                     <ActivityIndicator size="large" color={colors.theme.primary} />
+                    <Text style={styles.loadingText}>Fetching activities...</Text>
                 </View>
             ) : (
                 <FlatList
-                    data={posts}
+                    data={filteredPosts}
                     keyExtractor={(item) => item._id}
                     renderItem={({ item }) => <PostItem item={item} />}
                     contentContainerStyle={styles.listContainer}
                     showsVerticalScrollIndicator={false}
                     ListEmptyComponent={
                         <View style={styles.emptyContainer}>
-                            <Text>No posts found.</Text>
+                            <VectorIcon type="Ionicons" name="calendar-outline" size={60} color="#DDD" />
+                            <Text style={styles.emptyText}>No activities found for {activeFilter}</Text>
                         </View>
                     }
                 />
@@ -83,58 +105,75 @@ const ActivityScreen = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: colors.theme.white,
+        backgroundColor: '#F8F9FA',
     },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: 20,
         paddingVertical: 15,
+        backgroundColor: colors.theme.white,
     },
     headerTitle: {
         fontSize: 20,
         marginLeft: 15,
         color: colors.text.black,
     },
-    tabContainer: {
-        flexDirection: 'row',
-        marginHorizontal: 20,
-        marginBottom: 10,
-        backgroundColor: colors.theme.lightGray, // Fallback or existing gray
-        borderRadius: 25,
-        padding: 4,
+    filterWrapper: {
+        backgroundColor: colors.theme.white,
+        paddingBottom: 15,
+        borderBottomWidth: 1,
+        borderBottomColor: '#F0F0F0',
     },
-    tab: {
-        flex: 1,
-        paddingVertical: 10,
-        alignItems: 'center',
+    filterContainer: {
+        paddingHorizontal: 15,
+    },
+    chip: {
+        paddingHorizontal: 20,
+        paddingVertical: 8,
         borderRadius: 20,
+        backgroundColor: '#F0F0F0',
+        marginHorizontal: 5,
+        borderWidth: 1,
+        borderColor: '#E0E0E0',
     },
-    activeTab: {
-        backgroundColor: colors.theme.secondary, // Or a primary color
+    activeChip: {
+        backgroundColor: colors.theme.primary,
+        borderColor: colors.theme.primary,
     },
-    tabText: {
+    chipText: {
         fontSize: 14,
         fontWeight: '600',
-        color: colors.text.grey,
+        color: '#666',
     },
-    activeTabText: {
+    activeChipText: {
         color: colors.theme.white,
     },
     listContainer: {
-        paddingHorizontal: 20,
-        paddingBottom: 20,
+        padding: 20,
+        paddingBottom: 40,
     },
     loaderContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
     },
+    loadingText: {
+        marginTop: 10,
+        color: colors.text.grey,
+        fontSize: 14,
+    },
     emptyContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        marginTop: 50,
+        marginTop: 100,
+    },
+    emptyText: {
+        marginTop: 15,
+        fontSize: 16,
+        color: colors.text.grey,
+        textAlign: 'center',
     },
 });
 

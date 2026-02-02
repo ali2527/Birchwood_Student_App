@@ -121,19 +121,19 @@ export const { setPosts, setPost, removePost, setLikeDislike, setLoveUnlove, set
 export default PostSlice.reducer;
 
 export const selectPosts = createDraftSafeSelector(
-  [(state: RootState) => state.post],
-  state => Object.values(state.posts ?? {}) as Post[]
+  [(state: RootState) => state.post.posts],
+  posts => Object.values(posts ?? {}) as Post[]
 );
 
 export const selectPostById = (postId: string) =>
   createDraftSafeSelector(
-    [(state: RootState) => state.post],
-    state => state.posts[`post_${postId}`]
+    [(state: RootState) => state.post.posts],
+    posts => posts[`post_${postId}`]
   );
 
 export const selectActivities = createDraftSafeSelector(
-  [(state: RootState) => state.post],
-  state => Object.values(state.activities ?? {}) as Activity[]
+  [(state: RootState) => state.post.activities],
+  activities => Object.values(activities ?? {}) as Activity[]
 );
 
 // export const selectChildById = (childId: string) =>

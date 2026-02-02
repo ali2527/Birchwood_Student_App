@@ -34,7 +34,9 @@ export default function DropDown({
   required,
   starColor,
   dropDownContainerStyle,
-  customLabelStyle
+  customLabelStyle,
+  onSelectItem,
+  zIndexInverse
 }) {
 
   const ArrowUpIconComponent = () => <Ionicon name='chevron-up' size={20} color={colors.text.altGrey} />
@@ -60,6 +62,9 @@ export default function DropDown({
         open={open}
         setOpen={setOpen}
         setValue={onChange}
+        onSelectItem={onSelectItem}
+        zIndex={zIndex}
+        zIndexInverse={zIndexInverse}
         disabled={disabled}
         searchable={searchable === true}
         setItems={multiple ? setItems : null}

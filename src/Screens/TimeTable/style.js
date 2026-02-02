@@ -1,85 +1,147 @@
 import React from 'react';
-import {StyleSheet} from 'react-native';
-import {vh, vw} from '../../theme/units';
-import {colors} from '../../theme/colors';
+import { StyleSheet } from 'react-native';
+import { vh, vw } from '../../theme/units';
+import { colors } from '../../theme/colors';
 
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: vh * 2,
+    backgroundColor: colors.theme.white,
   },
-  flatListContainer: {
-    // flex: 1,
-    alignItems: 'center',
-    padding: 10,
-  },
-  cardContainer: {
-    borderWidth: 1,
-    borderColor: colors.theme.borderColor,
-    width: vw * 80,
-    borderRadius: 10,
-  },
-  statusContainer: {
-    borderWidth: 1,
-    borderColor: colors.theme.primary,
-    backgroundColor: colors.theme.primary,
-    borderBottomLeftRadius: 10,
-    borderBottomRightRadius: 10,
-    padding: 10,
-    alignItems: 'center',
-  },
-  borderLine: {
-    borderBottomWidth: 1,
-    borderBottomColor: colors.theme.borderColor,
-    marginVertical: 5,
-  },
-  itemContent: {
+  daySelector: {
     flexDirection: 'row',
-    alignItems: 'center',
+    paddingHorizontal: 20,
+    backgroundColor: colors.theme.primary + '08',
+    paddingVertical: 15,
     justifyContent: 'space-between',
   },
-  titleText: {
-    fontSize: 13,
+  dayBtn: {
+    width: vw * 15,
+    height: vh * 5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 12,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#eee',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  dayBtnSelected: {
+    backgroundColor: colors.theme.primary,
+    borderColor: colors.theme.primary,
+  },
+  dayText: {
+    fontSize: 12,
+    fontFamily: 'Glory-Bold',
+    color: colors.text.grey,
+  },
+  dayTextSelected: {
+    color: '#fff',
+  },
+  timelineContainer: {
+    padding: 20,
+    paddingBottom: 50,
+  },
+  timelineRow: {
+    flexDirection: 'row',
+    marginBottom: 0,
+    minHeight: vh * 10,
+  },
+  timeContainer: {
+    width: vw * 15,
+    alignItems: 'flex-end',
+    paddingRight: 15,
+    paddingTop: 5,
+  },
+  timeText: {
+    fontSize: 14,
+    fontFamily: 'Glory-Bold',
+    color: colors.text.black,
+  },
+  endTimeText: {
+    fontSize: 12,
+    fontFamily: 'Glory-Regular',
+    color: colors.text.grey,
+  },
+  timelineGraphic: {
+    width: 20,
+    alignItems: 'center',
+  },
+  timelineDot: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    marginTop: 8,
+    borderWidth: 3,
+    borderColor: '#fff',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+  },
+  timelineLine: {
+    flex: 1,
+    width: 2,
+    backgroundColor: '#E0E0E0',
     marginVertical: 5,
   },
-  stepperContainer: {
+  activityCard: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    marginHorizontal: vw * 5.5,
-    marginVertical: 10,
+    backgroundColor: '#fff',
+    marginLeft: 15,
+    marginBottom: 20,
+    padding: 12,
+    borderRadius: 15,
     borderWidth: 1,
-    borderColor: colors.theme.borderColor,
-    borderRadius: vh * 2,
-    height: vh * 3.5,
+    borderColor: '#F0F0F0',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
   },
-  stepperBtnSelected: {
-    backgroundColor: colors.theme.primary,
-    height: '100%',
+  lunchCard: {
+    backgroundColor: '#FFF8E1',
+    borderColor: '#FFE082',
+  },
+  iconContainer: {
+    width: 45,
+    height: 45,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    // paddingHorizontal: vw * 5,
-    flex: 1,
-    borderRadius: vh * 2,
   },
-  stepperBtnUnSelected: {
-    height: '100%',
+  activityInfo: {
+    marginLeft: 12,
+    flex: 1,
+  },
+  activityName: {
+    fontSize: 16,
+    color: colors.text.black,
+  },
+  periodText: {
+    fontSize: 12,
+    fontFamily: 'Glory-Medium',
+    color: colors.text.grey,
+    marginTop: 2,
+  },
+  emptyContainer: {
+    padding: 50,
     alignItems: 'center',
     justifyContent: 'center',
-    flex: 1,
-    // paddingHorizontal: vw * 5,
-    // width: '25%',
   },
-  selectedTitle: {
-    color: colors.theme.white,
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  unSelectedTitle: {
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  lunch_break_icon: {
-    height: vh * 7,
-    width: vw * 8,
+  emptyText: {
+    marginTop: 15,
+    fontSize: 15,
+    fontFamily: 'Glory-Medium',
+    color: colors.text.grey,
+    textAlign: 'center',
   },
 });

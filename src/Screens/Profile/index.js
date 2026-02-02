@@ -160,7 +160,7 @@ export default function Profile() {
 
 
     return (
-        <>
+        <View style={{ flex: 1, backgroundColor: colors.theme.white }}>
             <TopBar>
                 <View style={styles.header}>
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -176,13 +176,14 @@ export default function Profile() {
                 keyExtractor={(item) => item._id}
                 renderItem={renderItem}
                 ListHeaderComponent={renderProfileDetails}
+                contentContainerStyle={{ paddingBottom: 30 }}
                 ListEmptyComponent={
                     <View style={styles.emptyContainer}>
                         <Text style={styles.emptyText}>No children found</Text>
                     </View>
                 }
             />
-        </>
+        </View>
     )
 }
 
@@ -352,5 +353,47 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         fontSize: 12,
         marginLeft: 4,
+    },
+    settingsSection: {
+        paddingHorizontal: 20,
+        marginTop: 10,
+    },
+    settingsTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: colors.text.black,
+        marginBottom: 15,
+        marginTop: 5,
+    },
+    settingItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 14,
+        borderBottomWidth: 1,
+        borderBottomColor: colors.theme.secondary + '10',
+    },
+    settingIconContainer: {
+        width: 38,
+        height: 38,
+        borderRadius: 10,
+        backgroundColor: colors.theme.primary + '10',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: 15,
+    },
+    settingText: {
+        fontSize: 15,
+        fontWeight: '600',
+        color: colors.text.black,
+        flex: 1,
+    },
+    settingSubtext: {
+        fontSize: 12,
+        color: colors.text.gray,
+        marginTop: 1,
+    },
+    logoutItem: {
+        borderBottomWidth: 0,
+        marginTop: 5,
     }
 })

@@ -14,6 +14,7 @@ const featureIcons = {
   school_gallery: require('./icons/ic_gallery.png'),
   leave_application: require('./icons/ic_leave.png'),
   school_holiday: require('./icons/ic_holiday.png'),
+  attendance: require('./icons/ic_attendance.png'),
   logout: require('./icons/ic_logout.png'),
   change_password: require('./icons/ic_password.png'),
   lunch_break: require('./images/lunch_break.png'),

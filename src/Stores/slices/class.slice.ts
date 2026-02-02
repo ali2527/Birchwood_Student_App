@@ -12,6 +12,7 @@ interface ClassSliceState {
   classRoom: ClassRoom;
   attendances: Record<string, ChildAttendance>;
   children: Record<string, Child>;
+  selectedChild: Child | null;
   pagination: PaginationProps;
   chatRooms: Record<string, {
     messages: Record<string, Message>,
@@ -22,6 +23,7 @@ interface ClassSliceState {
 const initialState: ClassSliceState = {
   classRoom: {} as ClassRoom,
   children: {},
+  selectedChild: null,
   attendances: {},
   pagination: {} as PaginationProps,
   chatRooms: {}
@@ -44,6 +46,9 @@ const ClassSlice = createSlice({
     },
     setChild: (state, { payload }: PayloadAction<Partial<Child>>) => {
       state.children["child_" + payload._id] = { ...state.children["child_" + payload._id], ...payload };
+    },
+    setSelectedChild: (state, { payload }: PayloadAction<Child | null>) => {
+      state.selectedChild = payload;
     },
     setAttendances: (state, { payload }: PayloadAction<Partial<ChildAttendance>>) => {
       state.attendances[payload._id] = { ...state.attendances[payload._id], ...payload };
@@ -90,19 +95,24 @@ const ClassSlice = createSlice({
   },
 });
 
-export const { setClassRoom, setChildren, setChild, setAttendances, setChatRoomMessages, setChatRoomMessage, resetClassState } =
+export const { setClassRoom, setChildren, setChild, setSelectedChild, setAttendances, setChatRoomMessages, setChatRoomMessage, resetClassState } =
   ClassSlice.actions;
 
 export default ClassSlice.reducer;
 
 export const selectClassRoom = createDraftSafeSelector(
-  [(state: RootState) => state.class],
-  state => state.classRoom
+  [(state: RootState) => state.class.classRoom],
+  classRoom => classRoom
 );
 
 export const selectChildren = createDraftSafeSelector(
-  [(state: RootState) => state.class],
-  state => Object.values(state.children) as Child[]
+  [(state: RootState) => state.class.children],
+  children => Object.values(children) as Child[]
+);
+
+export const selectSelectedChild = createDraftSafeSelector(
+  [(state: RootState) => state.class.selectedChild],
+  selectedChild => selectedChild
 );
 
 export const selectChildById = (childId: string) =>

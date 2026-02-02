@@ -16,10 +16,11 @@ export enum ProfileApiPaths {
   getAllMyChildren = 'profile/getAllMyChildren',
   checkIn = 'children/attendance/markCheckIn',
   checkOut = 'children/attendance/markCheckOut',
-  markLeave = 'children/attendance/markLeave',
+  markLeave = 'teacher/attendance/markLeave',
   monthlyAttendance = 'children/attendance/getAttendanceByMonth/:childId',
   getAllHolidays = 'holiday/getAllHolidays',
   assignChild = 'profile/assignChild',
+  getMonthlyAttendanceStats = 'teacher/attendance/getMonthlyAttendanceStats',
 }
 
 export enum ClassApiPaths {

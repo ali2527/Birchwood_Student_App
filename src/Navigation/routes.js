@@ -24,7 +24,9 @@ const routes = {
     checkIn: 'CheckIn',
     leaveApplication: 'LeaveApplication',
     activityScreen: 'ActivityScreen',
+    activityDetail: 'ActivityDetail',
     emptyDashboard: 'EmptyDashboard',
+    settings: 'Settings',
   },
 };
 

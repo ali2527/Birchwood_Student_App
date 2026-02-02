@@ -9,15 +9,24 @@ import { RootState } from '..';
 
 export const asyncGetAllClassTimeTable = createAsyncThunk(
   'getAllClassTimeTable',
-  async (day: string | undefined, { dispatch, getState }) => {
+  async (arg: string | undefined, { dispatch, getState }) => {
     dispatch(setLoading(true));
 
-    // Get classroom ID from first child instead of user
     const state = getState() as RootState;
-    const children = Object.values(state.class.children || {});
-    const classRoomId: string = children[0]?.classroom?._id;
+    const selectedChild = state.class.selectedChild as any;
 
-    console.log('Fetching timetable for classRoomId:', classRoomId, 'day:', day);
+    // Check if the argument passed is actually an ID (longer than typical "MON", "TUE" etc)
+    const passedId = (arg && arg.length > 5) ? arg : undefined;
+    const day = (arg && arg.length <= 5) ? arg : undefined;
+
+    const classroom = selectedChild?.classroom;
+    const extractedId = typeof classroom === 'string' ? classroom : (classroom?._id || classroom?.classroomId || classroom?.id);
+
+    const classRoomId = passedId || extractedId;
+
+    console.log('DEBUG Action: selectedChild:', JSON.stringify(selectedChild, null, 2));
+    console.log('DEBUG Action: classroom field:', classroom);
+    console.log('DEBUG Action: final classRoomId:', classRoomId);
 
     if (!classRoomId) {
       console.log('No classroom ID found, skipping timetable fetch');
@@ -27,6 +36,7 @@ export const asyncGetAllClassTimeTable = createAsyncThunk(
         message: 'No classroom ID available'
       };
     }
+    console.log('Classroom ID:', classRoomId);
 
     let path = allApiPaths.getPath('getAllClassTimeTable', {
       classRoomId

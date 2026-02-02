@@ -1,13 +1,15 @@
-import {StyleSheet, Text, View} from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import React from 'react';
 import CalendarPicker from 'react-native-calendar-picker';
 import VectorIcon from '../VectorIcons';
-import {colors} from '../../theme/colors';
+import { colors } from '../../theme/colors';
 
-const CalendarPickerComponent = ({onDateChange, customDatesStyles}) => {
+const CalendarPickerComponent = ({ onDateChange, customDatesStyles, onMonthChange, allowRangeSelection, ...rest }) => {
   return (
     <CalendarPicker
       onDateChange={onDateChange}
+      onMonthChange={onMonthChange}
+      allowRangeSelection={allowRangeSelection}
       //   showDayStragglers={true}
       previousComponent={
         <VectorIcon type={'Ionicons'} name={'chevron-back-outline'} size={20} />
@@ -24,6 +26,7 @@ const CalendarPickerComponent = ({onDateChange, customDatesStyles}) => {
       yearTitleStyle={styles.calendarHeaderStyle}
       dayLabelsWrapper={styles.containerHeader}
       todayBackgroundColor={colors.theme.primary}
+      {...rest}
     />
   );
 };

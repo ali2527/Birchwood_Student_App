@@ -1,12 +1,12 @@
-import {View, Text, TouchableOpacity} from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import React from 'react';
-import {styles} from './style';
+import { styles } from './style';
 import GradientComponent from '../Gradient';
-import {vh, vw} from '../../theme/units';
+import { vh, vw } from '../../theme/units';
 import ToggleButton from '../ToggleButton';
 import VectorIcon from '../VectorIcons';
-import {colors} from '../../theme/colors';
-import {useNavigation} from '@react-navigation/native';
+import { colors } from '../../theme/colors';
+import { useNavigation } from '@react-navigation/native';
 import GlroyBold from '../GlroyBoldText';
 
 export const SecondaryHeader = ({
@@ -20,7 +20,7 @@ export const SecondaryHeader = ({
 }) => {
   const navigation = useNavigation();
   return (
-    <GradientComponent style={{height: headerHeight}}>
+    <GradientComponent style={{ height: headerHeight, paddingTop: vh * 6 }}>
       <View style={styles.container}>
         <View
           style={{
@@ -43,7 +43,7 @@ export const SecondaryHeader = ({
           {title && (
             <GlroyBold
               text={title}
-              _style={{color: color, marginHorizontal: 8}}
+              _style={{ color: color, marginHorizontal: 8 }}
             />
           )}
           {btn && (

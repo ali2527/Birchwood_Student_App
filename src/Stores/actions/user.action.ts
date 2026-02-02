@@ -16,10 +16,11 @@ import {
   UserCheckInOutLeave,
   UserCheckInOutResponse,
   UserEducation,
-  UserExperience
-} from '../../types/User';
+  UserExperience,
+  LeavePayload
+} from '../../Types/User';
 import { Child, ClassResponse } from '../../Types/Class';
-import { setChildren } from '../slices/class.slice';
+import { setChildren, setSelectedChild } from '../slices/class.slice';
 import { setLoading } from '../slices/common.slice';
 import {
   resetUserState,
@@ -230,11 +231,20 @@ export const asyncGetAllMyChildren = createAsyncThunk(
       dispatch(asyncShowError(res.message));
     } else {
       if (res.data) {
-        // Transform array response to ClassResponse format
-        const childrenData = Array.isArray(res.data)
-          ? { docs: res.data }
-          : res.data;
-        dispatch(setChildren(childrenData as ClassResponse));
+        const docs = Array.isArray(res.data) ? res.data : res.data.docs;
+
+        // Always set the first child as selected if it exists
+        if (docs && docs.length > 0) {
+          dispatch(setSelectedChild(docs[0]));
+        }
+
+        // Only save full children list to redux if there are 2 or more children
+        if (docs && docs.length >= 2) {
+          const childrenData = Array.isArray(res.data)
+            ? { docs: res.data }
+            : res.data;
+          dispatch(setChildren(childrenData as ClassResponse));
+        }
       }
     }
 
@@ -373,64 +383,69 @@ export const asyncUserLeave = createAsyncThunk(
   'userLeave',
   async (data: any, { dispatch }) => {
     dispatch(setLoading(true));
+    try {
+      const res = await callApi<{ todayAttendance: UserCheckInOutLeave }, LeavePayload>({
+        method: 'POST',
+        path: allApiPaths.getPath('markLeave'),
+        body: data,
+      });
 
-    const res = await callApi<{ todayAttendance: UserCheckInOutLeave }, User>({
-      method: 'POST',
-      path: allApiPaths.getPath('markLeave'),
-      body: data,
-    });
-
-    if (!res?.status) {
-      dispatch(asyncShowError(res.message));
-    } else {
-      dispatch(setUser({ todayAttendance: res.data?.todayAttendance, checkIn: true }));
-      dispatch(asyncShowSuccess(res.message));
+      if (!res?.status) {
+        dispatch(asyncShowError(res.message));
+      } else {
+        dispatch(setUser({ todayAttendance: res.data?.todayAttendance, checkIn: true }));
+        dispatch(asyncShowSuccess(res.message));
+      }
+      return res;
+    } catch (e: any) {
+      dispatch(asyncShowError(e.message || 'Something went wrong'));
+      throw e;
+    } finally {
+      dispatch(setLoading(false));
     }
-    dispatch(setLoading(false));
-    return res;
   }
 );
 
 export const asyncUserMonthlyAttendance = createAsyncThunk(
   'monthlyAttendance',
   async ({ month, year }: any, { dispatch }) => {
-
     dispatch(setLoading(true));
+    try {
+      const res = await callApi<UserAttendanceResponse>({
+        path: (allApiPaths.getPath('getMonthlyAttendanceStats') +
+          `?month=${month}&year=${year}`) as ApiPaths,
+      });
 
-    const res = await callApi<UserAttendanceResponse>({
-      path: (allApiPaths.getPath('monthlyAttendance') +
-        `?month=${month}&year=${year}`) as ApiPaths,
-    });
-
-    if (!res?.status) {
-      dispatch(asyncShowError(res.message));
-    } else {
-      dispatch(setUserAttendance(res.data ?? ({} as UserAttendanceResponse)));
+      if (!res?.status) {
+        dispatch(asyncShowError(res.message));
+      } else {
+        dispatch(setUserAttendance(res.data ?? ({} as UserAttendanceResponse)));
+      }
+      return res;
+    } finally {
+      dispatch(setLoading(false));
     }
-
-    dispatch(setLoading(false));
-    return res;
   }
 );
 
 export const asyncGetAllHolidays = createAsyncThunk(
   'getAllHolidays',
   async (_, { dispatch }) => {
-
     dispatch(setLoading(true));
+    try {
+      const res = await callApi<{ holidays: Holiday[] }>({
+        path: allApiPaths.getPath('getAllHolidays')
+      });
 
-    const res = await callApi<{ holidays: Holiday[] }>({
-      path: allApiPaths.getPath('getAllHolidays')
-    });
-
-    if (!res?.status) {
-      dispatch(asyncShowError(res.message));
-    } else {
-      dispatch(setHolidays(res.data?.holidays!));
+      if (!res?.status) {
+        dispatch(asyncShowError(res.message));
+      } else {
+        dispatch(setHolidays(res.data?.holidays!));
+      }
+      return res;
+    } finally {
+      dispatch(setLoading(false));
     }
-
-    dispatch(setLoading(false));
-    return res;
   }
 );
 
