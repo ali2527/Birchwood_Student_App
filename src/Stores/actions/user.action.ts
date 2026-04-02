@@ -36,9 +36,15 @@ export const asyncLogin = createAsyncThunk(
   async (data: LoginUserPayload, { dispatch }) => {
     dispatch(setLoading(true));
 
+    const loginPath = allApiPaths.getPath('login');
+    const resolvedLoginPath = loginPath.includes('teacher/auth')
+      ? 'auth/signin'
+      : loginPath;
+    console.log('login path resolved:', resolvedLoginPath);
+
     const res = await callApi<LoginUserResponse, LoginUserPayload>({
       method: 'POST',
-      path: allApiPaths.getPath('login'),
+      path: resolvedLoginPath,
       body: data,
       axiosSecure: false,
     });

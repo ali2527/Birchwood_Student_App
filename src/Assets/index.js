@@ -1,6 +1,6 @@
 const logo = {
-  main_logo: require('./images/logo/main_logo.jpg'),
-  child_logo: require('./images/logo/child_logo.jpg'),
+  main_logo: require('./images/logo/main_logo.png'),
+  child_logo: require('./images/logo/child_logo.png'),
 };
 
 const featureIcons = {
@@ -14,7 +14,7 @@ const featureIcons = {
   school_gallery: require('./icons/ic_gallery.png'),
   leave_application: require('./icons/ic_leave.png'),
   school_holiday: require('./icons/ic_holiday.png'),
-  attendance: require('./icons/ic_attendance.png'),
+  attendance: require('./icons/ic_attendance.jpg'),
   logout: require('./icons/ic_logout.png'),
   change_password: require('./icons/ic_password.png'),
   lunch_break: require('./images/lunch_break.png'),

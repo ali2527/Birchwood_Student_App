@@ -1,20 +1,18 @@
 
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
+import { ActivityIndicator, FlatList, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useDispatch } from 'react-redux';
-import { useAppSelector } from '../../Stores/hooks';
 import { asyncGetAllPosts } from '../../Stores/actions/post.action';
-import { selectPosts, resetPostState } from '../../Stores/slices/post.slice';
-import { selectAppLoader } from '../../Stores/slices/common.slice';
+import { useAppSelector } from '../../Stores/hooks';
 import { selectSelectedChild } from '../../Stores/slices/class.slice';
-
-import PostItem from '../../Components/PostItem';
-import { colors } from '../../theme/colors';
-import CustomStatusBar from '../../Components/StatusBar';
+import { selectAppLoader } from '../../Stores/slices/common.slice';
+import { resetPostState, selectPosts } from '../../Stores/slices/post.slice';
 import { BackArrow } from '../../Components/BackArrow';
 import GlroyBold from '../../Components/GlroyBoldText';
-import { vh, vw } from '../../theme/units';
+import PostItem from '../../Components/PostItem';
+import CustomStatusBar from '../../Components/StatusBar';
 import VectorIcon from '../../Components/VectorIcons';
+import { colors } from '../../theme/colors';
 
 const ActivityScreen = () => {
     const dispatch = useDispatch();

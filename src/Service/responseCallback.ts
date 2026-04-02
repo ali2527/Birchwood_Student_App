@@ -24,6 +24,13 @@ export interface ResponseCallback<RD> {
 export function responseCallback<RT>(
   res: AxiosResponse<ResponseCallback<RT>>
 ): ResponseCallback<RT> {
+  console.log('responseCallback', {
+    status: res.status,
+    statusText: res.statusText,
+    data: res.data,
+    url: res.config?.url,
+    baseURL: res.config?.baseURL,
+  });
   const message = res.data?.message ?? res.statusText ?? "Something Went Wrong!";
   const status = res.data?.status ?? false
 

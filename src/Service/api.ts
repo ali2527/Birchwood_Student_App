@@ -78,17 +78,32 @@ export const callApi = async <RT, T = undefined>({
     .then((response: AxiosResponse<ResponseCallback<RT>>) => responseCallback<RT>(response))
     .catch((error: AxiosError<ResponseCallback<RT>>) => {
       if (error.response) {
-        console.log('error.responseff', error.response);
+        console.log('error.responseff', {
+          status: error.response.status,
+          statusText: error.response.statusText,
+          data: error.response.data,
+          url: error.response.config?.url,
+          baseURL: error.response.config?.baseURL,
+        });
         return responseCallback<RT>(error.response);
-      } else if (error.request) {
-        console.log('error.requestddd', error.request);
-        return responseCallback<RT>(error.request);
-      } else {
+      }
+      if (error.request) {
+        console.log('error.requestddd', {
+          message: error.message,
+          code: error.code,
+          url: error.config?.url,
+          baseURL: error.config?.baseURL,
+        });
         return {
           status: false,
-          message: error.message,
+          message: error.message || 'Network error',
           data: undefined,
         };
       }
+      return {
+        status: false,
+        message: error.message,
+        data: undefined,
+      };
     }) as Promise<ResponseCallback<RT>>;
 };
