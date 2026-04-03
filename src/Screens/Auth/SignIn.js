@@ -1,13 +1,15 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  Animated,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  StatusBar,
   StyleSheet,
+  Text,
   TouchableOpacity,
   View,
-  Keyboard,
-  Text,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -27,6 +29,13 @@ const SignIn = ({ navigation }) => {
   const dispatch = useAppDispatch();
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
 
+  const heroOpacity = useRef(new Animated.Value(0)).current;
+  const heroTranslateY = useRef(new Animated.Value(28)).current;
+  const logoScale = useRef(new Animated.Value(0.88)).current;
+  const cardOpacity = useRef(new Animated.Value(0)).current;
+  const cardTranslateY = useRef(new Animated.Value(36)).current;
+  const footerOpacity = useRef(new Animated.Value(0)).current;
+
   useEffect(() => {
     const show = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
     const hide = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
@@ -40,6 +49,48 @@ const SignIn = ({ navigation }) => {
       keyboardDidShowListener.remove();
       keyboardDidHideListener.remove();
     };
+  }, []);
+
+  useEffect(() => {
+    Animated.sequence([
+      Animated.parallel([
+        Animated.timing(heroOpacity, {
+          toValue: 1,
+          duration: 480,
+          useNativeDriver: true,
+        }),
+        Animated.spring(heroTranslateY, {
+          toValue: 0,
+          friction: 9,
+          tension: 68,
+          useNativeDriver: true,
+        }),
+        Animated.spring(logoScale, {
+          toValue: 1,
+          friction: 8,
+          tension: 72,
+          useNativeDriver: true,
+        }),
+      ]),
+      Animated.parallel([
+        Animated.timing(cardOpacity, {
+          toValue: 1,
+          duration: 400,
+          useNativeDriver: true,
+        }),
+        Animated.spring(cardTranslateY, {
+          toValue: 0,
+          friction: 9,
+          tension: 70,
+          useNativeDriver: true,
+        }),
+      ]),
+      Animated.timing(footerOpacity, {
+        toValue: 1,
+        duration: 360,
+        useNativeDriver: true,
+      }),
+    ]).start();
   }, []);
 
   const handleForgotPassword = () => {
@@ -59,10 +110,13 @@ const SignIn = ({ navigation }) => {
 
   const onSubmit = useCallback(
     async body => {
-      const res = await dispatch(asyncLogin(body)).unwrap();
-      console.log('res::::::', res);
-      if (res.status && res.data?.token) {
-        navigation.navigate(routes.screens.homeScreen);
+      try {
+        const res = await dispatch(asyncLogin(body)).unwrap();
+        if (res.status && res.data?.token) {
+          navigation.navigate(routes.screens.homeScreen);
+        }
+      } catch {
+        /* errors from thunk / flash message */
       }
     },
     [navigation, dispatch]
@@ -74,6 +128,7 @@ const SignIn = ({ navigation }) => {
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.gradient}>
+      <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
       <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
         <KeyboardAvoidingView
           style={styles.flex}
@@ -85,17 +140,36 @@ const SignIn = ({ navigation }) => {
             showsVerticalScrollIndicator={false}
             scrollEnabled
             bounces={isKeyboardVisible}>
-            <View style={styles.hero}>
-              <View style={styles.logoWrap}>
+            <Animated.View
+              style={[
+                styles.hero,
+                {
+                  opacity: heroOpacity,
+                  transform: [{ translateY: heroTranslateY }],
+                },
+              ]}>
+              <Animated.View
+                style={[
+                  styles.logoWrap,
+                  { transform: [{ scale: logoScale }] },
+                ]}>
                 <MainLogo />
-              </View>
+              </Animated.View>
               <Text style={styles.welcomeTitle}>Welcome back</Text>
               <Text style={styles.welcomeSubtitle}>
                 Sign in to continue to your dashboard
               </Text>
-            </View>
+            </Animated.View>
 
-            <View style={[styles.card, appShadow]}>
+            <Animated.View
+              style={[
+                styles.card,
+                appShadow,
+                {
+                  opacity: cardOpacity,
+                  transform: [{ translateY: cardTranslateY }],
+                },
+              ]}>
               <Controller
                 name="email"
                 control={control}
@@ -112,6 +186,9 @@ const SignIn = ({ navigation }) => {
                     placeholder="you@example.com"
                     value={value}
                     required
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    autoCorrect={false}
                     onChangeText={onChange}
                   />
                 )}
@@ -169,11 +246,11 @@ const SignIn = ({ navigation }) => {
                   containerStyle={styles.signInButton}
                 />
               </View>
-            </View>
+            </Animated.View>
 
-            <View style={styles.footerLogo}>
+            <Animated.View style={[styles.footerLogo, { opacity: footerOpacity }]}>
               <ChildLogo _style={styles.childLogo} />
-            </View>
+            </Animated.View>
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
@@ -225,6 +302,8 @@ const styles = StyleSheet.create({
     paddingTop: 24,
     paddingBottom: 20,
     marginBottom: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(3, 83, 146, 0.08)',
   },
   fieldError: {
     color: colors.theme.lightRed,

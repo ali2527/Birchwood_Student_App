@@ -1,30 +1,90 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
+  Animated,
+  Platform,
+  ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   View,
-  ScrollView,
-  Platform,
 } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import CustomStatusBar from '../../Components/StatusBar';
-import { colors, appShadow } from '../../theme/colors';
-import MainLogo from '../../Components/MainLogo';
-import ChildLogo from '../../Components/ChildLogo';
 import CustomButton from '../../Components/Button';
+import ChildLogo from '../../Components/ChildLogo';
 import GlroyBold from '../../Components/GlroyBoldText';
 import GrayMediumText from '../../Components/GrayMediumText';
-import { useNavigation } from '@react-navigation/native';
+import MainLogo from '../../Components/MainLogo';
 import routes from '../../Navigation/routes';
+import { colors, appShadow } from '../../theme/colors';
 import { vw } from '../../theme/units';
+import { useNavigation } from '@react-navigation/native';
 
 export default function OnBoardScreen() {
   const navigation = useNavigation();
 
+  const heroOpacity = useRef(new Animated.Value(0)).current;
+  const heroTranslateY = useRef(new Animated.Value(32)).current;
+  const logoScale = useRef(new Animated.Value(0.9)).current;
+
+  const illusOpacity = useRef(new Animated.Value(0)).current;
+  const illusTranslateY = useRef(new Animated.Value(36)).current;
+
+  const actionsOpacity = useRef(new Animated.Value(0)).current;
+  const actionsTranslateY = useRef(new Animated.Value(40)).current;
+
+  useEffect(() => {
+    Animated.sequence([
+      Animated.parallel([
+        Animated.timing(heroOpacity, {
+          toValue: 1,
+          duration: 520,
+          useNativeDriver: true,
+        }),
+        Animated.spring(heroTranslateY, {
+          toValue: 0,
+          friction: 9,
+          tension: 68,
+          useNativeDriver: true,
+        }),
+        Animated.spring(logoScale, {
+          toValue: 1,
+          friction: 8,
+          tension: 72,
+          useNativeDriver: true,
+        }),
+      ]),
+      Animated.parallel([
+        Animated.timing(illusOpacity, {
+          toValue: 1,
+          duration: 420,
+          useNativeDriver: true,
+        }),
+        Animated.spring(illusTranslateY, {
+          toValue: 0,
+          friction: 9,
+          tension: 64,
+          useNativeDriver: true,
+        }),
+      ]),
+      Animated.parallel([
+        Animated.timing(actionsOpacity, {
+          toValue: 1,
+          duration: 380,
+          useNativeDriver: true,
+        }),
+        Animated.spring(actionsTranslateY, {
+          toValue: 0,
+          friction: 9,
+          tension: 70,
+          useNativeDriver: true,
+        }),
+      ]),
+    ]).start();
+  }, []);
+
   return (
     <View style={styles.root}>
-    
+      <StatusBar barStyle="dark-content" backgroundColor={colors.theme.white} />
       <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
         <ScrollView
           contentInsetAdjustmentBehavior="automatic"
@@ -32,11 +92,21 @@ export default function OnBoardScreen() {
           style={styles.scroll}
           showsVerticalScrollIndicator={false}
           bounces={false}>
-
-          <View style={styles.hero}>
-            <View style={[styles.logoCard]}>
-              <MainLogo _style={{width:vw*100}}/>
-            </View>
+          <Animated.View
+            style={[
+              styles.hero,
+              {
+                opacity: heroOpacity,
+                transform: [{ translateY: heroTranslateY }],
+              },
+            ]}>
+            <Animated.View
+              style={[
+                styles.logoCard,
+                { transform: [{ scale: logoScale }] },
+              ]}>
+              <MainLogo _style={{ width: vw * 100 }} />
+            </Animated.View>
             <Text style={styles.academyName}>Birchwood Montessori Academy</Text>
             <GlroyBold
               text="Empowering dreams, uniting futures"
@@ -46,13 +116,28 @@ export default function OnBoardScreen() {
               text="A family-owned school with a clear mission: nurture curiosity, character, and community—so every child can thrive."
               _style={styles.para}
             />
-          </View>
+          </Animated.View>
 
-          <View style={styles.illustrationWrap}>
+          <Animated.View
+            style={[
+              styles.illustrationWrap,
+              {
+                opacity: illusOpacity,
+                transform: [{ translateY: illusTranslateY }],
+              },
+            ]}>
             <ChildLogo _style={styles.childLogo} />
-          </View>
+          </Animated.View>
 
-          <View style={[styles.actionsCard, appShadow]}>
+          <Animated.View
+            style={[
+              styles.actionsCard,
+              appShadow,
+              {
+                opacity: actionsOpacity,
+                transform: [{ translateY: actionsTranslateY }],
+              },
+            ]}>
             <Text style={styles.actionsLabel}>Get started</Text>
             <View style={styles.btnRow}>
               <CustomButton
@@ -67,7 +152,7 @@ export default function OnBoardScreen() {
                 containerStyle={styles.btnHalf}
               />
             </View>
-          </View>
+          </Animated.View>
         </ScrollView>
       </SafeAreaView>
     </View>
@@ -90,21 +175,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingBottom: Platform.OS === 'ios' ? 32 : 24,
   },
-  accentBar: {
-    alignSelf: 'center',
-    width: 48,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: colors.theme.secondary,
-    marginTop: 8,
-    marginBottom: 20,
-    opacity: 0.85,
-  },
   hero: {
     alignItems: 'center',
   },
   logoCard: {
-    // backgroundColor: colors.theme.white,
     borderRadius: 20,
     paddingVertical: 20,
     paddingHorizontal: 28,
