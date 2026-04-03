@@ -24,6 +24,9 @@ const CustomTextInput = ({
   _inputStyle,
   labelStyle,
   placeholderClr,
+  keyboardType,
+  autoCapitalize,
+  autoCorrect,
 }) => {
   const [secureTextEntry, setSecureTextEntry] = useState(password);
   return (
@@ -45,6 +48,9 @@ const CustomTextInput = ({
           value={value}
           name={name}
           secureTextEntry={secureTextEntry}
+          keyboardType={keyboardType}
+          autoCapitalize={autoCapitalize ?? 'sentences'}
+          autoCorrect={autoCorrect ?? true}
           onChangeText={(text) => {
             if (!onChangeText) return;
             if (name) {

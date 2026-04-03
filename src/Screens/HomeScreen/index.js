@@ -7,56 +7,81 @@ import {
   Image,
   FlatList,
   TouchableOpacity,
-  Alert,
+  Platform,
 } from 'react-native';
 import React, { useState } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import LinearGradient from 'react-native-linear-gradient';
 import { vh, vw } from '../../theme/units';
 import main_bg_img from '../../Assets/images/animated_bg.png';
 import GlroyBold from '../../Components/GlroyBoldText';
 import profile_icon from '../../Assets/images/profile_bg.png';
 import { colors } from '../../theme/colors';
 import UserProfileCircle from '../../Components/ProfileCircle';
-import student from '../../Assets/icons/student.png';
-import { appShadow } from '../../theme/colors';
 import { featureIcons } from '../../Assets';
-import { icons } from '../../Assets/icons';
-import GrayMediumText from '../../Components/GrayMediumText';
 import { useNavigation } from '@react-navigation/native';
 import routes from '../../Navigation/routes';
 import { useDispatch } from 'react-redux';
-import { asyncSignOut, asyncGetUserProfile } from '../../Stores/actions/user.action';
-
+import {
+  asyncSignOut,
+  asyncGetUserProfile,
+  asyncGetAllMyChildren,
+} from '../../Stores/actions/user.action';
 import { useAppSelector } from '../../Stores/hooks';
 import { selectUserProfile } from '../../Stores/slices/user.slice';
-import { selectChildren, selectSelectedChild, setSelectedChild } from '../../Stores/slices/class.slice';
-import { spacing } from '../../theme/styles';
+import {
+  selectChildren,
+  selectSelectedChild,
+  setSelectedChild,
+} from '../../Stores/slices/class.slice';
 import DropDown from '../../Components/DropDown';
-import { asyncGetAllMyChildren } from '../../Stores/actions/user.action';
+
+const PRIMARY = colors.theme.primary;
+const PRIMARY_SOFT = 'rgba(3, 83, 146, 0.12)';
+const BORDER_SUBTLE = 'rgba(3, 83, 146, 0.09)';
+
+const menuItems = [
+  { id: 1, title: 'Today’s Activities' },
+  { id: 2, title: 'Attendance' },
+  { id: 3, title: 'Diary / Chat' },
+  { id: 4, title: 'Timetable' },
+  { id: 5, title: 'Leave Request' },
+  { id: 6, title: 'Notices' },
+  { id: 7, title: 'Account & Settings' },
+];
+
+const iconAccentTints = [
+  PRIMARY_SOFT,
+  'rgba(102, 136, 202, 0.2)',
+  'rgba(3, 83, 146, 0.08)',
+  'rgba(1, 193, 144, 0.12)',
+  'rgba(3, 83, 146, 0.15)',
+  'rgba(102, 136, 202, 0.14)',
+  'rgba(2, 41, 59, 0.08)',
+];
 
 export default function HomeScreen() {
   const navigation = useNavigation();
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
+  const insets = useSafeAreaInsets();
   const userProfile = useAppSelector(selectUserProfile);
   const children = useAppSelector(selectChildren);
   const selectedChild = useAppSelector(selectSelectedChild);
   const [open, setOpen] = useState(false);
-  console.log("selectedChild", selectedChild)
-  console.log("userProfile", userProfile)
-  console.log("children", children)
 
   const [profile, setProfile] = useState({
-    name: `${userProfile?.fatherFirstName || userProfile?.firstName || ''} ${userProfile?.fatherLastName || userProfile?.lastName || ''}`.trim() || 'User',
+    name:
+      `${userProfile?.fatherFirstName || userProfile?.firstName || ''} ${userProfile?.fatherLastName || userProfile?.lastName || ''}`.trim() ||
+      'User',
     year: '2023 - 2024',
     photo: '',
   });
 
-  // Update profile state when userProfile changes
   React.useEffect(() => {
     dispatch(asyncGetUserProfile());
     dispatch(asyncGetAllMyChildren());
   }, [dispatch]);
 
-  // Update profile state when userProfile or selectedChild changes
   React.useEffect(() => {
     if (selectedChild) {
       setProfile({
@@ -66,76 +91,29 @@ export default function HomeScreen() {
       });
     } else if (userProfile) {
       setProfile({
-        name: `${userProfile?.fatherFirstName || userProfile?.firstName || ''} ${userProfile?.fatherLastName || userProfile?.lastName || ''}`.trim() || 'User',
+        name:
+          `${userProfile?.fatherFirstName || userProfile?.firstName || ''} ${userProfile?.fatherLastName || userProfile?.lastName || ''}`.trim() ||
+          'User',
         year: '2023 - 2024',
         photo: userProfile?.image,
       });
     }
   }, [userProfile, selectedChild]);
 
-  const childrenList = children?.map(child => ({
-    label: `${child.firstName} ${child.lastName}`,
-    value: child._id,
-    icon: () => (
-      <Image
-        source={child.image ? { uri: child.image } : profile_icon}
-        style={{ width: 24, height: 24, borderRadius: 12 }}
-      />
-    ),
-    child: child
-  })) || [];
+  const childrenList =
+    children?.map(child => ({
+      label: `${child.firstName} ${child.lastName}`,
+      value: child._id,
+      icon: () => (
+        <Image
+          source={child.image ? { uri: child.image } : profile_icon}
+          style={styles.childListAvatar}
+        />
+      ),
+      child: child,
+    })) || [];
 
-  // const data = [
-  //   { id: 1, title: 'Profile' },
-  //   { id: 2, title: 'Activity' },
-  //   { id: 3, title: 'Time Table' },
-  //   { id: 4, title: 'Assignment' },
-  //   // { id: 5, title: 'Result' },
-  //   // { id: 6, title: 'Events' },
-  //   // { id: 7, title: 'Ask Doubts' },
-  //   { id: 8, title: 'School Gallery' },
-  //   { id: 9, title: 'Leave Application' },
-  //   // { id: 10, title: 'School Holiday' },
-  //   { id: 11, title: 'Logout' },
-  //   { id: 12, title: 'Change Password' },
-  // ];
-
-
-  const data = [{
-    id: 1,
-    title: 'Today’s Activities'
-  },
-
-  {
-    id: 2,
-    title: 'Attendance'
-  },
-  {
-    id: 3,
-    title: 'Diary / Chat'
-  },
-  {
-    id: 4,
-    title: 'Timetable'
-  },
-  {
-    id: 5,
-    title: 'Leave Request'
-  },
-  {
-    id: 6,
-    title: 'Notices'
-  },
-  {
-    id: 7,
-    title: 'Account & Settings'
-  },
-
-
-
-  ]
   const handleNavigate = (value, id) => {
-    console.log('Valueee >>>>', value, id);
     if (id === 7) navigation.navigate(routes.screens.settings);
     else if (id === 1) navigation.navigate(routes.screens.activityScreen);
     else if (id === 4) navigation.navigate(routes.screens.timeTable);
@@ -148,43 +126,39 @@ export default function HomeScreen() {
     }
   };
 
-  // const data = Array.from({ length: 10 }, (_, index) => ({ id: index.toString(), title: `item${index + 1}` }));
-
   const renderItem = ({ item, index }) => {
-    const isLastThree = index >= data.length - 3;
-
-    // Define unique background colors for icon wrappers
-    const iconBgColors = [
-      '#E8F5E9', // Activities - Greenish
-      '#FFF3E0', // Attendance - Orange
-      '#E3F2FD', // Diary - Blue
-      '#F3E5F5', // Timetable - Purple
-      '#FFEBEE', // Leave - Red
-      '#E0F2F1', // Notices - Teal
-      '#F1F8E9', // Profile - Light Green
-    ];
+    const isLastThree = index >= menuItems.length - 3;
+    const iconSource =
+      item.id === 1
+        ? featureIcons.activity
+        : item.id === 2
+          ? featureIcons.attendance
+          : item.id === 3
+            ? featureIcons.ask_doubts
+            : item.id === 4
+              ? featureIcons.time_table
+              : item.id === 5
+                ? featureIcons.leave_application
+                : item.id === 6
+                  ? featureIcons.events
+                  : item.id === 7
+                    ? featureIcons.profile
+                    : featureIcons.profile;
 
     return (
       <TouchableOpacity
-        style={[isLastThree ? styles.smallCard : styles.card, styles.shadow]}
+        style={[isLastThree ? styles.smallCard : styles.card, styles.cardElevated]}
         onPress={() => handleNavigate(item.title, item.id)}
-        activeOpacity={0.7}
-      >
-        <View style={[styles.iconWrapper, { backgroundColor: iconBgColors[index] || iconBgColors[0] }]}>
+        activeOpacity={0.72}
+        accessibilityRole="button"
+        accessibilityLabel={item.title}>
+        <View
+          style={[
+            styles.iconWrapper,
+            { backgroundColor: iconAccentTints[index] || iconAccentTints[0] },
+          ]}>
           <View style={styles.iconContainer}>
-            <Image
-              source={
-                item.id === 1 ? featureIcons.activity :
-                  item.id === 2 ? featureIcons.attendance :
-                    item.id === 3 ? featureIcons.ask_doubts :
-                      item.id === 4 ? featureIcons.time_table :
-                        item.id === 5 ? featureIcons.leave_application :
-                          item.id === 6 ? featureIcons.events :
-                            item.id === 7 ? featureIcons.profile :
-                              featureIcons.profile
-              }
-              style={styles.featureIcons}
-            />
+            <Image source={iconSource} style={styles.featureIcons} />
           </View>
         </View>
         <View style={styles.textContainer}>
@@ -193,7 +167,7 @@ export default function HomeScreen() {
             numberOfLines={2}
             _style={[
               styles.cardText,
-              { fontSize: isLastThree ? 11 : 13 }
+              { fontSize: isLastThree ? 11.5 : 13.5, letterSpacing: 0.15 },
             ]}
           />
         </View>
@@ -201,44 +175,15 @@ export default function HomeScreen() {
     );
   };
 
-  const headerCards = () => {
-    return (
-      <View style={styles.twoCardsTopContainer}>
-        <TouchableOpacity
-          style={[styles.twoCardsTop, { marginRight: 10 }]}
-          onPress={() => handleNavigate('Attendance')}>
-          <View
-            style={[
-              styles.cardInnerView,
-              { backgroundColor: colors.theme.yellow0 },
-            ]}>
-            <Image source={icons.usr} style={styles.topCardIcon} />
-          </View>
-          <GlroyBold
-            text={'80.39%'}
-            _style={{ fontSize: 20, color: colors.text.black, marginVertical: 3 }}
-          />
-          <GrayMediumText text={'Attendance'} />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.twoCardsTop, { marginLeft: 10 }]}
-          onPress={() => handleNavigate('Fees Due')}>
-          <View
-            style={[
-              styles.cardInnerView,
-              { backgroundColor: colors.theme.pink0 },
-            ]}>
-            <Image source={icons.dollar} style={styles.topCardIcon} />
-          </View>
-          <GlroyBold
-            text={'$00.00'}
-            _style={{ fontSize: 20, color: colors.text.black, marginVertical: 3 }}
-          />
-          <GrayMediumText text={'Fees Due'} />
-        </TouchableOpacity>
-      </View>
-    );
-  };
+  const listHeader = (
+    <View style={styles.sectionHeader}>
+      <Text style={styles.sectionEyebrow}>Portal</Text>
+      <Text style={styles.sectionTitle}>Quick access</Text>
+      <Text style={styles.sectionSubtitle}>
+        Everything you need for your child in one place.
+      </Text>
+    </View>
+  );
 
   return (
     <>
@@ -247,245 +192,288 @@ export default function HomeScreen() {
         backgroundColor="transparent"
         barStyle="light-content"
       />
-      <View style={{ flex: 1, backgroundColor: '#F5F5F5' }}>
-
+      <View style={styles.screen}>
         <ImageBackground
           source={main_bg_img}
-          style={[styles.bg_img]}
+          style={styles.bg_img}
           resizeMode="cover">
-          <View style={styles.profile_container}>
-            <View style={{ flex: 1 }}>
-              <View style={styles.profile_container_inner}>
-                <View style={styles.profileImageWrapper}>
-                  <UserProfileCircle
-                    profileUri={profile.photo || profile_icon}
-                    disabled={true}
-                    _style={styles.profilePhoto}
-                  />
-                </View>
-                <View style={styles.profileTextContainer}>
-                  <Text style={styles.welcomeText}>Welcome back,</Text>
-                  <GlroyBold
-                    text={profile.name}
-                    _style={styles.profile_name_text}
-                  />
-                </View>
+          <LinearGradient
+            colors={['rgba(2, 35, 55, 0.45)', 'rgba(3, 83, 146, 0.9)', PRIMARY]}
+            locations={[0, 0.55, 1]}
+            style={StyleSheet.absoluteFillObject}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0, y: 1 }}
+          />
+          <View
+            style={[
+              styles.heroContent,
+              { paddingTop: Math.max(insets.top, Platform.OS === 'ios' ? 12 : 8) + 8 },
+            ]}>
+            <View style={styles.profileRow}>
+              <View style={styles.profileImageWrapper}>
+                <UserProfileCircle
+                  profileUri={profile.photo || profile_icon}
+                  disabled={true}
+                  _style={styles.profilePhoto}
+                />
               </View>
-
-              {children?.length > 1 && (
-                <View style={[styles.dropdownWrapper, { zIndex: 5000 }]}>
-                  <DropDown
-                    label="Switch Child"
-                    open={open}
-                    setOpen={setOpen}
-                    value={selectedChild?._id}
-                    onSelectItem={(item) => {
-                      if (item && item.child) {
-                        dispatch(setSelectedChild(item.child));
-                      }
-                    }}
-                    list={childrenList}
-                    placeholder="Switch Child"
-                    mainContainer_style={styles.dropdownContainer}
-                    placeholderStyle={styles.dropdownPlaceholder}
-                    labelStyle={styles.dropdownLabel}
-                    dropDownContainerStyle={styles.dropdownMenuContainer}
-                    listMode="SCROLLVIEW"
-                    noTitle
-                    zIndex={5000}
-                    customLabelStyle={{ color: colors.theme.white }}
-                  />
-                </View>
-              )}
+              <View style={styles.profileTextContainer}>
+                <Text style={styles.welcomeText}>Welcome back</Text>
+                <GlroyBold text={profile.name} _style={styles.profile_name_text} />
+              </View>
             </View>
+
+            {children?.length > 1 && (
+              <View style={[styles.dropdownWrapper, { zIndex: 5000 }]}>
+                <Text style={styles.dropdownFieldLabel}>Active student</Text>
+                <DropDown
+                  label="Switch Child"
+                  open={open}
+                  setOpen={setOpen}
+                  value={selectedChild?._id}
+                  onSelectItem={item => {
+                    if (item && item.child) {
+                      dispatch(setSelectedChild(item.child));
+                    }
+                  }}
+                  list={childrenList}
+                  placeholder="Select child"
+                  mainContainer_style={styles.dropdownContainer}
+                  placeholderStyle={styles.dropdownPlaceholder}
+                  labelStyle={styles.dropdownLabel}
+                  dropDownContainerStyle={styles.dropdownMenuContainer}
+                  listMode="SCROLLVIEW"
+                  noTitle
+                  zIndex={5000}
+                  customLabelStyle={styles.dropdownValueText}
+                />
+              </View>
+            )}
           </View>
         </ImageBackground>
-        {/* <View style={styles.borderLine}/> */}
+
         <FlatList
-          key={'mixed-layout'}
-          data={data}
-          keyExtractor={item => item.id.toString()}
+          data={menuItems}
+          keyExtractor={item => String(item.id)}
           renderItem={renderItem}
-          // ListHeaderComponent={headerCards}
+          ListHeaderComponent={listHeader}
           contentContainerStyle={styles.flatListContainer}
           style={styles.flatList}
+          showsVerticalScrollIndicator={false}
         />
       </View>
-
     </>
   );
 }
 
 const styles = StyleSheet.create({
-  bg_img: {
-    height: vh * 30,
-    position: 'relative',
-    // overflow: 'hidden',
-    borderBottomLeftRadius: 40,
-    borderBottomRightRadius: 40,
+  screen: {
+    flex: 1,
+    backgroundColor: '#EEF1F6',
   },
-  topCardIcon: {
-    height: 35,
-    width: 35,
-    resizeMode: 'contain',
+  bg_img: {
+    height: vh * 28,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
+    overflow: 'hidden',
+  },
+  heroContent: {
+    flex: 1,
+    paddingHorizontal: 22,
+    paddingBottom: 20,
+    justifyContent: 'center',
+  },
+  profileRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+  },
+  profileImageWrapper: {
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.45)',
+    borderRadius: 36,
+    padding: 3,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+  },
+  profilePhoto: {
+    width: 62,
+    height: 62,
+    borderRadius: 31,
+  },
+  profileTextContainer: {
+    flex: 1,
+  },
+  welcomeText: {
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.82)',
+    fontFamily: 'Glory-Medium',
+    letterSpacing: 0.4,
+    textTransform: 'uppercase',
+    marginBottom: 4,
+  },
+  profile_name_text: {
+    fontSize: 22,
+    color: colors.theme.white,
+    letterSpacing: 0.2,
+  },
+  dropdownWrapper: {
+    marginTop: 18,
+    width: '100%',
+    alignSelf: 'stretch',
+  },
+  dropdownFieldLabel: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.75)',
+    fontFamily: 'Glory-Medium',
+    marginBottom: 8,
+    letterSpacing: 0.3,
+  },
+  dropdownContainer: {
+    height: 50,
+    backgroundColor: 'rgba(255,255,255,0.97)',
+    borderColor: 'rgba(255,255,255,0.5)',
+    borderWidth: 1,
+    borderRadius: 14,
+  },
+  dropdownPlaceholder: {
+    color: colors.text.greyAlt2,
+    fontSize: 15,
+    fontFamily: 'Glory-Medium',
+  },
+  dropdownLabel: {
+    color: colors.text.dimBlack,
+    fontSize: 15,
+    fontFamily: 'Glory-Medium',
+  },
+  dropdownValueText: {
+    color: colors.text.dimBlack,
+  },
+  dropdownMenuContainer: {
+    backgroundColor: colors.theme.white,
+    borderRadius: 14,
+    marginTop: 6,
+    borderWidth: 1,
+    borderColor: BORDER_SUBTLE,
+    elevation: 8,
+    shadowColor: '#0f172a',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+  },
+  childListAvatar: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+  },
+  sectionHeader: {
+    width: '100%',
+    paddingHorizontal: 14,
+    marginBottom: 14,
+    marginTop: 4,
+  },
+  sectionEyebrow: {
+    fontSize: 11,
+    color: PRIMARY,
+    fontFamily: 'Glory-Bold',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+    marginBottom: 6,
+    opacity: 0.85,
+  },
+  sectionTitle: {
+    fontSize: 22,
+    color: colors.text.primary,
+    fontFamily: 'Glory-Bold',
+    letterSpacing: 0.2,
+    marginBottom: 6,
+  },
+  sectionSubtitle: {
+    fontSize: 14,
+    color: colors.text.greyAlt2,
+    lineHeight: 20,
+    fontFamily: 'Glory-Medium',
+    maxWidth: 320,
+  },
+  card: {
+    margin: 6,
+    backgroundColor: colors.theme.white,
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    height: vh * 16.2,
+    width: vw * 42,
+    borderRadius: 18,
+    paddingTop: 18,
+    paddingHorizontal: 14,
+    paddingBottom: 14,
+    borderWidth: 1,
+    borderColor: BORDER_SUBTLE,
+  },
+  smallCard: {
+    margin: 5,
+    backgroundColor: colors.theme.white,
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    height: vh * 14.2,
+    width: vw * 28,
+    borderRadius: 16,
+    paddingTop: 14,
+    paddingHorizontal: 12,
+    paddingBottom: 12,
+    borderWidth: 1,
+    borderColor: BORDER_SUBTLE,
+  },
+  cardElevated: {
+    shadowColor: '#0f172a',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.07,
+    shadowRadius: 14,
+    elevation: 3,
   },
   iconContainer: {
-    height: 32,
-    width: 32,
+    height: 30,
+    width: 30,
   },
   featureIcons: {
     height: '100%',
     width: '100%',
     resizeMode: 'contain',
   },
-  twoCardsTopContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  cardInnerView: {
-    margin: 15,
-    height: 70,
-    width: 70,
-    borderRadius: 35,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  twoCardsTop: {
-    ...appShadow,
-    borderRadius: 10,
-    height: vh * 23,
-    width: vw * 38,
-    marginBottom: 12,
-    alignItems: 'center',
-  },
-
-  profile_name_text: {
-    fontSize: 20,
-    color: colors.theme.white,
-  },
-  welcomeText: {
-    fontSize: 14,
-    color: colors.theme.white,
-    opacity: 0.8,
-    fontFamily: 'Glory-Medium',
-  },
-  profileTextContainer: {
-    marginLeft: 4,
-  },
-  profileImageWrapper: {
-    borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.3)',
-    borderRadius: 50,
-    padding: 2,
-  },
-  profile_container: {
-    marginTop: vh * 7,
-    marginHorizontal: 25,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  profilePhoto: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-  },
-  card: {
-    margin: 7,
-    backgroundColor: colors.theme.white,
-    alignItems: 'center',
-    height: vh * 16.5,
-    width: vw * 42,
-    borderRadius: 24,
-    paddingTop: 18,
-    paddingHorizontal: 8,
-  },
-  smallCard: {
-    margin: 5,
-    backgroundColor: colors.theme.white,
-    alignItems: 'center',
-    height: vh * 14.5,
-    width: vw * 28,
-    borderRadius: 18,
-    paddingTop: 15,
-    paddingHorizontal: 4,
-  },
   textContainer: {
     width: '100%',
-    height: 40,
+    flex: 1,
+    minHeight: 44,
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 4,
+    paddingHorizontal: 10,
+    paddingBottom: 2,
   },
   iconWrapper: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
+    width: 54,
+    height: 54,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 5,
+    marginBottom: 4,
   },
   cardText: {
-    color: '#1A1A1A',
+    color: colors.text.primary,
     textAlign: 'center',
-    paddingHorizontal: 5,
-    lineHeight: 16,
-  },
-  shadow: {
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
+    lineHeight: 18,
+    paddingHorizontal: 4,
   },
   flatListContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'center',
-    paddingHorizontal: 10,
-    paddingBottom: 30,
-
+    paddingHorizontal: 14,
+    paddingBottom: 36,
+    paddingTop: 8,
   },
   flatList: {
-    marginTop: vh * 6,
+    flex: 1,
+    marginTop: -(vh * 3.2),
+    zIndex: 2,
   },
-  profile_container_inner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12
-  },
-  dropdownWrapper: {
-    marginTop: 15,
-    width: vw * 80,
-    alignSelf: 'center',
-  },
-  dropdownContainer: {
-    height: 48,
-    // backgroundColor: 'rgba(255, 255, 255, 0.25)',
-    backgroundColor: colors.theme.white,
-    borderColor: 'rgba(255, 255, 255, 0.4)',
-    borderWidth: 1.5,
-    borderRadius: 12,
-  },
-  dropdownPlaceholder: {
-    color: colors.theme.white,
-    fontSize: 15,
-    fontFamily: 'Glory-Medium',
-  },
-  dropdownLabel: {
-    color: '#000',
-    fontSize: 15,
-    fontFamily: 'Glory-Medium',
-  },
-  dropdownMenuContainer: {
-    backgroundColor: colors.theme.white,
-    borderRadius: 12,
-    marginTop: 5,
-    borderWidth: 0,
-    elevation: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-  }
 });
