@@ -8,11 +8,8 @@ import { asyncOtpVerification } from '../../Stores/actions/user.action'
 import { useAppDispatch } from '../../Stores/hooks'
 import { colors } from '../../theme/colors'
 import { Controller, useForm } from 'react-hook-form'
-import { useNavigation } from '@react-navigation/native'
-
 export default function VerificationCode({ data, handleScreen }) {
     const dispatch = useAppDispatch();
-    const navigation = useNavigation();
     const {
         control,
         handleSubmit,
@@ -42,12 +39,12 @@ export default function VerificationCode({ data, handleScreen }) {
                 })
             }
         },
-        [navigation, dispatch]
+        [dispatch, handleScreen]
     );
 
 
     return (
-        <View style={styles.contanier}>
+        <View style={styles.container}>
             <View style={styles.heading}>
                 <GlroyBold text={'Verification Code?'} _style={{ color: colors.text.black }} />
             </View>
@@ -102,6 +99,10 @@ export default function VerificationCode({ data, handleScreen }) {
 }
 
 const styles = StyleSheet.create({
+    container: {
+        width: '100%',
+        paddingVertical: 8,
+    },
     para: {
         textAlign: 'center',
         marginTop: 15,

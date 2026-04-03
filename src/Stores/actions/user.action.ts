@@ -10,6 +10,7 @@ import {
   LoginUserResponse,
   OtpVerificationPayload,
   OtpVerificationResponse,
+  ResetPasswordPayload,
   User,
   UserAttendance,
   UserAttendanceResponse,
@@ -37,9 +38,9 @@ export const asyncLogin = createAsyncThunk(
     dispatch(setLoading(true));
 
     const loginPath = allApiPaths.getPath('login');
-    const resolvedLoginPath = loginPath.includes('teacher/auth')
-      ? 'auth/signin'
-      : loginPath;
+    const resolvedLoginPath = (
+      loginPath.includes('teacher/auth') ? 'auth/signin' : loginPath
+    ) as ApiPaths;
     console.log('login path resolved:', resolvedLoginPath);
 
     const res = await callApi<LoginUserResponse, LoginUserPayload>({
@@ -48,22 +49,30 @@ export const asyncLogin = createAsyncThunk(
       body: data,
       axiosSecure: false,
     });
+    console.log('res:login:::::', res);
 
     if (!res.status) {
       dispatch(asyncShowError(res.message));
+    } else if (res.data?.token) {
+      let { todayAttendance, user, parent, token } = res.data ?? {};
+      const userData = user || parent;
+      dispatch(
+        setUserState({
+          user: { ...userData, todayAttendance },
+          holidays: {},
+          attendance: {} as UserAttendance,
+          token,
+        })
+      );
+      dispatch(
+        asyncShowSuccess(res.message || 'Signed in successfully')
+      );
     } else {
-      if (res.data?.token) {
-        let { todayAttendance, user, parent, token } = res.data ?? {}
-        const userData = user || parent;
-        dispatch(
-          setUserState({
-            user: { ...userData, todayAttendance },
-            holidays: {},
-            attendance: {} as UserAttendance,
-            token,
-          })
-        );
-      }
+      dispatch(
+        asyncShowError(
+          res.message || 'Login succeeded but no session token was returned.'
+        )
+      );
     }
     dispatch(setLoading(false));
 
@@ -156,10 +165,10 @@ export const asyncOtpVerification = createAsyncThunk(
 
 export const asyncResetPassword = createAsyncThunk(
   'resetPassword',
-  async (data: OtpVerificationPayload, { dispatch }) => {
+  async (data: ResetPasswordPayload, { dispatch }) => {
     dispatch(setLoading(true));
 
-    const res = await callApi<{}, OtpVerificationPayload>({
+    const res = await callApi<{}, ResetPasswordPayload>({
       method: 'POST',
       path: allApiPaths.getPath('resetPassword'),
       body: data,

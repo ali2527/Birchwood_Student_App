@@ -45,17 +45,20 @@ function App() {
         }}
       >
         {/* <CustomStatusBar /> */}
+        <MainNavigator />
         <FlashMessage
           position={
             Platform.OS === 'ios'
               ? 'top'
-              : { top: StatusBar.currentHeight, left: 0, right: 0 }
+              : { top: StatusBar.currentHeight ?? 24, left: 0, right: 0 }
           }
-          duration={2000}
+          duration={4000}
           icon="auto"
           animated={true}
+          style={{ paddingHorizontal: 16, paddingVertical: 14 }}
+          titleStyle={{ fontSize: 15, fontWeight: '700' }}
+          textStyle={{ fontSize: 14 }}
         />
-        <MainNavigator />
       </PersistGate>
     </Provider>
   );
