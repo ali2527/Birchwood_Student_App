@@ -2,7 +2,7 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import React from 'react';
 import { styles } from './style';
 import GradientComponent from '../Gradient';
-import { vh, vw } from '../../theme/units';
+import { vh } from '../../theme/units';
 import ToggleButton from '../ToggleButton';
 import VectorIcon from '../VectorIcons';
 import { colors } from '../../theme/colors';
@@ -19,6 +19,8 @@ export const SecondaryHeader = ({
   color,
 }) => {
   const navigation = useNavigation();
+  const showBack = Boolean(iconName);
+
   return (
     <GradientComponent style={{ height: headerHeight, paddingTop: vh * 6 }}>
       <View style={styles.container}>
@@ -27,33 +29,48 @@ export const SecondaryHeader = ({
             flexDirection: 'row',
             alignItems: 'center',
             marginTop: vh * 2,
-            marginHorizontal: 15,
+            paddingHorizontal: 12,
           }}>
-          <TouchableOpacity
-            onPress={() =>
-              navigateHandler ? navigateHandler() : navigation.goBack()
-            }>
-            <VectorIcon
-              type={'Ionicons'}
-              name={iconName}
-              size={20}
-              color={colors.theme.white}
-            />
-          </TouchableOpacity>
-          {title && (
+          {showBack ? (
+            <TouchableOpacity
+              onPress={() =>
+                navigateHandler ? navigateHandler() : navigation.goBack()
+              }
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              style={{
+                paddingVertical: 8,
+                paddingRight: 10,
+                minWidth: 44,
+                justifyContent: 'center',
+                alignItems: 'flex-start',
+              }}>
+              <VectorIcon
+                type={'Ionicons'}
+                name={iconName || 'chevron-back-outline'}
+                size={26}
+                color={colors.theme.white}
+              />
+            </TouchableOpacity>
+          ) : (
+            <View style={{ width: 8 }} />
+          )}
+          {title ? (
             <GlroyBold
               text={title}
-              _style={{ color: color, marginHorizontal: 8 }}
+              _style={{ color: color, marginHorizontal: 6 }}
             />
-          )}
-          {btn && (
+          ) : null}
+          {btn ? (
             <View
               style={{
+                flex: 1,
                 alignItems: 'center',
-                width: vw * 60,
+                justifyContent: 'center',
               }}>
               <ToggleButton btn={btn} handlePress={handlePress} />
             </View>
+          ) : (
+            <View style={{ flex: 1 }} />
           )}
         </View>
       </View>

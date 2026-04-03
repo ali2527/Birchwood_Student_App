@@ -19,7 +19,11 @@ import DropDown from '../../Components/DropDown';
 import { useDispatch } from 'react-redux';
 import { useAppSelector } from '../../Stores/hooks';
 import { selectSelectedChild } from '../../Stores/slices/class.slice';
-import { asyncUserLeave, asyncUserMonthlyAttendance } from '../../Stores/actions/user.action';
+import {
+  asyncUserLeave,
+  asyncUserMonthlyAttendance,
+  asyncGetAllChildAttendance,
+} from '../../Stores/actions/user.action';
 import GlroyBold from '../../Components/GlroyBoldText';
 import { selectUserAttendance } from '../../Stores/slices/user.slice';
 
@@ -60,30 +64,52 @@ const LeaveApplication = () => {
   }
 
   const handleDateChange = (date, type) => {
+    // react-native-calendar-picker uses 'END_DATE' / 'START_DATE'; may pass null to clear end.
     if (type === 'END_DATE') {
-      setFormData(prev => ({ ...prev, endDate: date }));
-    } else {
+      setFormData(prev => ({ ...prev, endDate: date ?? null }));
+      return;
+    }
+    if (date != null) {
       setFormData(prev => ({ ...prev, startDate: date, endDate: null }));
     }
   };
 
   const submitLeave = () => {
+    if (!selectedChild?._id) {
+      Alert.alert('Error', 'Select a child to submit leave.');
+      return;
+    }
     if (!formData.startDate || !formData.reason) {
       Alert.alert('Error', 'Please select a date and provide a reason.');
       return;
     }
 
+    const startM = moment(formData.startDate);
+    const endM = formData.endDate ? moment(formData.endDate) : startM;
+    if (!startM.isValid() || !endM.isValid()) {
+      Alert.alert('Error', 'Please select a valid date range on the calendar.');
+      return;
+    }
+
     const payload = {
-      leaveFrom: formData.startDate.toISOString(),
-      leaveTo: (formData.endDate || formData.startDate).toISOString(),
+      children: selectedChild._id,
       leaveType: formData.leaveType,
-      leaveReason: formData.reason,
+      startDate: startM.format('YYYY-MM-DD'),
+      endDate: endM.format('YYYY-MM-DD'),
     };
 
-    dispatch(asyncUserLeave(payload)).then((res) => {
+    dispatch(asyncUserLeave(payload)).then(res => {
       if (res.payload?.status) {
         setFormData({ startDate: null, endDate: null, reason: '', leaveType: 'SICK' });
-        dispatch(asyncUserMonthlyAttendance({ month: moment().month() + 1, year: moment().year() }));
+        dispatch(
+          asyncUserMonthlyAttendance({
+            month: moment().month() + 1,
+            year: moment().year(),
+          })
+        );
+        if (selectedChild?._id) {
+          dispatch(asyncGetAllChildAttendance(selectedChild._id));
+        }
       }
     });
   };
@@ -164,11 +190,14 @@ const LeaveApplication = () => {
           {leaveRequests.length > 0 && (
             <View style={styles.historyContainer}>
               <GlroyBold text="Recent Leave Requests" _style={styles.historyTitle} />
-              {leaveRequests.map((item, index) => (
-                <View key={index} style={styles.historyCard}>
+              {leaveRequests.map((item, index) => {
+                const historyDate = item.checkIn || item.createdAt || item.date;
+                const historyMoment = historyDate ? moment(historyDate) : null;
+                return (
+                <View key={item._id || index} style={styles.historyCard}>
                   <View style={styles.historyHeader}>
                     <Text style={styles.historyDate}>
-                      {moment(item.createdAt || item.date).format('DD MMM')} - {item.leaveType || 'Leave'}
+                      {historyMoment?.isValid() ? historyMoment.format('DD MMM') : '—'} - {item.leaveType || item.leaveReason || 'Leave'}
                     </Text>
                     <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.subStatus || item.status) + '20' }]}>
                       <Text style={[styles.statusText, { color: getStatusColor(item.subStatus || item.status) }]}>
@@ -178,7 +207,8 @@ const LeaveApplication = () => {
                   </View>
                   <Text style={styles.historyReason} numberOfLines={2}>{item.leaveReason || 'No reason provided'}</Text>
                 </View>
-              ))}
+              );
+              })}
             </View>
           )}
         </View>

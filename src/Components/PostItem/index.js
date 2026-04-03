@@ -14,7 +14,8 @@ import { getImagePath } from '../../Service/axios';
 const PostItem = ({ item }) => {
     const navigation = useNavigation();
 
-    const activityTitle = item.activity?.title || item.type || 'Activity';
+    const activityTitle =
+        item.activity?.title || item.title || item.type || 'Activity';
 
     const getActivityIcon = (title) => {
         const t = title?.toLowerCase() || '';
@@ -31,7 +32,27 @@ const PostItem = ({ item }) => {
         navigation.navigate(routes.screens.activityDetail, { item });
     };
 
-    const isWholeClass = item.type === 'CLASS' || !item.children || item.children.length === 0;
+    const imageList =
+        item.images && item.images.length > 0
+            ? item.images
+            : item.image
+              ? [item.image]
+              : [];
+
+    const isWholeClass =
+        item.type === 'CLASS' ||
+        !item.children ||
+        (Array.isArray(item.children) && item.children.length === 0);
+
+    const isCatalogActivity = !item.activity && !!item.title;
+
+    const badgeLabel = item.childName
+        ? item.childName
+        : isCatalogActivity
+          ? 'Activity'
+          : isWholeClass
+            ? 'Whole Class'
+            : 'Student';
 
     return (
         <TouchableOpacity style={styles.container} activeOpacity={0.9} onPress={handlePress}>
@@ -52,20 +73,20 @@ const PostItem = ({ item }) => {
                 </View>
                 <View style={styles.labelWrapper}>
                     <View style={styles.labelBadge}>
-                        <Text style={styles.labelText}>{isWholeClass ? 'Whole Class' : item.childName}</Text>
+                        <Text style={styles.labelText}>{badgeLabel}</Text>
                     </View>
                 </View>
             </View>
 
             {/* Images: Horizontal Scroll if multiple */}
             <View style={styles.imageGallery}>
-                {item.images && item.images.length > 0 ? (
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} pagingEnabled={item.images.length > 1}>
-                        {item.images.map((img, index) => (
+                {imageList.length > 0 ? (
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} pagingEnabled={imageList.length > 1}>
+                        {imageList.map((img, index) => (
                             <Image
                                 key={index}
                                 source={{ uri: getImagePath(img) }}
-                                style={[styles.postImage, { width: item.images.length > 1 ? vw * 80 : vw * 85 }]}
+                                style={[styles.postImage, { width: imageList.length > 1 ? vw * 80 : vw * 85 }]}
                                 resizeMode="cover"
                             />
                         ))}
@@ -76,7 +97,10 @@ const PostItem = ({ item }) => {
             {/* Content Preview */}
             <View style={styles.content}>
                 <Text style={styles.noteText} numberOfLines={2}>
-                    {item.content || item.description || 'No additional notes.'}
+                    {item.content ||
+                        item.description ||
+                        item.activity?.description ||
+                        'No additional notes.'}
                 </Text>
             </View>
 

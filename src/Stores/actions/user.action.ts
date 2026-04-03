@@ -18,7 +18,10 @@ import {
   UserCheckInOutResponse,
   UserEducation,
   UserExperience,
-  LeavePayload
+  MarkChildLeaveBody,
+  ParentLeaveSubmitInput,
+  GetAllChildAttendanceResponse,
+  ChildAttendanceRecord,
 } from '../../Types/User';
 import { Child, ClassResponse } from '../../Types/Class';
 import { setChildren, setSelectedChild } from '../slices/class.slice';
@@ -31,6 +34,7 @@ import {
   setUserState,
 } from '../slices/user.slice';
 import { asyncShowError, asyncShowSuccess } from './common.action';
+import type { RootState } from '../index';
 
 export const asyncLogin = createAsyncThunk(
   'login',
@@ -394,24 +398,132 @@ export const asyncCheckOutUser = createAsyncThunk(
   }
 );
 
+function coerceToDate(value: unknown): Date | null {
+  if (value == null) return null;
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return value;
+  }
+  // Hermes / remote contexts: Date may fail instanceof but still expose getTime()
+  const duck = value as { getTime?: () => number };
+  if (typeof duck?.getTime === 'function') {
+    const t = duck.getTime();
+    if (typeof t === 'number' && !Number.isNaN(t)) {
+      return new Date(t);
+    }
+  }
+  if (typeof value === 'string' || typeof value === 'number') {
+    const d = new Date(value);
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+  const maybeMoment = value as { toDate?: () => Date };
+  if (typeof maybeMoment?.toDate === 'function') {
+    const d = maybeMoment.toDate();
+    return d instanceof Date && !Number.isNaN(d.getTime()) ? d : null;
+  }
+  return null;
+}
+
+function formatLocalYmd(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+/** Normalize any calendar/thunk input to YYYY-MM-DD (local calendar day). */
+function ymdFromInput(value: unknown): string | null {
+  if (value == null || value === '') return null;
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
+    const d = new Date(trimmed);
+    return Number.isNaN(d.getTime()) ? null : formatLocalYmd(d);
+  }
+  const d = coerceToDate(value);
+  return d ? formatLocalYmd(d) : null;
+}
+
+/** Inclusive YYYY-MM-DD list using only fresh Date() instances (avoids broken payload Dates). */
+function enumerateYmdInclusive(startYmd: string, endYmd: string): string[] {
+  const parse = (s: string) => {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
+    if (!m) return null;
+    return { y: +m[1], mo: +m[2], d: +m[3] };
+  };
+  const a = parse(startYmd);
+  const b = parse(endYmd);
+  if (!a || !b) return [];
+  let start = new Date(a.y, a.mo - 1, a.d, 12, 0, 0, 0);
+  let end = new Date(b.y, b.mo - 1, b.d, 12, 0, 0, 0);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return [];
+  if (end < start) {
+    const t = start;
+    start = end;
+    end = t;
+  }
+  const days: string[] = [];
+  const cur = new Date(start.getTime());
+  while (cur <= end) {
+    days.push(formatLocalYmd(cur));
+    cur.setDate(cur.getDate() + 1);
+  }
+  return days;
+}
+
 export const asyncUserLeave = createAsyncThunk(
   'userLeave',
-  async (data: any, { dispatch }) => {
+  async (data: ParentLeaveSubmitInput, { dispatch }) => {
     dispatch(setLoading(true));
     try {
-      const res = await callApi<{ todayAttendance: UserCheckInOutLeave }, LeavePayload>({
-        method: 'POST',
-        path: allApiPaths.getPath('markLeave'),
-        body: data,
-      });
-
-      if (!res?.status) {
-        dispatch(asyncShowError(res.message));
-      } else {
-        dispatch(setUser({ todayAttendance: res.data?.todayAttendance, checkIn: true }));
-        dispatch(asyncShowSuccess(res.message));
+      const startYmd = ymdFromInput(data.startDate);
+      const endYmd =
+        ymdFromInput(data.endDate ?? data.startDate) ?? startYmd;
+      if (!startYmd || !endYmd) {
+        const err = { status: false as const, message: 'Invalid or missing leave dates.' };
+        dispatch(asyncShowError(err.message));
+        return err;
       }
-      return res;
+      const dayKeys = enumerateYmdInclusive(startYmd, endYmd);
+      if (dayKeys.length === 0) {
+        const err = { status: false as const, message: 'Invalid date range.' };
+        dispatch(asyncShowError(err.message));
+        return err;
+      }
+      let lastRes: Awaited<
+        ReturnType<typeof callApi<{ todayAttendance: UserCheckInOutLeave }, MarkChildLeaveBody>>
+      > | null = null;
+
+      for (const ymd of dayKeys) {
+        const body: MarkChildLeaveBody = {
+          children: data.children,
+          leaveReason: data.leaveType,
+          checkIn: `${ymd}T08:00:00.000Z`,
+          markedBy: 'PARENT',
+        };
+
+        const res = await callApi<{ todayAttendance: UserCheckInOutLeave }, MarkChildLeaveBody>({
+          method: 'POST',
+          path: allApiPaths.getPath('markLeave'),
+          body,
+        });
+        lastRes = res;
+
+        if (!res?.status) {
+          dispatch(asyncShowError(res.message));
+          return res;
+        }
+      }
+
+      if (lastRes?.status) {
+        dispatch(
+          setUser({
+            todayAttendance: lastRes.data?.todayAttendance,
+            checkIn: true,
+          })
+        );
+        dispatch(asyncShowSuccess(lastRes.message));
+      }
+      return lastRes!;
     } catch (e: any) {
       dispatch(asyncShowError(e.message || 'Something went wrong'));
       throw e;
@@ -421,9 +533,81 @@ export const asyncUserLeave = createAsyncThunk(
   }
 );
 
+/** Fetches all pages of child attendance for calendar (parent app). */
+export const asyncGetAllChildAttendance = createAsyncThunk(
+  'getAllChildAttendance',
+  async (childId: string, { dispatch }) => {
+    if (!childId?.trim()) {
+      dispatch(
+        setUserAttendance({
+          attendance: [],
+          stats: { PRESENT: 0, ABSENT: 0, LEAVE: 0, HOLIDAY: 0 },
+        })
+      );
+      return { status: false, message: 'No child selected' };
+    }
+
+    dispatch(setLoading(true));
+    try {
+      const allDocs: ChildAttendanceRecord[] = [];
+      let page = 1;
+      const limit = 50;
+      let hasNext = true;
+
+      while (hasNext) {
+        const basePath = allApiPaths.getPath('getAllChildAttendance', {
+          childId,
+        }) as string;
+        const path = `${basePath}?page=${page}&limit=${limit}` as ApiPaths;
+
+        const res = await callApi<GetAllChildAttendanceResponse>({ path });
+
+        if (!res?.status) {
+          dispatch(asyncShowError(res.message));
+          dispatch(
+            setUserAttendance({
+              attendance: [],
+              stats: { PRESENT: 0, ABSENT: 0, LEAVE: 0, HOLIDAY: 0 },
+            })
+          );
+          return res;
+        }
+
+        const raw = res.data as
+          | GetAllChildAttendanceResponse
+          | ChildAttendanceRecord[]
+          | undefined;
+
+        if (Array.isArray(raw)) {
+          allDocs.push(...raw);
+          hasNext = false;
+        } else if (raw?.docs) {
+          allDocs.push(...raw.docs);
+          hasNext = Boolean(raw.hasNextPage);
+          page += 1;
+        } else {
+          hasNext = false;
+        }
+
+        if (page > 100) break;
+      }
+
+      dispatch(
+        setUserAttendance({
+          attendance: allDocs as UserAttendance['attendance'],
+          stats: { PRESENT: 0, ABSENT: 0, LEAVE: 0, HOLIDAY: 0 },
+        })
+      );
+      return { status: true, message: '', data: { docs: allDocs } };
+    } finally {
+      dispatch(setLoading(false));
+    }
+  }
+);
+
 export const asyncUserMonthlyAttendance = createAsyncThunk(
   'monthlyAttendance',
-  async ({ month, year }: any, { dispatch }) => {
+  async ({ month, year }: any, { dispatch, getState }) => {
     dispatch(setLoading(true));
     try {
       const res = await callApi<UserAttendanceResponse>({
@@ -434,7 +618,20 @@ export const asyncUserMonthlyAttendance = createAsyncThunk(
       if (!res?.status) {
         dispatch(asyncShowError(res.message));
       } else {
-        dispatch(setUserAttendance(res.data ?? ({} as UserAttendanceResponse)));
+        const prev = (getState() as RootState).user.attendance;
+        const incoming = (res.data ?? {}) as UserAttendanceResponse;
+        const prevDocs = Array.isArray(prev?.attendance) ? prev.attendance : [];
+        const incomingDocs = Array.isArray(incoming.attendance)
+          ? incoming.attendance
+          : [];
+        dispatch(
+          setUserAttendance({
+            ...prev,
+            ...incoming,
+            attendance:
+              incomingDocs.length > 0 ? incomingDocs : prevDocs,
+          } as UserAttendance)
+        );
       }
       return res;
     } finally {

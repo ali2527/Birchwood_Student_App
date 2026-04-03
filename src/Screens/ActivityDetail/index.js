@@ -12,7 +12,15 @@ import { getImagePath } from '../../Service/axios';
 const ActivityDetail = ({ route }) => {
     const { item } = route.params;
 
-    const activityTitle = item.activity?.title || item.type || 'Activity';
+    const activityTitle =
+        item.activity?.title || item.title || item.type || 'Activity';
+
+    const imageList =
+        item.images && item.images.length > 0
+            ? item.images
+            : item.image
+              ? [item.image]
+              : [];
 
     const getActivityIcon = (title) => {
         const t = title?.toLowerCase() || '';
@@ -35,8 +43,8 @@ const ActivityDetail = ({ route }) => {
             <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
                 {/* Image Gallery */}
                 <View style={styles.imageContainer}>
-                    {item.images && item.images.length > 0 ? (
-                        item.images.map((img, index) => (
+                    {imageList.length > 0 ? (
+                        imageList.map((img, index) => (
                             <Image
                                 key={index}
                                 source={{ uri: getImagePath(img) }}
@@ -76,7 +84,12 @@ const ActivityDetail = ({ route }) => {
                     <View style={styles.divider} />
 
                     <GlroyBold text="Teacher's Notes" _style={styles.sectionLabel} />
-                    <Text style={styles.noteText}>{item.content || item.activity?.description || 'No notes provided.'}</Text>
+                    <Text style={styles.noteText}>
+                        {item.content ||
+                            item.description ||
+                            item.activity?.description ||
+                            'No notes provided.'}
+                    </Text>
 
                     <View style={styles.statsRow}>
                         <View style={styles.stat}>

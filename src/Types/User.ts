@@ -116,6 +116,32 @@ export interface UserCheckInOutResponse extends Omit<UserCheckInOutLeave, 'teach
   teacher: Omit<User, 'todayAttendance'>;
 }
 
+/** Single row from GET .../getAllChildAttendance/:childId */
+export interface ChildAttendanceRecord {
+  _id: string;
+  children: string;
+  markedBy?: string;
+  checkIn: string | null;
+  checkOut?: string | null;
+  leaveReason?: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GetAllChildAttendanceResponse {
+  docs: ChildAttendanceRecord[];
+  totalDocs?: number;
+  limit?: number;
+  page?: number;
+  totalPages?: number;
+  pagingCounter?: number;
+  hasPrevPage?: boolean;
+  hasNextPage?: boolean;
+  prevPage?: number | null;
+  nextPage?: number | null;
+}
+
 export interface UserAttendance {
   [index: string]: any;
   attendance: Record<string, any>[];
@@ -139,9 +165,18 @@ export interface Holiday {
   updatedAt: string;
 }
 
-export interface LeavePayload {
-  leaveType: string;
+/** POST children/attendance/markLeave */
+export interface MarkChildLeaveBody {
+  children: string;
   leaveReason: string;
-  leaveFrom: string;
-  leaveTo: string;
+  checkIn: string;
+  markedBy: 'PARENT';
+}
+
+/** Leave screen → thunk (use YYYY-MM-DD strings so RN/Redux never breaks Date prototypes). */
+export interface ParentLeaveSubmitInput {
+  children: string;
+  leaveType: string;
+  startDate: string | Date;
+  endDate?: string | Date | null;
 }

@@ -1,12 +1,10 @@
-
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useDispatch } from 'react-redux';
-import { asyncGetAllPosts } from '../../Stores/actions/post.action';
+import { asyncGetAllActivities } from '../../Stores/actions/post.action';
 import { useAppSelector } from '../../Stores/hooks';
-import { selectSelectedChild } from '../../Stores/slices/class.slice';
 import { selectAppLoader } from '../../Stores/slices/common.slice';
-import { resetPostState, selectPosts } from '../../Stores/slices/post.slice';
+import { selectActivities } from '../../Stores/slices/post.slice';
 import { BackArrow } from '../../Components/BackArrow';
 import GlroyBold from '../../Components/GlroyBoldText';
 import PostItem from '../../Components/PostItem';
@@ -16,35 +14,24 @@ import { colors } from '../../theme/colors';
 
 const ActivityScreen = () => {
     const dispatch = useDispatch();
-    const posts = useAppSelector(selectPosts);
+    const activities = useAppSelector(selectActivities);
     const loading = useAppSelector(selectAppLoader);
-    const selectedChild = useAppSelector(selectSelectedChild);
     const [activeFilter, setActiveFilter] = useState('All');
-
-    const getClassroomId = (child) => {
-        if (!child?.classroom) return null;
-        if (typeof child.classroom === 'string') return child.classroom;
-        return child.classroom._id || child.classroom.classroomId || child.classroom.id;
-    };
-
-    const classroomId = getClassroomId(selectedChild);
-    const childrenId = selectedChild?._id;
 
     const filters = ['All', 'Reading', 'Playing', 'Eating', 'Sleeping'];
 
     useEffect(() => {
-        if (classroomId && childrenId) {
-            dispatch(resetPostState());
-            dispatch(asyncGetAllPosts({
-                classroom: classroomId,
-                children: childrenId
-            }));
-        }
-    }, [dispatch, classroomId, childrenId]);
+        dispatch(asyncGetAllActivities({ page: 1, limit: 50 }));
+    }, [dispatch]);
 
-    const filteredPosts = activeFilter === 'All'
-        ? posts
-        : posts.filter(post => (post.type || post.activityType)?.toLowerCase().includes(activeFilter.toLowerCase()));
+    const filteredPosts =
+        activeFilter === 'All'
+            ? activities
+            : activities.filter(item =>
+                  (item.title || item.type || '')
+                      .toLowerCase()
+                      .includes(activeFilter.toLowerCase())
+              );
 
     const renderFilterChip = (filter) => {
         const isActive = activeFilter === filter;
@@ -91,7 +78,11 @@ const ActivityScreen = () => {
                     ListEmptyComponent={
                         <View style={styles.emptyContainer}>
                             <VectorIcon type="Ionicons" name="calendar-outline" size={60} color="#DDD" />
-                            <Text style={styles.emptyText}>No activities found for {activeFilter}</Text>
+                            <Text style={styles.emptyText}>
+                                {loading
+                                    ? ''
+                                    : `No activities found${activeFilter !== 'All' ? ` for ${activeFilter}` : ''}`}
+                            </Text>
                         </View>
                     }
                 />

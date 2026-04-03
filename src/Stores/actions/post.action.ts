@@ -1,27 +1,47 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { RootState } from '..';
-import { Comment, GetActivities, GetAllClassPosts, GetAllPostComments, Post } from '../../Types/Post';
+import {
+  Activity,
+  Comment,
+  GetActivities,
+  GetAllClassPosts,
+  GetAllPostComments,
+  Post,
+} from '../../Types/Post';
+import { PaginationProps } from '../../Types/Common';
 import { callApi } from '../../Service/api';
 import { allApiPaths, ApiPaths } from '../../Service/apiPaths';
 import { setLoading } from '../slices/common.slice';
 import { removePost, setActivities, setComment, setComments, setLikeDislike, setLoveUnlove, setPost, setPosts } from '../slices/post.slice';
 import { asyncShowError, asyncShowSuccess } from './common.action';
 
+type GetActivitiesParams = { page?: number; limit?: number };
+
 export const asyncGetAllActivities = createAsyncThunk(
   'getAllActivities',
-  async (_, { dispatch }) => {
+  async (params: GetActivitiesParams | undefined, { dispatch }) => {
     dispatch(setLoading(true));
 
+    const page = params?.page ?? 1;
+    const limit = params?.limit ?? 20;
+    const path =
+      (allApiPaths.getPath('getActivities') as string) +
+      `?page=${page}&limit=${limit}`;
+
     const res = await callApi<GetActivities>({
-      path: allApiPaths.getPath('getActivities'),
+      path: path as ApiPaths,
     });
 
     if (!res.status) {
       dispatch(asyncShowError(res.message));
-    } else {
-      dispatch(
-        setActivities(res.data!)
-      );
+    } else if (res.data) {
+      const raw = res.data as GetActivities | Activity[];
+      const payload: GetActivities = Array.isArray(raw)
+        ? { docs: raw, ...({} as PaginationProps) }
+        : raw;
+      if (payload?.docs?.length !== undefined) {
+        dispatch(setActivities(payload));
+      }
     }
 
     dispatch(setLoading(false));
