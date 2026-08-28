@@ -103,7 +103,7 @@ const CheckIn = () => {
         <CustomButton
           title={'View Report'}
           isFocused={true}
-          containerStyle={{paddingHorizontal: 10, paddingVertical: 6}}
+          containerStyle={{paddingHorizontal: 10, paddingVertical: 0, height: 28}}
           _style={{fontSize: 10}}
         />
       </View>

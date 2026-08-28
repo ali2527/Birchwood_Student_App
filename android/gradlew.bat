@@ -24,6 +24,10 @@
 @rem Set local scope for the variables with windows NT shell
 if "%OS%"=="Windows_NT" setlocal
 
+@rem Use D: for Gradle caches when present so builds do not fill C:
+if exist "D:\Development\.gradle\" set "GRADLE_USER_HOME=D:\Development\.gradle"
+if exist "D:\Development\jdks\jdk-17.0.20.1+1\bin\java.exe" if not defined JAVA_HOME set "JAVA_HOME=D:\Development\jdks\jdk-17.0.20.1+1"
+
 set DIRNAME=%~dp0
 if "%DIRNAME%"=="" set DIRNAME=.
 @rem This is normally unused

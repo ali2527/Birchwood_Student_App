@@ -1,5 +1,5 @@
 import ax from 'axios';
-export const APP_URL = 'https://darkmodelabs.com:8201/';
+export const APP_URL = 'https://api.thebirchwoodacademy.com/';
 export const IMG_URL = APP_URL + 'uploads/';
 export const BASE_URL = APP_URL + 'api/';
 

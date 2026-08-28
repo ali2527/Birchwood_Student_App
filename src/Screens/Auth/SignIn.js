@@ -34,7 +34,6 @@ const SignIn = ({ navigation }) => {
   const logoScale = useRef(new Animated.Value(0.88)).current;
   const cardOpacity = useRef(new Animated.Value(0)).current;
   const cardTranslateY = useRef(new Animated.Value(36)).current;
-  const footerOpacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     const show = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
@@ -85,11 +84,6 @@ const SignIn = ({ navigation }) => {
           useNativeDriver: true,
         }),
       ]),
-      Animated.timing(footerOpacity, {
-        toValue: 1,
-        duration: 360,
-        useNativeDriver: true,
-      }),
     ]).start();
   }, []);
 
@@ -148,12 +142,13 @@ const SignIn = ({ navigation }) => {
                   transform: [{ translateY: heroTranslateY }],
                 },
               ]}>
+              <ChildLogo _style={styles.heroImage} />
               <Animated.View
                 style={[
                   styles.logoWrap,
                   { transform: [{ scale: logoScale }] },
                 ]}>
-                <MainLogo />
+                <MainLogo _style={styles.mainLogo} />
               </Animated.View>
               <Text style={styles.welcomeTitle}>Welcome back</Text>
               <Text style={styles.welcomeSubtitle}>
@@ -247,10 +242,6 @@ const SignIn = ({ navigation }) => {
                 />
               </View>
             </Animated.View>
-
-            <Animated.View style={[styles.footerLogo, { opacity: footerOpacity }]}>
-              <ChildLogo _style={styles.childLogo} />
-            </Animated.View>
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
@@ -276,11 +267,19 @@ const styles = StyleSheet.create({
   },
   hero: {
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 20,
+  },
+  heroImage: {
+    height: 140,
+    width: 260,
+    marginBottom: 8,
   },
   logoWrap: {
-    marginBottom: 16,
-    paddingVertical: 8,
+    marginBottom: 12,
+    paddingVertical: 0,
+  },
+  mainLogo: {
+    marginTop: 0,
   },
   welcomeTitle: {
     fontSize: 24,
@@ -327,17 +326,10 @@ const styles = StyleSheet.create({
   },
   signInButton: {
     width: '100%',
-    paddingVertical: 14,
-    borderRadius: 14,
-  },
-  footerLogo: {
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  childLogo: {
-    height: 100,
-    width: 200,
-    opacity: 0.95,
+    height: 40,
+    paddingVertical: 0,
+    justifyContent: 'center',
+    borderRadius: 10,
   },
 });
 

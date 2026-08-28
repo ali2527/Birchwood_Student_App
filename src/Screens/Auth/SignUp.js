@@ -463,8 +463,10 @@ const styles = StyleSheet.create({
   },
   signUpButton: {
     width: '100%',
-    paddingVertical: 14,
-    borderRadius: 14,
+    height: 40,
+    paddingVertical: 0,
+    justifyContent: 'center',
+    borderRadius: 10,
     marginVertical: 10,
   },
   footerRow: {
