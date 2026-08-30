@@ -25,9 +25,6 @@ const LOGO_W = SCREEN_W * 0.72;
 const LOGO_FULL_H = LOGO_W * (182 / 668);
 const LOGO_CLIP_H = LOGO_FULL_H * 0.66;
 
-/** Temporary: replay splash forever for tuning. Set false before release. */
-const LOOP_SPLASH = false;
-
 // Splash layout v6: nose-aligned flight + straight “fly in” settle
 const SPLASH_LAYOUT_VERSION = 6;
 
@@ -650,20 +647,6 @@ export default function AnimatedSplash({onDone, appReady = true}) {
     studentX,
   ]);
 
-  const replaySplash = useCallback(() => {
-    timersRef.current.forEach(clearTimeout);
-    timersRef.current = [];
-    timelineAnimRef.current?.stop();
-    exitAnimRef.current?.stop();
-    timelineStartedRef.current = false;
-    fadeStartedRef.current = false;
-    setAnimationDone(false);
-    resetAnimatedValues();
-    requestAnimationFrame(() => {
-      startTimeline();
-    });
-  }, [resetAnimatedValues, startTimeline]);
-
   const revealJsSplash = useCallback(() => {
     if (revealStartedRef.current) {
       return;
@@ -702,18 +685,11 @@ export default function AnimatedSplash({onDone, appReady = true}) {
     if (!(animationDone && appReady)) {
       return undefined;
     }
-    if (LOOP_SPLASH) {
-      const t = setTimeout(replaySplash, 1400);
-      return () => clearTimeout(t);
-    }
     fadeOut();
     return undefined;
-  }, [animationDone, appReady, fadeOut, replaySplash]);
+  }, [animationDone, appReady, fadeOut]);
 
   useEffect(() => {
-    if (LOOP_SPLASH) {
-      return undefined;
-    }
     const hardCap = setTimeout(fadeOut, 14000);
     return () => clearTimeout(hardCap);
   }, [fadeOut]);
