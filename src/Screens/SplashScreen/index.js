@@ -299,60 +299,6 @@ export default function AnimatedSplash({onDone, appReady = true}) {
   const timelineAnimRef = useRef(null);
   const timersRef = useRef([]);
 
-  const resetAnimatedValues = useCallback(() => {
-    screenOpacity.setValue(1);
-    cloudLeftY.setValue(SCREEN_H * 0.18);
-    cloudLeftOpacity.setValue(0);
-    cloudRightY.setValue(SCREEN_H * 0.22);
-    cloudRightOpacity.setValue(0);
-    plane1Progress.setValue(0);
-    plane1Opacity.setValue(0);
-    studentX.setValue(-SCREEN_W * 0.92);
-    studentRotate.setValue(-12);
-    studentOpacity.setValue(1);
-    planet1Scale.setValue(0.45);
-    planet1Opacity.setValue(0);
-    planet2Scale.setValue(0.45);
-    planet2Opacity.setValue(0);
-    plane2Progress.setValue(0);
-    plane2Opacity.setValue(0);
-    logoOpacity.setValue(0);
-    logoTranslateY.setValue(18);
-    logoScale.setValue(0.95);
-    starTwinkleA.setValue(0.4);
-    starTwinkleB.setValue(0.65);
-    starTwinkleC.setValue(0.35);
-    starTwinkleD.setValue(0.5);
-    starPulseA.setValue(1);
-    starPulseB.setValue(1);
-  }, [
-    cloudLeftOpacity,
-    cloudLeftY,
-    cloudRightOpacity,
-    cloudRightY,
-    logoOpacity,
-    logoScale,
-    logoTranslateY,
-    plane1Opacity,
-    plane1Progress,
-    plane2Opacity,
-    plane2Progress,
-    planet1Opacity,
-    planet1Scale,
-    planet2Opacity,
-    planet2Scale,
-    screenOpacity,
-    starPulseA,
-    starPulseB,
-    starTwinkleA,
-    starTwinkleB,
-    starTwinkleC,
-    starTwinkleD,
-    studentOpacity,
-    studentRotate,
-    studentX,
-  ]);
-
   const fadeOut = useCallback(() => {
     if (fadeStartedRef.current) {
       return;
