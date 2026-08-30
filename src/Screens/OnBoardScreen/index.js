@@ -1,132 +1,124 @@
 import React from 'react';
 import {
   Image,
-  ScrollView,
-  StatusBar,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import {useNavigation} from '@react-navigation/native';
 import CustomButton from '../../Components/Button';
+import AuthShell from '../../Components/Auth/AuthShell';
 import MainLogo from '../../Components/MainLogo';
 import fonts from '../../Assets/fonts';
 import splashImage from '../../Assets/images/splash_image.png';
 import routes from '../../Navigation/routes';
 import {colors} from '../../theme/colors';
 import {HEIGHT, WIDTH} from '../../theme/units';
-import {useNavigation} from '@react-navigation/native';
 
 export default function OnBoardScreen() {
   const navigation = useNavigation();
 
   return (
-    <View style={styles.root}>
-      <StatusBar barStyle="dark-content" backgroundColor={colors.theme.white} />
-      <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          bounces={false}>
-          <View style={styles.logoWrap}>
-            <MainLogo _style={styles.logo} />
-          </View>
+    <AuthShell contentStyle={styles.content}>
+      <View style={styles.cluster}>
+        <View style={styles.logoWrap}>
+          <MainLogo _style={styles.logo} />
+        </View>
 
-          <Text style={styles.headline}>Empowering dreams, Uniting Futures</Text>
-          <Text style={styles.body}>
-            Welcome to Birchwood Montessori Academy, a family-owned and operated
-            school with a profound mission and vision.
-          </Text>
+        <Text style={styles.headline}>
+          Empowering dreams,{'\n'}Uniting Futures
+        </Text>
+        <Text style={styles.body}>
+          Welcome to Birchwood Montessori Academy, a family-owned and operated
+          school with a proud mission and vision.
+        </Text>
 
-          <Image
-            source={splashImage}
-            style={styles.heroImage}
-            resizeMode="contain"
+        <Image
+          source={splashImage}
+          style={styles.heroImage}
+          resizeMode="contain"
+        />
+
+        <View style={styles.btnRow}>
+          <CustomButton
+            title="Sign Up"
+            onPress={() => navigation.navigate(routes.navigator.signup)}
+            containerStyle={styles.btnHalf}
           />
-
-          <View style={styles.btnRow}>
-            <CustomButton
-              title="Sign Up"
-              onPress={() => navigation.navigate(routes.navigator.signup)}
-              containerStyle={styles.btnHalf}
-            />
-            <CustomButton
-              isFocused
-              title="Sign In"
-              onPress={() => navigation.navigate(routes.navigator.signin)}
-              containerStyle={styles.btnHalf}
-            />
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-    </View>
+          <CustomButton
+            isFocused
+            title="Sign In"
+            onPress={() => navigation.navigate(routes.navigator.signin)}
+            containerStyle={styles.btnHalf}
+          />
+        </View>
+      </View>
+    </AuthShell>
   );
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: colors.theme.white,
-  },
-  safe: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    alignItems: 'center',
+  content: {
     justifyContent: 'center',
-    paddingHorizontal: 28,
-    paddingVertical: 24,
+    alignItems: 'center',
+    paddingTop: 12,
+    paddingBottom: HEIGHT * 0.08,
+  },
+  cluster: {
+    width: '100%',
+    alignItems: 'center',
   },
   logoWrap: {
     width: '100%',
     alignItems: 'center',
-    marginBottom: 14,
   },
   logo: {
     marginTop: 0,
-    width: WIDTH * 0.5,
-    height: 56,
+    width: WIDTH * 0.6,
+    height: 58,
   },
   headline: {
-    fontFamily: fonts.euclidCircularA.medium,
-    fontSize: 22,
-    lineHeight: 28,
-    color: '#2B2B2B',
+    fontFamily: fonts.euclidCircularA.semiBold,
+    fontSize: 23,
+    lineHeight: 31,
+    color: '#1F2937',
     textAlign: 'center',
+    marginTop: 18,
     paddingHorizontal: 8,
-    marginBottom: 10,
   },
   body: {
     fontFamily: fonts.euclidCircularA.regular,
     fontSize: 13,
     lineHeight: 20,
-    color: '#8A8A8A',
+    color: '#9CA3AF',
     textAlign: 'center',
-    paddingHorizontal: 12,
-    marginBottom: 12,
+    marginTop: 12,
+    paddingHorizontal: 16,
     maxWidth: 340,
   },
   heroImage: {
-    width: WIDTH * 0.82,
-    height: HEIGHT * 0.32,
-    marginVertical: 8,
+    width: WIDTH * 0.8,
+    height: HEIGHT * 0.3,
+    marginTop: 16,
+    marginBottom: 10,
   },
   btnRow: {
     flexDirection: 'row',
     width: '100%',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 8,
+    marginTop: 14,
   },
   btnHalf: {
     flex: 1,
-    height: 44,
+    height: 48,
     marginVertical: 0,
     marginHorizontal: 6,
     paddingHorizontal: 8,
     paddingVertical: 0,
-    borderRadius: 22,
+    borderRadius: 14,
     minWidth: 0,
+    borderWidth: 1.5,
+    borderColor: colors.theme.primary,
   },
 });

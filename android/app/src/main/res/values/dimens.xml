@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      OS splash draws splash_tree_icon with AdaptiveForegroundDrawable (~1.5x)
+      into a ~192dp circle. Native ImageView has no that inset, so use 288dp
+      (192 * 1.5) with the same padded asset to match visible tree size.
+    -->
+    <dimen name="splash_icon_size">288dp</dimen>
+</resources>

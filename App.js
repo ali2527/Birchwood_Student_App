@@ -1,26 +1,40 @@
-import React, {useEffect} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {StatusBar, Platform, View} from 'react-native';
 import FlashMessage from 'react-native-flash-message';
-import SplashScreen from 'react-native-splash-screen';
 import {Provider} from 'react-redux';
 import {PersistGate} from 'redux-persist/integration/react';
 import MainNavigator from './src/Navigation';
+import AnimatedSplash from './src/Screens/SplashScreen';
 import {store, persistor} from './src/Stores';
 
 function App() {
+  const [showSplash, setShowSplash] = useState(true);
+  const [rehydrated, setRehydrated] = useState(
+    () => persistor.getState().bootstrapped,
+  );
+  const [navReady, setNavReady] = useState(false);
+
   useEffect(() => {
-    try {
-      SplashScreen.hide();
-    } catch (error) {
-      console.log('Error hiding splash screen:', error);
+    if (persistor.getState().bootstrapped) {
+      setRehydrated(true);
     }
+    const unsubscribe = persistor.subscribe(() => {
+      if (persistor.getState().bootstrapped) {
+        setRehydrated(true);
+      }
+    });
+    return unsubscribe;
+  }, []);
+
+  const onSplashDone = useCallback(() => {
+    setShowSplash(false);
   }, []);
 
   return (
     <Provider store={store}>
-      <View style={{flex: 1}}>
+      <View style={{flex: 1, backgroundColor: showSplash ? '#FFFFFF' : '#ffffff'}}>
         <PersistGate loading={null} persistor={persistor}>
-          <MainNavigator />
+          <MainNavigator onReady={() => setNavReady(true)} />
           <FlashMessage
             position={
               Platform.OS === 'ios'
@@ -35,6 +49,12 @@ function App() {
             textStyle={{fontSize: 14}}
           />
         </PersistGate>
+        {showSplash ? (
+          <AnimatedSplash
+            appReady={rehydrated && navReady}
+            onDone={onSplashDone}
+          />
+        ) : null}
       </View>
     </Provider>
   );

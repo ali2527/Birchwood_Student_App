@@ -22,12 +22,12 @@
                                 <fontDescription key="fontDescription" type="boldSystem" pointSize="36"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" image="SplashScreen" translatesAutoresizingMaskIntoConstraints="NO" id="tDw-zv-7ed">
+                            <imageView hidden="YES" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" image="SplashScreen" translatesAutoresizingMaskIntoConstraints="NO" id="tDw-zv-7ed">
                                 <rect key="frame" x="0.0" y="0.0" width="440" height="956"/>
                             </imageView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="Bcu-3y-fUS"/>
-                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
                             <constraint firstItem="tDw-zv-7ed" firstAttribute="trailing" secondItem="Bcu-3y-fUS" secondAttribute="trailing" id="6Ee-dZ-3AX"/>
                             <constraint firstAttribute="bottom" secondItem="tDw-zv-7ed" secondAttribute="bottom" id="Cfj-cM-7vc"/>

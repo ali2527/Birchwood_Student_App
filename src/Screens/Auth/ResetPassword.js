@@ -1,24 +1,25 @@
-import { CommonActions, useNavigation } from '@react-navigation/native';
-import React, { useCallback } from 'react';
-import { Controller, useForm } from 'react-hook-form';
-import { StyleSheet, View } from 'react-native';
+import {CommonActions, useNavigation} from '@react-navigation/native';
+import React, {useCallback} from 'react';
+import {Controller, useForm} from 'react-hook-form';
+import {StyleSheet, Text, View} from 'react-native';
+import AuthField from '../../Components/Auth/AuthField';
 import CustomButton from '../../Components/Button';
-import GlroyBold from '../../Components/GlroyBoldText';
-import GrayMediumText from '../../Components/GrayMediumText';
-import CustomTextInput from '../../Components/InputField';
+import fonts from '../../Assets/fonts';
 import routes from '../../Navigation/routes';
-import { asyncResetPassword } from '../../Stores/actions/user.action';
-import { colors } from '../../theme/colors';
-import { useAppDispatch } from '../../Stores/hooks';
+import {asyncResetPassword} from '../../Stores/actions/user.action';
+import {useAppDispatch} from '../../Stores/hooks';
 
-export default function ResetPassword({ data }) {
+const STRONG_PASSWORD_RE =
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+
+export default function ResetPassword({data}) {
   const dispatch = useAppDispatch();
   const navigation = useNavigation();
 
   const {
     control,
     handleSubmit,
-    formState: { errors },
+    formState: {errors},
     getValues,
   } = useForm({
     defaultValues: {
@@ -28,113 +29,89 @@ export default function ResetPassword({ data }) {
   });
 
   const onSubmit = useCallback(
-    async ({ password, confirmPassword }) => {
+    async ({password, confirmPassword}) => {
       const res = await dispatch(
         asyncResetPassword({
           email: data?.email ?? '',
           code: data?.code ?? '',
           password,
           confirmPassword,
-        })
+        }),
       ).unwrap();
 
       if (res.status) {
         navigation.dispatch(
           CommonActions.reset({
             index: 0,
-            routes: [{ name: routes.navigator.signin }],
-          })
+            routes: [{name: routes.navigator.signin}],
+          }),
         );
       }
     },
-    [navigation, dispatch, data?.email, data?.code]
+    [navigation, dispatch, data?.email, data?.code],
   );
 
   return (
     <View style={styles.container}>
-      <View style={styles.heading}>
-        <GlroyBold
-          text="Reset password"
-          _style={{ color: colors.text.black }}
-        />
-      </View>
-      <GrayMediumText
-        text="Choose a new password for your account."
-        _style={styles.para}
+      <Text style={styles.title}>Create New Password</Text>
+      <Text style={styles.subtitle}>
+        Use at least 8 characters with uppercase, lowercase, a number, and a
+        symbol.
+      </Text>
+
+      <Controller
+        name="password"
+        control={control}
+        rules={{
+          required: {value: true, message: 'Password is required'},
+          validate: value =>
+            STRONG_PASSWORD_RE.test(value) ||
+            'Password is too weak — follow the rules above',
+        }}
+        render={({field: {onChange, value}}) => (
+          <AuthField
+            label="New Password"
+            placeholder="Create a strong password"
+            leftIcon="lock"
+            password
+            value={value}
+            onChangeText={onChange}
+            error={errors.password?.message}
+          />
+        )}
       />
-      <View>
-        <Controller
-          name="password"
-          control={control}
-          rules={{
-            required: { value: true, message: 'Password is required' },
-            minLength: {
-              value: 8,
-              message: 'Password must be at least 8 characters',
-            },
-          }}
-          render={({ field: { onChange, value } }) => (
-            <CustomTextInput
-              label="New password"
-              placeholder="Enter new password"
-              value={value}
-              required
-              onChangeText={onChange}
-              password
-            />
-          )}
-        />
 
-        {errors.password?.message && (
-          <GrayMediumText
-            _style={{ color: colors.theme.lightRed }}
-            text={errors.password.message}
+      <Controller
+        name="confirmPassword"
+        control={control}
+        rules={{
+          required: {value: true, message: 'Confirm password is required'},
+          validate: {
+            matchesPreviousPassword: value => {
+              const {password} = getValues();
+              return (value && password === value) || 'Passwords do not match';
+            },
+          },
+        }}
+        render={({field: {onChange, value}}) => (
+          <AuthField
+            label="Confirm New Password"
+            placeholder="Re-enter your password"
+            leftIcon="lock"
+            password
+            value={value}
+            onChangeText={onChange}
+            error={errors.confirmPassword?.message}
           />
         )}
+      />
 
-        <Controller
-          name="confirmPassword"
-          control={control}
-          rules={{
-            required: {
-              value: true,
-              message: 'Confirm password is required',
-            },
-            validate: {
-              matchesPreviousPassword: value => {
-                const { password } = getValues();
-                return (
-                  (value && password === value) || 'Passwords do not match'
-                );
-              },
-            },
-          }}
-          render={({ field: { onChange, value } }) => (
-            <CustomTextInput
-              label="Confirm new password"
-              placeholder="Re-enter password"
-              value={value}
-              required
-              onChangeText={onChange}
-              password
-            />
-          )}
-        />
-
-        {errors.confirmPassword?.message && (
-          <GrayMediumText
-            _style={{ color: colors.theme.lightRed }}
-            text={errors.confirmPassword.message}
-          />
-        )}
-      </View>
-      <View style={{ alignItems: 'center', marginTop: 8 }}>
-        <CustomButton
-          isFocused
-          title="Update password"
-          onPress={handleSubmit(onSubmit)}
-        />
-      </View>
+      <CustomButton
+        isFocused
+        title="Reset Password"
+        onPress={handleSubmit(onSubmit)}
+        containerStyle={styles.primaryBtn}
+      />
     </View>
   );
 }
@@ -142,15 +119,27 @@ export default function ResetPassword({ data }) {
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    paddingVertical: 8,
+    marginTop: 8,
   },
-  para: {
-    textAlign: 'center',
-    marginTop: 15,
-    lineHeight: 22,
+  title: {
+    fontFamily: fonts.euclidCircularA.semiBold,
+    fontSize: 26,
+    color: '#111827',
+    marginBottom: 8,
   },
-  heading: {
-    justifyContent: 'center',
-    alignItems: 'center',
+  subtitle: {
+    fontFamily: fonts.euclidCircularA.regular,
+    fontSize: 14,
+    lineHeight: 21,
+    color: '#9CA3AF',
+    marginBottom: 28,
+  },
+  primaryBtn: {
+    width: '100%',
+    height: 52,
+    borderRadius: 14,
+    marginTop: 12,
+    marginVertical: 0,
+    paddingHorizontal: 16,
   },
 });

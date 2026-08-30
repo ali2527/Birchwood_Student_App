@@ -1,21 +1,19 @@
-import React, { useCallback } from 'react';
-import { Controller, useForm } from 'react-hook-form';
-import { StyleSheet, View } from 'react-native';
+import React, {useCallback} from 'react';
+import {Controller, useForm} from 'react-hook-form';
+import {StyleSheet, Text, View} from 'react-native';
+import AuthField from '../../Components/Auth/AuthField';
 import CustomButton from '../../Components/Button';
-import CustomTextInput from '../../Components/InputField';
-import GlroyBold from '../../Components/GlroyBoldText';
-import GrayMediumText from '../../Components/GrayMediumText';
-import { asyncEmailVerification } from '../../Stores/actions/user.action';
-import { colors } from '../../theme/colors';
-import { useAppDispatch } from '../../Stores/hooks';
+import fonts from '../../Assets/fonts';
+import {asyncEmailVerification} from '../../Stores/actions/user.action';
+import {useAppDispatch} from '../../Stores/hooks';
 
-export default function ForgotPassword({ data, handleScreen }) {
+export default function ForgotPassword({data, handleScreen}) {
   const dispatch = useAppDispatch();
 
   const {
     control,
     handleSubmit,
-    formState: { errors },
+    formState: {errors},
   } = useForm({
     defaultValues: {
       email: data?.email || '',
@@ -24,65 +22,61 @@ export default function ForgotPassword({ data, handleScreen }) {
 
   const onSubmit = useCallback(
     async body => {
-      const res = await dispatch(asyncEmailVerification(body)).unwrap();
+      const email = body.email.trim().toLowerCase();
+      const res = await dispatch(
+        asyncEmailVerification({email}),
+      ).unwrap();
 
-      if (res?.data?.encodedEmail) {
+      if (res?.status) {
+        // Keep PLAIN email for verify/reset — encodedEmail is not a valid email.
         handleScreen({
           index: 2,
-          email: res.data.encodedEmail,
+          email,
         });
       }
     },
-    [dispatch, handleScreen]
+    [dispatch, handleScreen],
   );
 
   return (
     <View style={styles.container}>
-      <View style={styles.heading}>
-        <GlroyBold
-          text="Forgot password?"
-          _style={{ color: colors.text.black }}
-        />
-      </View>
-      <GrayMediumText
-        text="Enter the email linked to your account. We will send a verification code to reset your password."
-        _style={styles.para}
-      />
-      <View>
-        <Controller
-          name="email"
-          control={control}
-          rules={{
-            required: { value: true, message: 'Email is required' },
-            pattern: {
-              value: /\S+@\S+\.\S+/,
-              message: 'Email format is invalid',
-            },
-          }}
-          render={({ field: { onChange, value } }) => (
-            <CustomTextInput
-              label="Email address"
-              placeholder="your@email.com"
-              value={value}
-              required
-              onChangeText={onChange}
-            />
-          )}
-        />
-        {errors.email?.message && (
-          <GrayMediumText
-            _style={{ color: colors.theme.lightRed }}
-            text={errors.email.message}
+      <Text style={styles.title}>Forgot Password?</Text>
+      <Text style={styles.subtitle}>
+        Enter the parent email on your account. We'll send a 4-digit code to
+        reset your password.
+      </Text>
+
+      <Controller
+        name="email"
+        control={control}
+        rules={{
+          required: {value: true, message: 'Email is required'},
+          pattern: {
+            value: /\S+@\S+\.\S+/,
+            message: 'Enter a valid email address',
+          },
+        }}
+        render={({field: {onChange, value}}) => (
+          <AuthField
+            label="Email"
+            placeholder="parent@email.com"
+            leftIcon="mail"
+            value={value}
+            onChangeText={onChange}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+            error={errors.email?.message}
           />
         )}
-      </View>
-      <View style={{ alignItems: 'center', marginTop: 8 }}>
-        <CustomButton
-          isFocused
-          title="Submit"
-          onPress={handleSubmit(onSubmit)}
-        />
-      </View>
+      />
+
+      <CustomButton
+        isFocused
+        title="Send Reset Code"
+        onPress={handleSubmit(onSubmit)}
+        containerStyle={styles.primaryBtn}
+      />
     </View>
   );
 }
@@ -90,15 +84,27 @@ export default function ForgotPassword({ data, handleScreen }) {
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    paddingVertical: 8,
+    marginTop: 8,
   },
-  para: {
-    textAlign: 'center',
-    marginTop: 15,
-    lineHeight: 22,
+  title: {
+    fontFamily: fonts.euclidCircularA.semiBold,
+    fontSize: 26,
+    color: '#111827',
+    marginBottom: 8,
   },
-  heading: {
-    justifyContent: 'center',
-    alignItems: 'center',
+  subtitle: {
+    fontFamily: fonts.euclidCircularA.regular,
+    fontSize: 14,
+    lineHeight: 21,
+    color: '#9CA3AF',
+    marginBottom: 28,
+  },
+  primaryBtn: {
+    width: '100%',
+    height: 52,
+    borderRadius: 14,
+    marginTop: 12,
+    marginVertical: 0,
+    paddingHorizontal: 16,
   },
 });

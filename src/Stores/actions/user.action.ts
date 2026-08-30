@@ -99,20 +99,10 @@ export const asyncSignup = createAsyncThunk(
     if (!res.status) {
       dispatch(asyncShowError(res.message));
     } else {
-      if (res.data?.token) {
-        let { todayAttendance, user, parent, token } = res.data ?? {}
-        const userData = user || parent;
-
-        console.log('user', userData);
-        dispatch(
-          setUserState({
-            user: { ...userData, todayAttendance },
-            holidays: {},
-            attendance: {} as UserAttendance,
-            token,
-          })
-        );
-      }
+      dispatch(
+        asyncShowSuccess(res.message || 'Account created successfully'),
+      );
+      // Signup does not issue a JWT — caller should sign in for a USER token.
     }
     dispatch(setLoading(false));
 

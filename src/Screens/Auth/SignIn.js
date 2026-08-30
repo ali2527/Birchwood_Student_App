@@ -1,100 +1,31 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {useCallback, useState} from 'react';
 import {
-  Animated,
-  Keyboard,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {Controller, useForm} from 'react-hook-form';
+import Icon from 'react-native-vector-icons/Feather';
+import AuthShell from '../../Components/Auth/AuthShell';
+import AuthField from '../../Components/Auth/AuthField';
 import CustomButton from '../../Components/Button';
-import ChildLogo from '../../Components/ChildLogo';
-import CustomTextInput from '../../Components/InputField';
 import MainLogo from '../../Components/MainLogo';
-import SmallText from '../../Components/SmallText';
-import { colors, appShadow } from '../../theme/colors';
-import { Controller, useForm } from 'react-hook-form';
-import { useAppDispatch } from '../../Stores/hooks';
+import fonts from '../../Assets/fonts';
 import routes from '../../Navigation/routes';
-import GrayMediumText from '../../Components/GrayMediumText';
-import { asyncLogin } from '../../Stores/actions/user.action';
+import {asyncLogin} from '../../Stores/actions/user.action';
+import {useAppDispatch} from '../../Stores/hooks';
+import {colors} from '../../theme/colors';
+import {WIDTH} from '../../theme/units';
 
-const SignIn = ({ navigation }) => {
+const SignIn = ({navigation}) => {
   const dispatch = useAppDispatch();
-  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
-
-  const heroOpacity = useRef(new Animated.Value(0)).current;
-  const heroTranslateY = useRef(new Animated.Value(28)).current;
-  const logoScale = useRef(new Animated.Value(0.88)).current;
-  const cardOpacity = useRef(new Animated.Value(0)).current;
-  const cardTranslateY = useRef(new Animated.Value(36)).current;
-
-  useEffect(() => {
-    const show = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
-    const hide = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
-    const keyboardDidShowListener = Keyboard.addListener(show, () =>
-      setKeyboardVisible(true)
-    );
-    const keyboardDidHideListener = Keyboard.addListener(hide, () =>
-      setKeyboardVisible(false)
-    );
-    return () => {
-      keyboardDidShowListener.remove();
-      keyboardDidHideListener.remove();
-    };
-  }, []);
-
-  useEffect(() => {
-    Animated.sequence([
-      Animated.parallel([
-        Animated.timing(heroOpacity, {
-          toValue: 1,
-          duration: 480,
-          useNativeDriver: true,
-        }),
-        Animated.spring(heroTranslateY, {
-          toValue: 0,
-          friction: 9,
-          tension: 68,
-          useNativeDriver: true,
-        }),
-        Animated.spring(logoScale, {
-          toValue: 1,
-          friction: 8,
-          tension: 72,
-          useNativeDriver: true,
-        }),
-      ]),
-      Animated.parallel([
-        Animated.timing(cardOpacity, {
-          toValue: 1,
-          duration: 400,
-          useNativeDriver: true,
-        }),
-        Animated.spring(cardTranslateY, {
-          toValue: 0,
-          friction: 9,
-          tension: 70,
-          useNativeDriver: true,
-        }),
-      ]),
-    ]).start();
-  }, []);
-
-  const handleForgotPassword = () => {
-    navigation.navigate(routes.navigator.passwordresetscreens);
-  };
+  const [rememberMe, setRememberMe] = useState(false);
 
   const {
     control,
     handleSubmit,
-    formState: { errors },
+    formState: {errors},
   } = useForm({
     defaultValues: {
       email: '',
@@ -113,223 +44,184 @@ const SignIn = ({ navigation }) => {
         /* errors from thunk / flash message */
       }
     },
-    [navigation, dispatch]
+    [navigation, dispatch],
   );
 
   return (
-    <LinearGradient
-      colors={[colors.theme.primary, '#0a4a8a', colors.theme.secondary]}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={styles.gradient}>
-      <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
-      <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
-        <KeyboardAvoidingView
-          style={styles.flex}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}>
-          <ScrollView
-            contentContainerStyle={styles.scrollContent}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-            scrollEnabled
-            bounces={isKeyboardVisible}>
-            <Animated.View
-              style={[
-                styles.hero,
-                {
-                  opacity: heroOpacity,
-                  transform: [{ translateY: heroTranslateY }],
-                },
-              ]}>
-              <ChildLogo _style={styles.heroImage} />
-              <Animated.View
-                style={[
-                  styles.logoWrap,
-                  { transform: [{ scale: logoScale }] },
-                ]}>
-                <MainLogo _style={styles.mainLogo} />
-              </Animated.View>
-              <Text style={styles.welcomeTitle}>Welcome back</Text>
-              <Text style={styles.welcomeSubtitle}>
-                Sign in to continue to your dashboard
-              </Text>
-            </Animated.View>
+    <AuthShell showBack>
+      <View style={styles.brand}>
+        <MainLogo _style={styles.logo} />
+      </View>
 
-            <Animated.View
-              style={[
-                styles.card,
-                appShadow,
-                {
-                  opacity: cardOpacity,
-                  transform: [{ translateY: cardTranslateY }],
-                },
-              ]}>
-              <Controller
-                name="email"
-                control={control}
-                rules={{
-                  required: { value: true, message: 'Email is required' },
-                  pattern: {
-                    value: /\S+@\S+\.\S+/,
-                    message: 'Email format is invalid',
-                  },
-                }}
-                render={({ field: { onChange, value } }) => (
-                  <CustomTextInput
-                    label="Email address"
-                    placeholder="you@example.com"
-                    value={value}
-                    required
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    onChangeText={onChange}
-                  />
-                )}
-              />
-              {errors.email?.message && (
-                <GrayMediumText
-                  _style={styles.fieldError}
-                  text={errors.email.message}
-                />
-              )}
+      <Text style={styles.title}>Welcome Back!</Text>
+      <Text style={styles.subtitle}>Sign in with your parent email</Text>
 
-              <Controller
-                name="password"
-                control={control}
-                rules={{
-                  required: { value: true, message: 'Password is required' },
-                  minLength: {
-                    value: 8,
-                    message: 'Password must be at least 8 characters',
-                  },
-                }}
-                render={({ field: { onChange, value } }) => (
-                  <CustomTextInput
-                    label="Password"
-                    placeholder="Enter your password"
-                    value={value}
-                    required
-                    password
-                    onChangeText={onChange}
-                  />
-                )}
-              />
-              {errors.password?.message && (
-                <GrayMediumText
-                  _style={styles.fieldError}
-                  text={errors.password.message}
-                />
-              )}
+      <Controller
+        name="email"
+        control={control}
+        rules={{
+          required: {value: true, message: 'Email is required'},
+          pattern: {
+            value: /\S+@\S+\.\S+/,
+            message: 'Enter a valid email address',
+          },
+        }}
+        render={({field: {onChange, value}}) => (
+          <AuthField
+            label="Email"
+            placeholder="parent@email.com"
+            leftIcon="mail"
+            value={value}
+            onChangeText={onChange}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+            error={errors.email?.message}
+          />
+        )}
+      />
 
-              <TouchableOpacity
-                onPress={handleForgotPassword}
-                style={styles.forgotRow}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                <SmallText
-                  text="Forgot password?"
-                  _style={styles.forgotPasswordText}
-                />
-              </TouchableOpacity>
+      <Controller
+        name="password"
+        control={control}
+        rules={{
+          required: {value: true, message: 'Password is required'},
+        }}
+        render={({field: {onChange, value}}) => (
+          <AuthField
+            label="Password"
+            placeholder="Enter your password"
+            leftIcon="lock"
+            password
+            value={value}
+            onChangeText={onChange}
+            error={errors.password?.message}
+          />
+        )}
+      />
 
-              <View style={styles.buttonWrap}>
-                <CustomButton
-                  isFocused
-                  title="Sign in"
-                  onPress={handleSubmit(onSubmit)}
-                  containerStyle={styles.signInButton}
-                />
-              </View>
-            </Animated.View>
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
-    </LinearGradient>
+      <View style={styles.rowBetween}>
+        <TouchableOpacity
+          style={styles.rememberRow}
+          onPress={() => setRememberMe(v => !v)}
+          activeOpacity={0.7}>
+          <View style={[styles.checkbox, rememberMe && styles.checkboxOn]}>
+            {rememberMe ? (
+              <Icon name="check" size={12} color="#FFF" />
+            ) : null}
+          </View>
+          <Text style={styles.rememberText}>Remember me</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() =>
+            navigation.navigate(routes.navigator.passwordresetscreens)
+          }
+          hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
+          <Text style={styles.forgot}>Forgot Password?</Text>
+        </TouchableOpacity>
+      </View>
+
+      <CustomButton
+        isFocused
+        title="Sign In"
+        onPress={handleSubmit(onSubmit)}
+        containerStyle={styles.primaryBtn}
+      />
+
+      <View style={styles.footerRow}>
+        <Text style={styles.footerMuted}>Don't have an account? </Text>
+        <TouchableOpacity
+          onPress={() => navigation.navigate(routes.navigator.signup)}
+          hitSlop={{top: 10, bottom: 10, left: 4, right: 4}}>
+          <Text style={styles.footerLink}>Sign Up</Text>
+        </TouchableOpacity>
+      </View>
+    </AuthShell>
   );
 };
 
 const styles = StyleSheet.create({
-  gradient: {
-    flex: 1,
-  },
-  safe: {
-    flex: 1,
-  },
-  flex: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: 22,
-    paddingBottom: 28,
-    paddingTop: 8,
-  },
-  hero: {
+  brand: {
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 24,
   },
-  heroImage: {
-    height: 140,
-    width: 260,
-    marginBottom: 8,
-  },
-  logoWrap: {
-    marginBottom: 12,
-    paddingVertical: 0,
-  },
-  mainLogo: {
+  logo: {
     marginTop: 0,
+    width: WIDTH * 0.56,
+    height: 56,
   },
-  welcomeTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: colors.theme.white,
-    marginBottom: 6,
+  title: {
+    fontFamily: fonts.euclidCircularA.semiBold,
+    fontSize: 26,
+    color: '#111827',
+    marginBottom: 8,
   },
-  welcomeSubtitle: {
+  subtitle: {
+    fontFamily: fonts.euclidCircularA.regular,
     fontSize: 14,
-    color: colors.text.dimWhite,
-    textAlign: 'center',
-    opacity: 0.95,
-    paddingHorizontal: 12,
+    color: '#9CA3AF',
+    marginBottom: 28,
   },
-  card: {
-    backgroundColor: colors.theme.white,
-    borderRadius: 20,
-    paddingHorizontal: 20,
-    paddingTop: 24,
-    paddingBottom: 20,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(3, 83, 146, 0.08)',
+  rowBetween: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 24,
+    marginTop: 4,
   },
-  fieldError: {
-    color: colors.theme.lightRed,
-    marginTop: -4,
-    marginBottom: 8,
-    fontSize: 12,
+  rememberRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  forgotRow: {
-    alignSelf: 'flex-end',
-    marginTop: 6,
-    marginBottom: 8,
-  },
-  forgotPasswordText: {
-    textDecorationLine: 'underline',
-    color: colors.theme.primary,
-    fontSize: 13,
-  },
-  buttonWrap: {
-    alignItems: 'stretch',
-    marginTop: 12,
-  },
-  signInButton: {
-    width: '100%',
-    height: 40,
-    paddingVertical: 0,
+  checkbox: {
+    width: 18,
+    height: 18,
+    borderRadius: 4,
+    borderWidth: 1.5,
+    borderColor: '#D1D5DB',
+    alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 10,
+    marginRight: 8,
+    backgroundColor: '#FFF',
+  },
+  checkboxOn: {
+    backgroundColor: colors.theme.primary,
+    borderColor: colors.theme.primary,
+  },
+  rememberText: {
+    fontFamily: fonts.euclidCircularA.regular,
+    fontSize: 13,
+    color: '#6B7280',
+  },
+  forgot: {
+    fontFamily: fonts.euclidCircularA.medium,
+    fontSize: 13,
+    color: colors.theme.primary,
+  },
+  primaryBtn: {
+    width: '100%',
+    height: 52,
+    borderRadius: 14,
+    marginVertical: 0,
+    paddingHorizontal: 16,
+  },
+  footerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 32,
+    flexWrap: 'wrap',
+  },
+  footerMuted: {
+    fontFamily: fonts.euclidCircularA.regular,
+    fontSize: 14,
+    color: '#6B7280',
+  },
+  footerLink: {
+    fontFamily: fonts.euclidCircularA.semiBold,
+    fontSize: 14,
+    color: colors.theme.primary,
   },
 });
 

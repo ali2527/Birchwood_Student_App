@@ -1,5 +1,4 @@
-import React, { useEffect } from 'react';
-// import AnimatedSplash from 'react-native-animated-splash';
+import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import routes from '../routes';
 import OnBoardScreen from '../../Screens/OnBoardScreen';
@@ -36,8 +35,6 @@ const Stack = createNativeStackNavigator();
 const MainStack = () => {
   const token = useAppSelector(selectUserToken);
   const user = useAppSelector(selectUserProfile);
-
-  console.log('MainStack rendered, token:', token, 'user children length:', user?.childrens?.length);
 
   return (
     <Stack.Navigator screenOptions={NavigationOptions} initialRouteName={routes.navigator.onboard}>

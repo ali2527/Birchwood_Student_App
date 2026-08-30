@@ -1,500 +1,442 @@
-import { CheckBox } from '@rneui/themed';
-import React, { useCallback, useState } from 'react';
-import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, {useCallback, useState} from 'react';
+import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {Controller, useForm} from 'react-hook-form';
+import AuthShell from '../../Components/Auth/AuthShell';
+import AuthField from '../../Components/Auth/AuthField';
 import CustomButton from '../../Components/Button';
-import ChildLogo from '../../Components/ChildLogo';
-import GrayMediumText from '../../Components/GrayMediumText';
-import CustomTextInput from '../../Components/InputField';
 import MainLogo from '../../Components/MainLogo';
+import fonts from '../../Assets/fonts';
 import routes from '../../Navigation/routes';
-import { colors, appShadow } from '../../theme/colors';
-import { Controller, useForm } from 'react-hook-form';
-import { asyncSignup } from '../../Stores/actions/user.action';
-import { useAppDispatch } from '../../Stores/hooks';
+import {asyncLogin, asyncSignup} from '../../Stores/actions/user.action';
+import {useAppDispatch} from '../../Stores/hooks';
+import {asyncShowSuccess} from '../../Stores/actions/common.action';
+import {colors} from '../../theme/colors';
+import {WIDTH} from '../../theme/units';
 
-export default function SignUp({ navigation }) {
+const STRONG_PASSWORD_RE =
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+
+const STEPS = [
+  {title: 'Parent Details', subtitle: 'Father and mother information'},
+  {title: 'Contact', subtitle: 'How we can reach you'},
+  {title: 'Security', subtitle: 'Create a strong password'},
+];
+
+export default function SignUp({navigation}) {
   const dispatch = useAppDispatch();
-  const [rememberPassword, setRememberPassword] = useState(false);
+  const [step, setStep] = useState(0);
 
   const {
     control,
     handleSubmit,
-    formState: { errors },
+    formState: {errors},
     getValues,
+    trigger,
   } = useForm({
     defaultValues: {
       fatherFirstName: '',
       fatherLastName: '',
       motherFirstName: '',
       motherLastName: '',
-      phone: '',
       email: '',
+      phone: '',
       password: '',
       confirmPassword: '',
     },
+    mode: 'onBlur',
   });
 
+  const goNext = useCallback(async () => {
+    const fieldsByStep = [
+      [
+        'fatherFirstName',
+        'fatherLastName',
+        'motherFirstName',
+        'motherLastName',
+      ],
+      ['email', 'phone'],
+      ['password', 'confirmPassword'],
+    ];
+    const ok = await trigger(fieldsByStep[step]);
+    if (ok) {
+      setStep(s => Math.min(s + 1, STEPS.length - 1));
+    }
+  }, [step, trigger]);
+
+  const goBack = useCallback(() => {
+    if (step > 0) {
+      setStep(s => s - 1);
+      return;
+    }
+    navigation.goBack();
+  }, [navigation, step]);
+
   const onSubmit = useCallback(
-    async body => {
+    async form => {
+      const body = {
+        fatherFirstName: form.fatherFirstName.trim(),
+        fatherLastName: form.fatherLastName.trim(),
+        motherFirstName: form.motherFirstName.trim(),
+        motherLastName: form.motherLastName.trim(),
+        phone: form.phone.trim(),
+        email: form.email.trim().toLowerCase(),
+        password: form.password,
+      };
       try {
         const res = await dispatch(asyncSignup(body)).unwrap();
         if (res.status === true) {
-          navigation.navigate(routes.screens.homeScreen);
+          // Backend does not return a token on signup — sign in for USER token.
+          const loginRes = await dispatch(
+            asyncLogin({
+              email: body.email,
+              password: body.password,
+            }),
+          ).unwrap();
+          if (loginRes.status && loginRes.data?.token) {
+            dispatch(
+              asyncShowSuccess('Account created. Welcome to Birchwood!'),
+            );
+            navigation.navigate(routes.screens.homeScreen);
+          } else {
+            dispatch(
+              asyncShowSuccess(
+                'Account created. Please sign in with your email and password.',
+              ),
+            );
+            navigation.navigate(routes.navigator.signin);
+          }
         }
       } catch {
-        /* errors surfaced via asyncSignup / global handlers */
+        /* errors from thunks / flash */
       }
     },
-    [navigation, dispatch]
+    [navigation, dispatch],
   );
 
+  const stepMeta = STEPS[step];
+
   return (
-    <LinearGradient
-      colors={[colors.theme.primary, '#0a4a8a', colors.theme.secondary]}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={styles.gradient}>
-      <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
-      <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
-        <KeyboardAvoidingView
-          style={styles.flex}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}>
-          <ScrollView
-            contentContainerStyle={styles.scrollContent}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}>
-            <View style={styles.hero}>
-              <View style={styles.logoWrap}>
-                <MainLogo />
-              </View>
-              <Text style={styles.heroEyebrow}>New account</Text>
-              <Text style={styles.welcomeTitle}>Create your account</Text>
-              <Text style={styles.welcomeSubtitle}>
-                Register as a parent to access your child’s school portal.
-              </Text>
-            </View>
+    <AuthShell showBack onBack={goBack}>
+      <View style={styles.brand}>
+        <MainLogo _style={styles.logo} />
+      </View>
 
-            <View style={[styles.card, appShadow]}>
-              <Text style={styles.sectionLabel}>Father</Text>
-              <Controller
-                name="fatherFirstName"
-                control={control}
-                rules={{
-                  required: {
-                    value: true,
-                    message: 'Father first name is required',
-                  },
-                }}
-                render={({ field: { onChange, value } }) => (
-                  <CustomTextInput
-                    label="First name"
-                    onChangeText={onChange}
-                    placeholder="First name"
-                    value={value}
-                    required
-                  />
-                )}
+      <Text style={styles.title}>Create Account</Text>
+      <Text style={styles.subtitle}>Join our learning community</Text>
+
+      <View style={styles.stepRow}>
+        {STEPS.map((_, i) => (
+          <View
+            key={i}
+            style={[styles.stepDot, i <= step && styles.stepDotActive]}
+          />
+        ))}
+      </View>
+      <Text style={styles.stepLabel}>
+        Step {step + 1} of {STEPS.length}: {stepMeta.title}
+      </Text>
+      <Text style={styles.stepHint}>{stepMeta.subtitle}</Text>
+
+      {step === 0 && (
+        <>
+          <Text style={styles.section}>Father</Text>
+          <Controller
+            name="fatherFirstName"
+            control={control}
+            rules={{
+              required: {value: true, message: 'Father first name is required'},
+              minLength: {
+                value: 3,
+                message: 'First name must be at least 3 characters',
+              },
+            }}
+            render={({field: {onChange, value}}) => (
+              <AuthField
+                label="Father First Name"
+                placeholder="e.g. James"
+                leftIcon="user"
+                value={value}
+                onChangeText={onChange}
+                error={errors.fatherFirstName?.message}
               />
-              {errors.fatherFirstName?.message && (
-                <GrayMediumText
-                  _style={styles.fieldError}
-                  text={errors.fatherFirstName.message}
-                />
-              )}
-
-              <Controller
-                name="fatherLastName"
-                control={control}
-                rules={{
-                  required: {
-                    value: true,
-                    message: 'Father last name is required',
-                  },
-                }}
-                render={({ field: { onChange, value } }) => (
-                  <CustomTextInput
-                    label="Last name"
-                    onChangeText={onChange}
-                    placeholder="Last name"
-                    value={value}
-                    required
-                  />
-                )}
+            )}
+          />
+          <Controller
+            name="fatherLastName"
+            control={control}
+            rules={{
+              required: {value: true, message: 'Father last name is required'},
+            }}
+            render={({field: {onChange, value}}) => (
+              <AuthField
+                label="Father Last Name"
+                placeholder="e.g. William"
+                leftIcon="user"
+                value={value}
+                onChangeText={onChange}
+                error={errors.fatherLastName?.message}
               />
-              {errors.fatherLastName?.message && (
-                <GrayMediumText
-                  _style={styles.fieldError}
-                  text={errors.fatherLastName.message}
-                />
-              )}
-
-              <Text style={[styles.sectionLabel, styles.sectionLabelSpaced]}>
-                Mother
-              </Text>
-              <Controller
-                name="motherFirstName"
-                control={control}
-                rules={{
-                  required: {
-                    value: true,
-                    message: 'Mother first name is required',
-                  },
-                }}
-                render={({ field: { onChange, value } }) => (
-                  <CustomTextInput
-                    label="First name"
-                    onChangeText={onChange}
-                    placeholder="First name"
-                    value={value}
-                    required
-                  />
-                )}
+            )}
+          />
+          <Text style={styles.section}>Mother</Text>
+          <Controller
+            name="motherFirstName"
+            control={control}
+            rules={{
+              required: {value: true, message: 'Mother first name is required'},
+              minLength: {
+                value: 3,
+                message: 'First name must be at least 3 characters',
+              },
+            }}
+            render={({field: {onChange, value}}) => (
+              <AuthField
+                label="Mother First Name"
+                placeholder="e.g. Helen"
+                leftIcon="user"
+                value={value}
+                onChangeText={onChange}
+                error={errors.motherFirstName?.message}
               />
-              {errors.motherFirstName?.message && (
-                <GrayMediumText
-                  _style={styles.fieldError}
-                  text={errors.motherFirstName.message}
-                />
-              )}
-
-              <Controller
-                name="motherLastName"
-                control={control}
-                rules={{
-                  required: {
-                    value: true,
-                    message: 'Mother last name is required',
-                  },
-                }}
-                render={({ field: { onChange, value } }) => (
-                  <CustomTextInput
-                    label="Last name"
-                    onChangeText={onChange}
-                    placeholder="Last name"
-                    value={value}
-                    required
-                  />
-                )}
+            )}
+          />
+          <Controller
+            name="motherLastName"
+            control={control}
+            rules={{
+              required: {value: true, message: 'Mother last name is required'},
+            }}
+            render={({field: {onChange, value}}) => (
+              <AuthField
+                label="Mother Last Name"
+                placeholder="e.g. William"
+                leftIcon="user"
+                value={value}
+                onChangeText={onChange}
+                error={errors.motherLastName?.message}
               />
-              {errors.motherLastName?.message && (
-                <GrayMediumText
-                  _style={styles.fieldError}
-                  text={errors.motherLastName.message}
-                />
-              )}
+            )}
+          />
+        </>
+      )}
 
-              <Text style={[styles.sectionLabel, styles.sectionLabelSpaced]}>
-                Contact
-              </Text>
-              <Controller
-                name="phone"
-                control={control}
-                rules={{
-                  required: {
-                    value: true,
-                    message: 'Phone number is required',
-                  },
-                }}
-                render={({ field: { onChange, value } }) => (
-                  <CustomTextInput
-                    label="Phone number"
-                    placeholder="Mobile number"
-                    value={value}
-                    required
-                    keyboardType="phone-pad"
-                    onChangeText={onChange}
-                  />
-                )}
+      {step === 1 && (
+        <>
+          <Controller
+            name="email"
+            control={control}
+            rules={{
+              required: {value: true, message: 'Email is required'},
+              pattern: {
+                value: /\S+@\S+\.\S+/,
+                message: 'Enter a valid email address',
+              },
+            }}
+            render={({field: {onChange, value}}) => (
+              <AuthField
+                label="Email"
+                placeholder="parent@email.com"
+                leftIcon="mail"
+                value={value}
+                onChangeText={onChange}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                error={errors.email?.message}
               />
-              {errors.phone?.message && (
-                <GrayMediumText
-                  _style={styles.fieldError}
-                  text={errors.phone.message}
-                />
-              )}
-
-              <Controller
-                name="email"
-                control={control}
-                rules={{
-                  required: {
-                    value: true,
-                    message: 'Email is required',
-                  },
-                  pattern: {
-                    value: /\S+@\S+\.\S+/,
-                    message: 'Email format is invalid',
-                  },
-                }}
-                render={({ field: { onChange, value } }) => (
-                  <CustomTextInput
-                    label="Email address"
-                    placeholder="you@example.com"
-                    value={value}
-                    required
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    onChangeText={onChange}
-                  />
-                )}
+            )}
+          />
+          <Controller
+            name="phone"
+            control={control}
+            rules={{
+              required: {value: true, message: 'Phone number is required'},
+              minLength: {
+                value: 8,
+                message: 'Enter a valid phone number',
+              },
+            }}
+            render={({field: {onChange, value}}) => (
+              <AuthField
+                label="Phone Number"
+                placeholder="e.g. 5550201234"
+                leftIcon="phone"
+                value={value}
+                onChangeText={onChange}
+                keyboardType="phone-pad"
+                error={errors.phone?.message}
               />
-              {errors.email?.message && (
-                <GrayMediumText
-                  _style={styles.fieldError}
-                  text={errors.email.message}
-                />
-              )}
+            )}
+          />
+        </>
+      )}
 
-              <Text style={[styles.sectionLabel, styles.sectionLabelSpaced]}>
-                Security
-              </Text>
-              <Controller
-                name="password"
-                control={control}
-                rules={{
-                  required: {
-                    value: true,
-                    message: 'Password is required',
-                  },
-                  minLength: {
-                    value: 8,
-                    message: 'Password must be at least 8 characters',
-                  },
-                }}
-                render={({ field: { onChange, value } }) => (
-                  <CustomTextInput
-                    label="Password"
-                    placeholder="At least 8 characters"
-                    value={value}
-                    required
-                    password
-                    onChangeText={onChange}
-                  />
-                )}
+      {step === 2 && (
+        <>
+          <Text style={styles.passwordHint}>
+            Use at least 8 characters with uppercase, lowercase, a number, and a
+            symbol (e.g. Parent@12345).
+          </Text>
+          <Controller
+            name="password"
+            control={control}
+            rules={{
+              required: {value: true, message: 'Password is required'},
+              validate: value =>
+                STRONG_PASSWORD_RE.test(value) ||
+                'Password is too weak — follow the rules above',
+            }}
+            render={({field: {onChange, value}}) => (
+              <AuthField
+                label="Password"
+                placeholder="Create a strong password"
+                leftIcon="lock"
+                password
+                value={value}
+                onChangeText={onChange}
+                error={errors.password?.message}
               />
-              {errors.password?.message && (
-                <GrayMediumText
-                  _style={styles.fieldError}
-                  text={errors.password.message}
-                />
-              )}
-
-              <Controller
-                name="confirmPassword"
-                control={control}
-                rules={{
-                  required: {
-                    value: true,
-                    message: 'Please confirm your password',
-                  },
-                  validate: value => {
-                    const password = getValues('password');
-                    return value === password || 'Passwords do not match';
-                  },
-                }}
-                render={({ field: { onChange, value } }) => (
-                  <CustomTextInput
-                    label="Confirm password"
-                    placeholder="Re-enter password"
-                    value={value}
-                    required
-                    password
-                    onChangeText={onChange}
-                  />
-                )}
+            )}
+          />
+          <Controller
+            name="confirmPassword"
+            control={control}
+            rules={{
+              required: {value: true, message: 'Please confirm your password'},
+              validate: value =>
+                value === getValues('password') || 'Passwords do not match',
+            }}
+            render={({field: {onChange, value}}) => (
+              <AuthField
+                label="Confirm Password"
+                placeholder="Re-enter your password"
+                leftIcon="lock"
+                password
+                value={value}
+                onChangeText={onChange}
+                error={errors.confirmPassword?.message}
               />
-              {errors.confirmPassword?.message && (
-                <GrayMediumText
-                  _style={styles.fieldError}
-                  text={errors.confirmPassword.message}
-                />
-              )}
+            )}
+          />
+        </>
+      )}
 
-              <CheckBox
-                checked={rememberPassword}
-                title="Remember password on this device"
-                textStyle={styles.checkboxText}
-                checkedColor={colors.theme.primary}
-                containerStyle={styles.checkboxContainer}
-                wrapperStyle={styles.checkboxWrapper}
-                onPress={() => setRememberPassword(v => !v)}
-              />
+      {step < STEPS.length - 1 ? (
+        <CustomButton
+          isFocused
+          title="Continue"
+          onPress={goNext}
+          containerStyle={styles.primaryBtn}
+        />
+      ) : (
+        <CustomButton
+          isFocused
+          title="Sign Up"
+          onPress={handleSubmit(onSubmit)}
+          containerStyle={styles.primaryBtn}
+        />
+      )}
 
-              <View style={styles.buttonWrap}>
-                <CustomButton
-                  isFocused
-                  title="Create account"
-                  onPress={handleSubmit(onSubmit)}
-                  containerStyle={styles.signUpButton}
-                />
-              </View>
-            </View>
-
-            <View style={styles.footerRow}>
-              <Text style={styles.footerMuted}>Already have an account? </Text>
-              <TouchableOpacity
-                onPress={() => navigation.navigate(routes.navigator.signin)}
-                hitSlop={{ top: 10, bottom: 10, left: 8, right: 8 }}>
-                <Text style={styles.footerLink}>Sign in</Text>
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.footerLogo}>
-              <ChildLogo _style={styles.childLogo} />
-            </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
-    </LinearGradient>
+      <View style={styles.footerRow}>
+        <Text style={styles.footerMuted}>Already have an account? </Text>
+        <TouchableOpacity
+          onPress={() => navigation.navigate(routes.navigator.signin)}
+          hitSlop={{top: 10, bottom: 10, left: 4, right: 4}}>
+          <Text style={styles.footerLink}>Sign In</Text>
+        </TouchableOpacity>
+      </View>
+    </AuthShell>
   );
 }
 
 const styles = StyleSheet.create({
-  gradient: {
-    flex: 1,
-  },
-  safe: {
-    flex: 1,
-  },
-  flex: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: 22,
-    paddingBottom: 32,
-    paddingTop: 8,
-  },
-  hero: {
+  brand: {
     alignItems: 'center',
+    marginBottom: 20,
+  },
+  logo: {
+    marginTop: 0,
+    width: WIDTH * 0.52,
+    height: 52,
+  },
+  title: {
+    fontFamily: fonts.euclidCircularA.semiBold,
+    fontSize: 24,
+    color: '#111827',
+    marginBottom: 6,
+  },
+  subtitle: {
+    fontFamily: fonts.euclidCircularA.regular,
+    fontSize: 14,
+    color: '#9CA3AF',
+    marginBottom: 18,
+  },
+  stepRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  stepDot: {
+    width: 32,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#E5E7EB',
+    marginRight: 8,
+  },
+  stepDotActive: {
+    backgroundColor: colors.theme.primary,
+  },
+  stepLabel: {
+    fontFamily: fonts.euclidCircularA.semiBold,
+    fontSize: 14,
+    color: '#111827',
+    marginBottom: 4,
+  },
+  stepHint: {
+    fontFamily: fonts.euclidCircularA.regular,
+    fontSize: 13,
+    color: '#9CA3AF',
     marginBottom: 22,
   },
-  logoWrap: {
-    marginBottom: 14,
-    paddingVertical: 6,
-  },
-  heroEyebrow: {
-    fontSize: 11,
-    color: 'rgba(255,255,255,0.85)',
-    fontFamily: 'Glory-Bold',
-    letterSpacing: 1.4,
-    textTransform: 'uppercase',
-    marginBottom: 8,
-  },
-  welcomeTitle: {
-    fontSize: 26,
-    fontWeight: '700',
-    color: colors.theme.white,
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  welcomeSubtitle: {
-    fontSize: 14,
-    color: colors.text.dimWhite,
-    textAlign: 'center',
-    opacity: 0.95,
-    paddingHorizontal: 8,
-    lineHeight: 20,
-    maxWidth: 320,
-  },
-  card: {
-    backgroundColor: colors.theme.white,
-    borderRadius: 20,
-    paddingHorizontal: 20,
-    paddingTop: 22,
-    paddingBottom: 8,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(3, 83, 146, 0.08)',
-  },
-  sectionLabel: {
+  section: {
+    fontFamily: fonts.euclidCircularA.semiBold,
     fontSize: 12,
     color: colors.theme.primary,
-    fontFamily: 'Glory-Bold',
-    letterSpacing: 0.8,
+    letterSpacing: 0.6,
     textTransform: 'uppercase',
-    marginBottom: 4,
-    marginTop: 2,
-  },
-  sectionLabelSpaced: {
-    marginTop: 14,
-  },
-  fieldError: {
-    color: colors.theme.lightRed,
-    marginTop: -6,
-    marginBottom: 4,
-    fontSize: 12,
-  },
-  checkboxContainer: {
-    backgroundColor: 'transparent',
-    borderWidth: 0,
-    marginLeft: 0,
-    marginRight: 0,
-    marginTop: 4,
-    paddingHorizontal: 0,
-    paddingVertical: 10,
-  },
-  checkboxWrapper: {
-    marginLeft: 0,
-  },
-  checkboxText: {
-    fontSize: 13,
-    color: colors.text.greyAlt2,
-    fontWeight: '500',
-    fontFamily: 'Glory-Medium',
-  },
-  buttonWrap: {
-    alignItems: 'stretch',
+    marginBottom: 10,
     marginTop: 8,
-    marginBottom: 4,
   },
-  signUpButton: {
+  passwordHint: {
+    fontFamily: fonts.euclidCircularA.regular,
+    fontSize: 12,
+    lineHeight: 18,
+    color: '#6B7280',
+    marginBottom: 16,
+  },
+  primaryBtn: {
     width: '100%',
-    height: 40,
-    paddingVertical: 0,
-    justifyContent: 'center',
-    borderRadius: 10,
-    marginVertical: 10,
+    height: 52,
+    borderRadius: 14,
+    marginTop: 16,
+    marginVertical: 0,
+    paddingHorizontal: 16,
   },
   footerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop: 28,
     flexWrap: 'wrap',
-    marginBottom: 12,
   },
   footerMuted: {
+    fontFamily: fonts.euclidCircularA.regular,
     fontSize: 14,
-    color: 'rgba(255,255,255,0.88)',
-    fontFamily: 'Glory-Medium',
+    color: '#6B7280',
   },
   footerLink: {
+    fontFamily: fonts.euclidCircularA.semiBold,
     fontSize: 14,
-    color: colors.theme.white,
-    fontFamily: 'Glory-Bold',
-    textDecorationLine: 'underline',
-    textDecorationColor: 'rgba(255,255,255,0.6)',
-  },
-  footerLogo: {
-    alignItems: 'center',
-    marginTop: 4,
-  },
-  childLogo: {
-    height: 88,
-    width: 180,
-    opacity: 0.92,
+    color: colors.theme.primary,
   },
 });

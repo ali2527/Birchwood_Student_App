@@ -15,13 +15,11 @@ const MyTheme = {
   },
 };
 
-const MainNavigator = () => {
+const MainNavigator = ({onReady}) => {
   const loader = useAppSelector(selectAppLoader);
-  
-  console.log('MainNavigator rendered, loader:', loader);
 
   return (
-    <NavigationContainer theme={MyTheme}>
+    <NavigationContainer theme={MyTheme} onReady={onReady}>
       {loader && <AppLoader />}
       <MainStack />
     </NavigationContainer>
