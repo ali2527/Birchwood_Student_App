@@ -10,9 +10,17 @@ import {
 import { axios, axiosPrivate } from './axios';
 import { ResponseCallback, responseCallback } from './responseCallback';
 
-import { store } from '../Stores';
-import { asyncSignOut } from '../Stores/actions/user.action';
+import { persistor, store } from '../Stores';
 import { ApiPaths } from './apiPaths';
+
+axiosPrivate.interceptors.request.use(config => {
+  const token = store.getState()?.user?.token;
+  if (token) {
+    config.headers = config.headers || {};
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
 export interface CallApi<T> {
   path?: ApiPaths;
@@ -41,8 +49,6 @@ export const callApi = async <RT, T = undefined>({
     'Accept-Language': 'en-US',
   };
 
-  console.log(path, 'path');
-
   const options: AxiosRequestConfig = {
     method,
     ...ops,
@@ -55,12 +61,14 @@ export const callApi = async <RT, T = undefined>({
   }
 
   if (axiosSecure) {
+    if (!persistor.getState().bootstrapped) {
+      return { status: false, message: 'Restoring your session...' };
+    }
     const { token: userToken } = store.getState().user ?? {};
     if (userToken) {
       headers.Authorization = `Bearer ${userToken}`;
     } else {
-      await store.dispatch(asyncSignOut()).unwrap();
-      return { status: false, message: 'Token Expired, Signing you out!' };
+      return { status: false, message: 'Please sign in to continue.' };
     }
   }
 
@@ -78,22 +86,9 @@ export const callApi = async <RT, T = undefined>({
     .then((response: AxiosResponse<ResponseCallback<RT>>) => responseCallback<RT>(response))
     .catch((error: AxiosError<ResponseCallback<RT>>) => {
       if (error.response) {
-        console.log('error.responseff', {
-          status: error.response.status,
-          statusText: error.response.statusText,
-          data: error.response.data,
-          url: error.response.config?.url,
-          baseURL: error.response.config?.baseURL,
-        });
         return responseCallback<RT>(error.response);
       }
       if (error.request) {
-        console.log('error.requestddd', {
-          message: error.message,
-          code: error.code,
-          url: error.config?.url,
-          baseURL: error.config?.baseURL,
-        });
         return {
           status: false,
           message: error.message || 'Network error',

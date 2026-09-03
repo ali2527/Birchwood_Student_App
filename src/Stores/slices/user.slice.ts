@@ -12,6 +12,7 @@ interface UserSliceState {
   attendance: UserAttendance;
   holidays: Record<string, Record<string, Holiday>>;
   token: string | null;
+  rememberMe: boolean;
 }
 
 const initialState: UserSliceState = {
@@ -19,6 +20,7 @@ const initialState: UserSliceState = {
   attendance: {} as UserAttendance,
   holidays: {},
   token: null,
+  rememberMe: true,
 };
 
 const UserSlice = createSlice({
@@ -54,20 +56,12 @@ export const { setUserState, setUser, setUserAttendance, setHolidays, resetUserS
 
 export default UserSlice.reducer;
 
-export const selectUserToken = createDraftSafeSelector(
-  [(state: RootState) => state.user.token],
-  token => token
-);
+export const selectUserToken = (state: RootState) => state.user.token;
 
-export const selectUserProfile = createDraftSafeSelector(
-  [(state: RootState) => state.user.user],
-  user => user
-);
+export const selectUserProfile = (state: RootState) => state.user.user;
 
-export const selectUserAttendance = createDraftSafeSelector(
-  [(state: RootState) => state.user.attendance],
-  attendance => attendance
-);
+export const selectUserAttendance = (state: RootState) =>
+  state.user.attendance;
 
 export const selectHolidaysMonthWise = (monthWithYear: string) =>
   createDraftSafeSelector(

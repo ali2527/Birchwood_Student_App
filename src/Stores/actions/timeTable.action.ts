@@ -9,40 +9,38 @@ import { RootState } from '..';
 
 export const asyncGetAllClassTimeTable = createAsyncThunk(
   'getAllClassTimeTable',
-  async (arg: string | undefined, { dispatch, getState }) => {
-    dispatch(setLoading(true));
+  async (arg: string | { silent?: boolean; day?: string } | undefined, { dispatch, getState }) => {
+    const opts = arg && typeof arg === 'object' ? arg : {};
+    const silent = !!opts.silent;
+    if (!silent) {
+      dispatch(setLoading(true));
+    }
 
     const state = getState() as RootState;
     const selectedChild = state.class.selectedChild as any;
 
-    // Check if the argument passed is actually an ID (longer than typical "MON", "TUE" etc)
-    const passedId = (arg && arg.length > 5) ? arg : undefined;
-    const day = (arg && arg.length <= 5) ? arg : undefined;
+    const passedId = (typeof arg === 'string' && arg.length > 5) ? arg : undefined;
+    const day = (typeof arg === 'string' && arg.length <= 5) ? arg : opts.day;
 
     const classroom = selectedChild?.classroom;
     const extractedId = typeof classroom === 'string' ? classroom : (classroom?._id || classroom?.classroomId || classroom?.id);
 
     const classRoomId = passedId || extractedId;
 
-    console.log('DEBUG Action: selectedChild:', JSON.stringify(selectedChild, null, 2));
-    console.log('DEBUG Action: classroom field:', classroom);
-    console.log('DEBUG Action: final classRoomId:', classRoomId);
-
     if (!classRoomId) {
-      console.log('No classroom ID found, skipping timetable fetch');
-      dispatch(setLoading(false));
+      if (!silent) {
+        dispatch(setLoading(false));
+      }
       return {
         status: false,
         message: 'No classroom ID available'
       };
     }
-    console.log('Classroom ID:', classRoomId);
 
     let path = allApiPaths.getPath('getAllClassTimeTable', {
       classRoomId
     });
 
-    // Add day query parameter if provided
     if (day) {
       path = `${path}?day=${day}` as any;
     }
@@ -51,18 +49,19 @@ export const asyncGetAllClassTimeTable = createAsyncThunk(
       path,
     });
 
-    console.log('TimeTable API response:', JSON.stringify(res, null, 2));
-
     if (!res.status) {
-      dispatch(asyncShowError(res.message));
+      if (!silent) {
+        dispatch(asyncShowError(res.message));
+      }
     } else {
-      console.log('TimeTable data:', res.data);
       dispatch(
         setTimeTable(res.data!)
       );
     }
 
-    dispatch(setLoading(false));
+    if (!silent) {
+      dispatch(setLoading(false));
+    }
     return res;
   }
 );

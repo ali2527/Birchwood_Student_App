@@ -14,11 +14,18 @@ import { colors } from '../../theme/colors';
 import GlroyBold from '../../Components/GlroyBoldText';
 import routes from '../../Navigation/routes';
 import { schoolGallery } from '../../Assets';
+import { useAppDispatch } from '../../Stores/hooks';
+import { asyncSignOut } from '../../Stores/actions/user.action';
 const EmptyDashboard = () => {
     const navigation = useNavigation();
+    const dispatch = useAppDispatch();
 
     const handleLinkChild = () => {
         navigation.navigate(routes.screens.addChild);
+    };
+
+    const handleLogout = () => {
+        dispatch(asyncSignOut());
     };
 
     return (
@@ -46,6 +53,14 @@ const EmptyDashboard = () => {
                     activeOpacity={0.8}
                 >
                     <Text style={styles.buttonText}>Link Child</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    style={styles.logoutButton}
+                    onPress={handleLogout}
+                    activeOpacity={0.8}
+                >
+                    <Text style={styles.logoutText}>Logout</Text>
                 </TouchableOpacity>
             </View>
         </SafeAreaView>
@@ -100,5 +115,15 @@ const styles = StyleSheet.create({
         color: colors.theme.white,
         fontSize: 18,
         fontWeight: 'bold',
+    },
+    logoutButton: {
+        marginTop: vh * 2,
+        paddingVertical: vh * 1.4,
+        paddingHorizontal: vw * 10,
+    },
+    logoutText: {
+        color: colors.theme.mehron,
+        fontSize: 16,
+        fontWeight: '600',
     },
 });

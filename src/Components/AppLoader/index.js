@@ -1,30 +1,20 @@
 import React from 'react';
-import { ActivityIndicator, Modal, StyleSheet, View } from 'react-native';
+import {ActivityIndicator, Modal, StyleSheet, View} from 'react-native';
+import {colors} from '../../theme/colors';
+import {useAppSelector} from '../../Stores/hooks';
+import {selectAppLoader} from '../../Stores/slices/common.slice';
 
 export const AppLoader = () => {
-  return (
-    <Modal
-      statusBarTranslucent={true}
-      transparent={true}
-      animationType="slide"
-      visible={true}
-      onRequestClose={() => {}}>
-      <View style={styles.modalBackground}>
-        <View style={styles.activityIndicatorWrapper}>
-          <ActivityIndicator
-            style={styles.loader}
-            animating={true}
-            size={'large'}
-            color="white"
-          />
+  const loading = useAppSelector(selectAppLoader);
+  if (!loading) {
+    return null;
+  }
 
-          {/* If you want to image set source here */}
-          {/* <Image
-              source={require('../assets/images/loader.gif')}
-              style={{ height: 80, width: 80 }}
-              resizeMode="contain"
-              resizeMethod="resize"
-            /> */}
+  return (
+    <Modal visible transparent animationType="fade" statusBarTranslucent>
+      <View style={styles.overlay}>
+        <View style={styles.card}>
+          <ActivityIndicator size="large" color={colors.theme.primary} />
         </View>
       </View>
     </Modal>
@@ -32,24 +22,18 @@ export const AppLoader = () => {
 };
 
 const styles = StyleSheet.create({
-  modalBackground: {
+  overlay: {
     flex: 1,
     alignItems: 'center',
-    flexDirection: 'column',
-    justifyContent: 'space-around',
-    backgroundColor: '#rgba(0, 0, 0, 0.8)',
-    zIndex: 1000,
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
   },
-  activityIndicatorWrapper: {
-    borderRadius: 10,
-    display: 'flex',
+  card: {
+    width: 72,
+    height: 72,
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
-    color: '#FFF',
-    justifyContent: 'space-around',
-  },
-  loader: {
-    height: 100,
-    width: 100,
-    fontSize: 30,
+    justifyContent: 'center',
   },
 });

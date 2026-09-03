@@ -3,6 +3,7 @@ package com.birchwoodstudent;
 import android.app.Activity;
 import android.app.Dialog;
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
@@ -160,6 +161,7 @@ public class MainActivity extends ReactActivity {
       return;
     }
     window.setNavigationBarColor(Color.WHITE);
+    window.setBackgroundDrawable(new ColorDrawable(Color.WHITE));
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
       window.setNavigationBarContrastEnforced(false);
     }

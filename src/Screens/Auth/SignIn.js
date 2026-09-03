@@ -20,7 +20,7 @@ import {WIDTH} from '../../theme/units';
 
 const SignIn = ({navigation}) => {
   const dispatch = useAppDispatch();
-  const [rememberMe, setRememberMe] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
 
   const {
     control,
@@ -36,15 +36,18 @@ const SignIn = ({navigation}) => {
   const onSubmit = useCallback(
     async body => {
       try {
-        const res = await dispatch(asyncLogin(body)).unwrap();
-        if (res.status && res.data?.token) {
-          navigation.navigate(routes.screens.homeScreen);
-        }
+        await dispatch(
+          asyncLogin({
+            email: String(body.email || '').trim().toLowerCase(),
+            password: body.password,
+            rememberMe,
+          }),
+        ).unwrap();
       } catch {
         /* errors from thunk / flash message */
       }
     },
-    [navigation, dispatch],
+    [rememberMe, dispatch],
   );
 
   return (

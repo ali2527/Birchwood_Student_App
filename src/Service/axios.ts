@@ -18,7 +18,15 @@ export const APP_URL = USE_LOCAL_API
 export const IMG_URL = APP_URL + 'uploads/';
 export const BASE_URL = APP_URL + 'api/';
 
-export const getImagePath = (str: string) => IMG_URL + str;
+export const getImagePath = (str: string) => {
+  if (!str) {
+    return str;
+  }
+  if (/^https?:\/\//i.test(str) || str.startsWith('file:')) {
+    return str;
+  }
+  return IMG_URL + str;
+};
 
 const axios = ax.create({
   baseURL: BASE_URL,
@@ -27,5 +35,50 @@ const axios = ax.create({
 const axiosPrivate = ax.create({
   baseURL: BASE_URL,
 });
+
+const dump = (value: unknown) => {
+  try {
+    return JSON.stringify(value, null, 2);
+  } catch {
+    return String(value);
+  }
+};
+
+const attachApiLogs = (instance: ReturnType<typeof ax.create>) => {
+  instance.interceptors.request.use(config => {
+    console.log(
+      '[API request]',
+      (config.method || 'GET').toUpperCase(),
+      `${config.baseURL || ''}${config.url || ''}`,
+      dump(config.data),
+    );
+    return config;
+  });
+  instance.interceptors.response.use(
+    response => {
+      console.log(
+        '[API response]',
+        response.status,
+        (response.config.method || 'GET').toUpperCase(),
+        `${response.config.baseURL || ''}${response.config.url || ''}`,
+        dump(response.data),
+      );
+      return response;
+    },
+    error => {
+      console.log(
+        '[API error]',
+        error.response?.status,
+        (error.config?.method || 'GET').toUpperCase(),
+        `${error.config?.baseURL || ''}${error.config?.url || ''}`,
+        dump(error.response?.data ?? error.message),
+      );
+      return Promise.reject(error);
+    },
+  );
+};
+
+attachApiLogs(axios);
+attachApiLogs(axiosPrivate);
 
 export {axios, axiosPrivate};

@@ -17,6 +17,8 @@ export interface User {
   fatherLastName?: string;
   motherFirstName?: string;
   motherLastName?: string;
+  fatherImage?: string;
+  motherImage?: string;
   checkIn: boolean;
   checkOut: boolean;
   status: string;
@@ -36,6 +38,8 @@ export interface User {
 export interface LoginUserPayload {
   email: string;
   password: string;
+  rememberMe?: boolean;
+  successMessage?: string;
 }
 
 export interface LoginUserResponse {

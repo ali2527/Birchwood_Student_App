@@ -17,6 +17,7 @@ import { asyncGetUserProfile, asyncGetAllMyChildren } from '../../Stores/actions
 import { selectUserProfile } from '../../Stores/slices/user.slice';
 import { selectChildren } from '../../Stores/slices/class.slice';
 import UserProfileCircle from '../../Components/ProfileCircle';
+import { getImagePath } from '../../Service/axios';
 
 export default function Profile() {
 
@@ -46,7 +47,11 @@ export default function Profile() {
                 <View style={styles.profileHeaderSection}>
                     <View style={styles.profileImageContainer}>
                         <UserProfileCircle
-                            profileUri={profile?.image || dp1}
+                            profileUri={
+                                profile?.fatherImage || profile?.image
+                                    ? {uri: getImagePath(profile.fatherImage || profile.image)}
+                                    : dp1
+                            }
                             disabled={true}
                             _style={styles.profileImage}
                         />

@@ -16,6 +16,7 @@ import boyImage from '../../Assets/images/boy.png';
 import mainLogo from '../../Assets/images/logo/main_logo.png';
 import planeImage from '../../Assets/images/plane.png';
 import planetImage from '../../Assets/images/planet.png';
+import planet2Image from '../../Assets/images/planet_2.png';
 import fonts from '../../Assets/fonts';
 
 const {width: SCREEN_W, height: SCREEN_H} = Dimensions.get('window');
@@ -25,8 +26,8 @@ const LOGO_W = SCREEN_W * 0.72;
 const LOGO_FULL_H = LOGO_W * (182 / 668);
 const LOGO_CLIP_H = LOGO_FULL_H * 0.66;
 
-// Splash layout v6: nose-aligned flight + straight “fly in” settle
-const SPLASH_LAYOUT_VERSION = 6;
+// Splash layout v18: boy → planes → planets one by one
+const SPLASH_LAYOUT_VERSION = 17;
 
 function hideNativeSplash() {
   try {
@@ -50,170 +51,22 @@ function endSplashImmersive() {
   }
 }
 
-const PLANE1_TOP = SCREEN_H * 0.44;
-const PLANE2_TOP = SCREEN_H * 0.5;
-const PLANE1_ANCHOR_LEFT = SCREEN_W * 0.1;
-const PLANE2_ANCHOR_LEFT = SCREEN_W * 0.58;
-// plane.png: pointed nose is bottom-left ≈ 135° in screen atan2 (Y-down)
-const PLANE_NOSE_OFFSET_DEG = 135;
-
-function unwrapHeadings(headings) {
-  for (let i = 1; i < headings.length; i++) {
-    while (headings[i] - headings[i - 1] > 180) {
-      headings[i] -= 360;
-    }
-    while (headings[i] - headings[i - 1] < -180) {
-      headings[i] += 360;
-    }
-  }
-  return headings;
-}
-
-/**
- * Rotation so the pointed nose follows travel direction.
- * Left plane uses scaleX:-1 after rotate → use mirrorX.
- */
-function rotationForTravel(travelDeg, mirrorX = false) {
-  if (mirrorX) {
-    // rotate(R) then scaleX(-1) ⇒ visual nose ≈ 180 − (R + 135) = 45 − R
-    return 45 - travelDeg;
-  }
-  return travelDeg - PLANE_NOSE_OFFSET_DEG;
-}
-
-function headingsFromPoints(xs, ys, mirrorX = false) {
-  const headings = [];
-  for (let i = 0; i < xs.length; i++) {
-    let dx;
-    let dy;
-    if (i === 0) {
-      dx = xs[1] - xs[0];
-      dy = ys[1] - ys[0];
-    } else if (i === xs.length - 1) {
-      dx = xs[i] - xs[i - 1];
-      dy = ys[i] - ys[i - 1];
-    } else {
-      dx = xs[i + 1] - xs[i - 1];
-      dy = ys[i + 1] - ys[i - 1];
-    }
-    if (Math.abs(dx) + Math.abs(dy) < 0.0001) {
-      headings.push(i > 0 ? headings[i - 1] : 0);
-    } else {
-      const travelDeg = (Math.atan2(dy, dx) * 180) / Math.PI;
-      headings.push(rotationForTravel(travelDeg, mirrorX));
-    }
-  }
-  return unwrapHeadings(headings);
-}
-
-/**
- * Spiral in, then settle on a straight "flying in" approach
- * so the pointed nose ends level toward the scene.
- */
-function spiralSettlePath({
-  radius,
-  turns,
-  startAngle,
-  endX = 0,
-  endY = 0,
-  steps = 84,
-  settleRatio = 0.24,
-  /** Final travel direction in degrees (0 = right, 180 = left). */
-  finalTravelDeg = 0,
-  mirrorX = false,
-}) {
-  const xs = [];
-  const ys = [];
-  const spiralSteps = Math.max(20, Math.floor(steps * (1 - settleRatio)));
-  const settleSteps = Math.max(10, steps - spiralSteps);
-
-  const travelRad = (finalTravelDeg * Math.PI) / 180;
-  // Approach from behind the final flight direction so the nose "flies in"
-  const gateDist = radius * 0.16;
-  const gateX = endX - Math.cos(travelRad) * gateDist;
-  const gateY = endY - Math.sin(travelRad) * gateDist;
-
-  for (let i = 0; i <= spiralSteps; i++) {
-    const t = i / spiralSteps;
-    const ease = t * t * (3 - 2 * t);
-    const r = radius * (1 - ease);
-    const angle = startAngle + turns * Math.PI * 2 * ease;
-    // Blend spiral center toward the gate so the last arc lines up with settle
-    const cx = endX + (gateX - endX) * ease;
-    const cy = endY + (gateY - endY) * ease;
-    const spiralX = cx + r * Math.cos(angle);
-    const spiralY = cy + r * Math.sin(angle);
-    // Final 20% of spiral eases onto the gate point
-    const ontoGate = Math.max(0, (ease - 0.8) / 0.2);
-    const g = ontoGate * ontoGate * (3 - 2 * ontoGate);
-    xs.push(spiralX + (gateX - spiralX) * g);
-    ys.push(spiralY + (gateY - spiralY) * g);
-  }
-
-  // Straight level glide into place (nose stays pointed along travel)
-  const fromX = xs[xs.length - 1];
-  const fromY = ys[ys.length - 1];
-  for (let i = 1; i <= settleSteps; i++) {
-    const t = i / settleSteps;
-    const ease = 1 - Math.pow(1 - t, 1.85);
-    xs.push(fromX + (endX - fromX) * ease);
-    ys.push(fromY + (endY - fromY) * ease);
-  }
-
-  const headings = headingsFromPoints(xs, ys, mirrorX);
-  const settleStart = xs.length - settleSteps;
-  const finalRot = rotationForTravel(finalTravelDeg, mirrorX);
-
-  // Soften spiral heading jitter
-  for (let pass = 0; pass < 2; pass++) {
-    const smoothed = headings.slice();
-    for (let i = 1; i < settleStart - 1; i++) {
-      smoothed[i] = (headings[i - 1] + headings[i] * 2 + headings[i + 1]) / 4;
-    }
-    for (let i = 1; i < settleStart - 1; i++) {
-      headings[i] = smoothed[i];
-    }
-  }
-
-  let locked = finalRot;
-  if (settleStart > 0) {
-    while (locked - headings[settleStart - 1] > 180) locked -= 360;
-    while (locked - headings[settleStart - 1] < -180) locked += 360;
-    const blendFrom = Math.max(0, settleStart - 14);
-    for (let i = blendFrom; i < settleStart; i++) {
-      const u = (i - blendFrom) / Math.max(1, settleStart - blendFrom);
-      const s = u * u * (3 - 2 * u);
-      headings[i] = headings[i] + (locked - headings[i]) * s;
-    }
-  }
-  for (let i = settleStart; i < headings.length; i++) {
-    headings[i] = locked;
-  }
-
-  return {xs, ys, headings};
-}
-
-// Left plane (scaleX:-1): spiral from top, finish flying right into the scene.
-const PLANE1_SPIRAL = spiralSettlePath({
-  radius: SCREEN_W * 0.66,
-  turns: 1.05,
-  startAngle: -Math.PI * 0.55,
-  settleRatio: 0.26,
-  steps: 88,
-  finalTravelDeg: 0,
-  mirrorX: true,
-});
-
-// Right plane: spiral from bottom, finish flying left into the scene.
-const PLANE2_SPIRAL = spiralSettlePath({
-  radius: SCREEN_W * 0.7,
-  turns: -1.05,
-  startAngle: Math.PI * 0.55,
-  settleRatio: 0.26,
-  steps: 88,
-  finalTravelDeg: 180,
-  mirrorX: false,
-});
+const PLANE1_TOP = SCREEN_H * 0.42;
+const PLANE2_TOP = SCREEN_H * 0.58;
+const PLANE1_ANCHOR_LEFT = SCREEN_W * 0.18;
+const PLANE2_ANCHOR_RIGHT = SCREEN_W * 0.26;
+const PLANE_ASPECT = 58 / 94;
+const PLANE1_W = 58;
+const PLANE1_H = PLANE1_W * PLANE_ASPECT;
+const PLANE2_W = 36;
+const PLANE2_H = PLANE2_W * PLANE_ASPECT;
+const PLANE1_START_X = -SCREEN_W * 0.58;
+const PLANE1_END_X = -SCREEN_W * 0.08;
+const PLANE1_START_Y = -SCREEN_H * 0.07;
+const PLANE1_START_ROTATE = -18;
+const PLANE2_START_X = SCREEN_W * 0.58;
+const PLANE2_START_Y = -SCREEN_H * 0.055;
+const PLANE2_START_ROTATE = 16;
 
 /** Clean white 4-point sparkle */
 function Star({size = 10}) {
@@ -263,19 +116,23 @@ export default function AnimatedSplash({onDone, appReady = true}) {
   const cloudRightY = useRef(new Animated.Value(SCREEN_H * 0.22)).current;
   const cloudRightOpacity = useRef(new Animated.Value(0)).current;
 
-  const plane1Progress = useRef(new Animated.Value(0)).current;
+  const plane1X = useRef(new Animated.Value(PLANE1_START_X)).current;
+  const plane1Y = useRef(new Animated.Value(PLANE1_START_Y)).current;
+  const plane1Rotate = useRef(new Animated.Value(PLANE1_START_ROTATE)).current;
   const plane1Opacity = useRef(new Animated.Value(0)).current;
 
   const studentX = useRef(new Animated.Value(-SCREEN_W * 0.92)).current;
-  const studentRotate = useRef(new Animated.Value(-12)).current;
+  const studentRotate = useRef(new Animated.Value(-14)).current;
   const studentOpacity = useRef(new Animated.Value(1)).current;
 
-  const planet1Scale = useRef(new Animated.Value(0.45)).current;
+  const planet1Scale = useRef(new Animated.Value(0.35)).current;
   const planet1Opacity = useRef(new Animated.Value(0)).current;
-  const planet2Scale = useRef(new Animated.Value(0.45)).current;
+  const planet2Scale = useRef(new Animated.Value(0.35)).current;
   const planet2Opacity = useRef(new Animated.Value(0)).current;
 
-  const plane2Progress = useRef(new Animated.Value(0)).current;
+  const plane2X = useRef(new Animated.Value(PLANE2_START_X)).current;
+  const plane2Y = useRef(new Animated.Value(PLANE2_START_Y)).current;
+  const plane2Rotate = useRef(new Animated.Value(PLANE2_START_ROTATE)).current;
   const plane2Opacity = useRef(new Animated.Value(0)).current;
 
   const starTwinkleA = useRef(new Animated.Value(0.4)).current;
@@ -307,7 +164,7 @@ export default function AnimatedSplash({onDone, appReady = true}) {
 
     const exit = Animated.timing(screenOpacity, {
       toValue: 0,
-      duration: 720,
+      duration: 560,
       easing: Easing.bezier(0.4, 0, 0.2, 1),
       useNativeDriver: true,
     });
@@ -326,12 +183,114 @@ export default function AnimatedSplash({onDone, appReady = true}) {
     }
     timelineStartedRef.current = true;
 
-    const flightEase = Easing.bezier(0.33, 0.0, 0.2, 1);
-    const planeEase = Easing.bezier(0.37, 0.0, 0.18, 1);
+    const flightEase = Easing.bezier(0.22, 0.82, 0.28, 1);
+    const swoopEase = Easing.bezier(0.18, 0.7, 0.22, 1);
+    const landEase = Easing.bezier(0.2, 0.9, 0.28, 1);
     const softEase = Easing.inOut(Easing.sin);
 
-    const timeline = Animated.parallel([
-      Animated.loop(
+    const leftPlaneSwoop = Animated.parallel([
+      Animated.timing(plane1Opacity, {
+        toValue: 1,
+        duration: 120,
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: true,
+      }),
+      Animated.sequence([
+        Animated.parallel([
+          Animated.timing(plane1X, {
+            toValue: PLANE1_END_X + 12,
+            duration: 400,
+            easing: swoopEase,
+            useNativeDriver: true,
+          }),
+          Animated.timing(plane1Y, {
+            toValue: 16,
+            duration: 400,
+            easing: swoopEase,
+            useNativeDriver: true,
+          }),
+          Animated.timing(plane1Rotate, {
+            toValue: 11,
+            duration: 400,
+            easing: swoopEase,
+            useNativeDriver: true,
+          }),
+        ]),
+        Animated.parallel([
+          Animated.timing(plane1X, {
+            toValue: PLANE1_END_X,
+            duration: 180,
+            easing: landEase,
+            useNativeDriver: true,
+          }),
+          Animated.timing(plane1Y, {
+            toValue: 0,
+            duration: 180,
+            easing: landEase,
+            useNativeDriver: true,
+          }),
+          Animated.timing(plane1Rotate, {
+            toValue: 0,
+            duration: 180,
+            easing: landEase,
+            useNativeDriver: true,
+          }),
+        ]),
+      ]),
+    ]);
+
+    const rightPlaneSwoop = Animated.parallel([
+      Animated.timing(plane2Opacity, {
+        toValue: 1,
+        duration: 120,
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: true,
+      }),
+      Animated.sequence([
+        Animated.parallel([
+          Animated.timing(plane2X, {
+            toValue: -10,
+            duration: 380,
+            easing: swoopEase,
+            useNativeDriver: true,
+          }),
+          Animated.timing(plane2Y, {
+            toValue: 14,
+            duration: 380,
+            easing: swoopEase,
+            useNativeDriver: true,
+          }),
+          Animated.timing(plane2Rotate, {
+            toValue: -10,
+            duration: 380,
+            easing: swoopEase,
+            useNativeDriver: true,
+          }),
+        ]),
+        Animated.parallel([
+          Animated.timing(plane2X, {
+            toValue: 0,
+            duration: 170,
+            easing: landEase,
+            useNativeDriver: true,
+          }),
+          Animated.timing(plane2Y, {
+            toValue: 0,
+            duration: 170,
+            easing: landEase,
+            useNativeDriver: true,
+          }),
+          Animated.timing(plane2Rotate, {
+            toValue: 0,
+            duration: 170,
+            easing: landEase,
+            useNativeDriver: true,
+          }),
+        ]),
+      ]),
+    ]);
+
+    const starLoop = Animated.loop(
         Animated.parallel([
           Animated.sequence([
             Animated.timing(starTwinkleA, {
@@ -420,153 +379,123 @@ export default function AnimatedSplash({onDone, appReady = true}) {
             }),
           ]),
         ]),
-      ),
+      );
 
+    const scene = Animated.parallel([
       Animated.parallel([
         Animated.timing(cloudLeftY, {
           toValue: 0,
-          duration: 1700,
+          duration: 850,
           easing: flightEase,
           useNativeDriver: true,
         }),
         Animated.timing(cloudLeftOpacity, {
           toValue: 0.92,
-          duration: 1100,
+          duration: 540,
           easing: flightEase,
           useNativeDriver: true,
         }),
         Animated.timing(cloudRightY, {
           toValue: 0,
-          duration: 1850,
+          duration: 920,
           easing: flightEase,
           useNativeDriver: true,
         }),
         Animated.timing(cloudRightOpacity, {
           toValue: 0.88,
-          duration: 1200,
+          duration: 580,
           easing: flightEase,
           useNativeDriver: true,
         }),
       ]),
 
-      Animated.parallel([
-        Animated.timing(plane1Opacity, {
-          toValue: 1,
-          duration: 360,
-          easing: Easing.out(Easing.cubic),
-          useNativeDriver: true,
-        }),
-        Animated.timing(plane1Progress, {
-          toValue: 1,
-          duration: 4600,
-          easing: planeEase,
-          useNativeDriver: true,
-        }),
-        Animated.sequence([
-          Animated.delay(380),
-          Animated.parallel([
-            Animated.timing(plane2Opacity, {
-              toValue: 1,
-              duration: 420,
-              easing: Easing.out(Easing.cubic),
-              useNativeDriver: true,
-            }),
-            Animated.timing(plane2Progress, {
-              toValue: 1,
-              duration: 4600,
-              easing: planeEase,
-              useNativeDriver: true,
-            }),
-          ]),
-        ]),
-      ]),
-
       Animated.sequence([
-        Animated.delay(280),
         Animated.parallel([
           Animated.timing(studentX, {
             toValue: 0,
-            duration: 1600,
+            duration: 680,
             easing: flightEase,
             useNativeDriver: true,
           }),
           Animated.timing(studentRotate, {
             toValue: 0,
-            duration: 1600,
+            duration: 680,
             easing: flightEase,
             useNativeDriver: true,
           }),
         ]),
-      ]),
-
-      Animated.sequence([
-        Animated.delay(780),
+        Animated.delay(40),
+        leftPlaneSwoop,
+        Animated.delay(28),
+        rightPlaneSwoop,
+        Animated.delay(48),
         Animated.parallel([
           Animated.spring(planet1Scale, {
             toValue: 1,
-            friction: 5.5,
-            tension: 58,
+            friction: 5.2,
+            tension: 88,
             useNativeDriver: true,
           }),
           Animated.timing(planet1Opacity, {
             toValue: 1,
-            duration: 640,
+            duration: 240,
             easing: Easing.out(Easing.cubic),
             useNativeDriver: true,
           }),
         ]),
-      ]),
-
-      Animated.sequence([
-        Animated.delay(980),
+        Animated.delay(60),
         Animated.parallel([
           Animated.spring(planet2Scale, {
             toValue: 1,
-            friction: 5.5,
-            tension: 58,
+            friction: 5.2,
+            tension: 88,
             useNativeDriver: true,
           }),
           Animated.timing(planet2Opacity, {
             toValue: 1,
-            duration: 640,
+            duration: 240,
             easing: Easing.out(Easing.cubic),
             useNativeDriver: true,
           }),
         ]),
-      ]),
-
-      Animated.sequence([
-        Animated.delay(1680),
+        Animated.delay(50),
         Animated.parallel([
           Animated.timing(logoOpacity, {
             toValue: 1,
-            duration: 900,
+            duration: 460,
             easing: flightEase,
             useNativeDriver: true,
           }),
           Animated.timing(logoTranslateY, {
             toValue: 0,
-            duration: 900,
+            duration: 460,
             easing: flightEase,
             useNativeDriver: true,
           }),
           Animated.timing(logoScale, {
             toValue: 1,
-            duration: 900,
+            duration: 460,
             easing: flightEase,
             useNativeDriver: true,
           }),
         ]),
+        Animated.delay(900),
       ]),
     ]);
 
-    timelineAnimRef.current = timeline;
-    timeline.start();
-
-    const holdDone = setTimeout(() => {
+    starLoop.start();
+    timelineAnimRef.current = {
+      stop() {
+        starLoop.stop();
+        scene.stop();
+      },
+    };
+    scene.start(({finished}) => {
+      if (!finished) {
+        return;
+      }
       setAnimationDone(true);
-    }, 5600);
-    timersRef.current.push(holdDone);
+    });
   }, [
     cloudLeftOpacity,
     cloudLeftY,
@@ -575,10 +504,14 @@ export default function AnimatedSplash({onDone, appReady = true}) {
     logoOpacity,
     logoScale,
     logoTranslateY,
+    plane1X,
+    plane1Y,
+    plane1Rotate,
     plane1Opacity,
-    plane1Progress,
+    plane2X,
+    plane2Y,
+    plane2Rotate,
     plane2Opacity,
-    plane2Progress,
     planet1Opacity,
     planet1Scale,
     planet2Opacity,
@@ -649,39 +582,17 @@ export default function AnimatedSplash({onDone, appReady = true}) {
     };
   }, [screenOpacity]);
 
-  const plane1ProgressRange = PLANE1_SPIRAL.xs.map(
-    (_, i) => i / (PLANE1_SPIRAL.xs.length - 1),
-  );
-  const plane2ProgressRange = PLANE2_SPIRAL.xs.map(
-    (_, i) => i / (PLANE2_SPIRAL.xs.length - 1),
-  );
-  const plane1X = plane1Progress.interpolate({
-    inputRange: plane1ProgressRange,
-    outputRange: PLANE1_SPIRAL.xs,
-  });
-  const plane1Y = plane1Progress.interpolate({
-    inputRange: plane1ProgressRange,
-    outputRange: PLANE1_SPIRAL.ys,
-  });
-  const plane1RotateDeg = plane1Progress.interpolate({
-    inputRange: plane1ProgressRange,
-    outputRange: PLANE1_SPIRAL.headings.map(deg => `${deg}deg`),
-  });
-  const plane2X = plane2Progress.interpolate({
-    inputRange: plane2ProgressRange,
-    outputRange: PLANE2_SPIRAL.xs,
-  });
-  const plane2Y = plane2Progress.interpolate({
-    inputRange: plane2ProgressRange,
-    outputRange: PLANE2_SPIRAL.ys,
-  });
-  const plane2RotateDeg = plane2Progress.interpolate({
-    inputRange: plane2ProgressRange,
-    outputRange: PLANE2_SPIRAL.headings.map(deg => `${deg}deg`),
-  });
   const studentRotateDeg = studentRotate.interpolate({
     inputRange: [-20, 20],
     outputRange: ['-20deg', '20deg'],
+  });
+  const plane1RotateDeg = plane1Rotate.interpolate({
+    inputRange: [-30, 30],
+    outputRange: ['-30deg', '30deg'],
+  });
+  const plane2RotateDeg = plane2Rotate.interpolate({
+    inputRange: [-30, 30],
+    outputRange: ['-30deg', '30deg'],
   });
 
   return (
@@ -749,13 +660,12 @@ export default function AnimatedSplash({onDone, appReady = true}) {
                   {translateX: plane1X},
                   {translateY: plane1Y},
                   {rotate: plane1RotateDeg},
-                  {scaleX: -1},
                 ],
               },
             ]}>
             <Image
               source={planeImage}
-              style={styles.planeImage}
+              style={[styles.planeImage, styles.planeFlipX]}
               resizeMode="contain"
             />
           </Animated.View>
@@ -801,7 +711,7 @@ export default function AnimatedSplash({onDone, appReady = true}) {
               },
             ]}>
             <Image
-              source={planetImage}
+              source={planet2Image}
               style={styles.planetImageSm}
               resizeMode="contain"
             />
@@ -962,15 +872,18 @@ const styles = StyleSheet.create({
   plane2: {
     position: 'absolute',
     top: PLANE2_TOP,
-    left: PLANE2_ANCHOR_LEFT,
+    right: PLANE2_ANCHOR_RIGHT,
   },
   planeImage: {
-    width: 58,
-    height: 58,
+    width: PLANE1_W,
+    height: PLANE1_H,
+  },
+  planeFlipX: {
+    transform: [{scaleX: -1}],
   },
   planeImageSm: {
-    width: 36,
-    height: 36,
+    width: PLANE2_W,
+    height: PLANE2_H,
   },
   planetImage: {
     width: 78,

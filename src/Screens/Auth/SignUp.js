@@ -12,6 +12,7 @@ import {useAppDispatch} from '../../Stores/hooks';
 import {asyncShowSuccess} from '../../Stores/actions/common.action';
 import {colors} from '../../theme/colors';
 import {WIDTH} from '../../theme/units';
+import {toPhonePayload} from '../../Components/Auth/phoneMask';
 
 const STRONG_PASSWORD_RE =
   /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
@@ -31,6 +32,8 @@ export default function SignUp({navigation}) {
     handleSubmit,
     formState: {errors},
     getValues,
+    setValue,
+    watch,
     trigger,
   } = useForm({
     defaultValues: {
@@ -40,6 +43,7 @@ export default function SignUp({navigation}) {
       motherLastName: '',
       email: '',
       phone: '',
+      phoneCountry: 'US',
       password: '',
       confirmPassword: '',
     },
@@ -78,7 +82,7 @@ export default function SignUp({navigation}) {
         fatherLastName: form.fatherLastName.trim(),
         motherFirstName: form.motherFirstName.trim(),
         motherLastName: form.motherLastName.trim(),
-        phone: form.phone.trim(),
+        phone: toPhonePayload(form.phone, form.phoneCountry),
         email: form.email.trim().toLowerCase(),
         password: form.password,
       };
@@ -90,13 +94,12 @@ export default function SignUp({navigation}) {
             asyncLogin({
               email: body.email,
               password: body.password,
+              rememberMe: true,
+              successMessage: 'Account created. Welcome to Birchwood!',
             }),
           ).unwrap();
           if (loginRes.status && loginRes.data?.token) {
-            dispatch(
-              asyncShowSuccess('Account created. Welcome to Birchwood!'),
-            );
-            navigation.navigate(routes.screens.homeScreen);
+            // Session token is saved; MainStack switches on token.
           } else {
             dispatch(
               asyncShowSuccess(
@@ -113,6 +116,8 @@ export default function SignUp({navigation}) {
     [navigation, dispatch],
   );
 
+  const phoneCountry = watch('phoneCountry');
+
   const stepMeta = STEPS[step];
 
   return (
@@ -122,7 +127,7 @@ export default function SignUp({navigation}) {
       </View>
 
       <Text style={styles.title}>Create Account</Text>
-      <Text style={styles.subtitle}>Join our learning community</Text>
+      <Text style={styles.subtitle}>Set up your parent account</Text>
 
       <View style={styles.stepRow}>
         {STEPS.map((_, i) => (
@@ -139,7 +144,6 @@ export default function SignUp({navigation}) {
 
       {step === 0 && (
         <>
-          <Text style={styles.section}>Father</Text>
           <Controller
             name="fatherFirstName"
             control={control}
@@ -178,7 +182,6 @@ export default function SignUp({navigation}) {
               />
             )}
           />
-          <Text style={styles.section}>Mother</Text>
           <Controller
             name="motherFirstName"
             control={control}
@@ -259,11 +262,13 @@ export default function SignUp({navigation}) {
             render={({field: {onChange, value}}) => (
               <AuthField
                 label="Phone Number"
-                placeholder="e.g. 5550201234"
                 leftIcon="phone"
                 value={value}
                 onChangeText={onChange}
                 keyboardType="phone-pad"
+                mask="phone"
+                countryIso={phoneCountry}
+                onCountryChange={iso => setValue('phoneCountry', iso)}
                 error={errors.phone?.message}
               />
             )}
@@ -374,14 +379,15 @@ const styles = StyleSheet.create({
   stepRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    width: '100%',
     marginBottom: 10,
+    gap: 8,
   },
   stepDot: {
-    width: 32,
+    flex: 1,
     height: 4,
     borderRadius: 2,
     backgroundColor: '#E5E7EB',
-    marginRight: 8,
   },
   stepDotActive: {
     backgroundColor: colors.theme.primary,
@@ -397,15 +403,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#9CA3AF',
     marginBottom: 22,
-  },
-  section: {
-    fontFamily: fonts.euclidCircularA.semiBold,
-    fontSize: 12,
-    color: colors.theme.primary,
-    letterSpacing: 0.6,
-    textTransform: 'uppercase',
-    marginBottom: 10,
-    marginTop: 8,
   },
   passwordHint: {
     fontFamily: fonts.euclidCircularA.regular,

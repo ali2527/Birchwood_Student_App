@@ -1,10 +1,12 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {StatusBar, Platform, View} from 'react-native';
-import FlashMessage from 'react-native-flash-message';
+import {View} from 'react-native';
 import {Provider} from 'react-redux';
 import {PersistGate} from 'redux-persist/integration/react';
+import {SafeAreaProvider} from 'react-native-safe-area-context';
 import MainNavigator from './src/Navigation';
 import AnimatedSplash from './src/Screens/SplashScreen';
+import {AppAlertHost} from './src/Components/AppAlert/host';
+import {AppLoader} from './src/Components/AppLoader';
 import {store, persistor} from './src/Stores';
 
 function App() {
@@ -31,32 +33,27 @@ function App() {
   }, []);
 
   return (
-    <Provider store={store}>
-      <View style={{flex: 1, backgroundColor: showSplash ? '#FFFFFF' : '#ffffff'}}>
-        <PersistGate loading={null} persistor={persistor}>
-          <MainNavigator onReady={() => setNavReady(true)} />
-          <FlashMessage
-            position={
-              Platform.OS === 'ios'
-                ? 'top'
-                : {top: StatusBar.currentHeight ?? 24, left: 0, right: 0}
+    <SafeAreaProvider>
+      <Provider store={store}>
+        <View style={{flex: 1, backgroundColor: '#FFFFFF'}}>
+          <PersistGate loading={null} persistor={persistor}>
+            {bootstrapped =>
+              bootstrapped ? (
+                <MainNavigator onReady={() => setNavReady(true)} />
+              ) : null
             }
-            duration={4000}
-            icon="auto"
-            animated={true}
-            style={{paddingHorizontal: 16, paddingVertical: 14}}
-            titleStyle={{fontSize: 15, fontWeight: '700'}}
-            textStyle={{fontSize: 14}}
-          />
-        </PersistGate>
-        {showSplash ? (
-          <AnimatedSplash
-            appReady={rehydrated && navReady}
-            onDone={onSplashDone}
-          />
-        ) : null}
-      </View>
-    </Provider>
+          </PersistGate>
+          <AppLoader />
+          <AppAlertHost />
+          {showSplash ? (
+            <AnimatedSplash
+              appReady={rehydrated && navReady}
+              onDone={onSplashDone}
+            />
+          ) : null}
+        </View>
+      </Provider>
+    </SafeAreaProvider>
   );
 }
 

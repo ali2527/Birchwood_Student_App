@@ -11,6 +11,16 @@ import { useNavigation } from '@react-navigation/native';
 import { useAppDispatch, useAppSelector } from '../../Stores/hooks';
 import { selectUserProfile } from '../../Stores/slices/user.slice';
 import { asyncUpdateProfile } from '../../Stores/actions/user.action';
+import { getImagePath } from '../../Service/axios';
+import ParentPhotoPickers, {
+    appendParentPhoto,
+    pickParentPhoto,
+} from '../../Components/Auth/ParentPhotoPickers';
+import {
+    DEFAULT_PHONE_COUNTRY,
+    parsePhone,
+    toPhonePayload,
+} from '../../Components/Auth/phoneMask';
 
 export default function ProfileForm() {
     const navigation = useNavigation();
@@ -24,24 +34,39 @@ export default function ProfileForm() {
         motherLastName: '',
         email: '',
         phone: '',
+        phoneCountry: DEFAULT_PHONE_COUNTRY,
         address: '',
         city: '',
         state: '',
     });
+    const [fatherPhoto, setFatherPhoto] = useState(null);
+    const [motherPhoto, setMotherPhoto] = useState(null);
 
     useEffect(() => {
         if (profile?._id) {
+            const parsed = parsePhone(profile?.phone || '');
             setFormData({
                 fatherFirstName: profile?.fatherFirstName || '',
                 fatherLastName: profile?.fatherLastName || '',
                 motherFirstName: profile?.motherFirstName || '',
                 motherLastName: profile?.motherLastName || '',
                 email: profile?.email || '',
-                phone: profile?.phone || '',
+                phone: parsed.local,
+                phoneCountry: parsed.iso,
                 address: profile?.address || '',
                 city: profile?.city || '',
                 state: profile?.state || '',
             });
+            setFatherPhoto(
+                profile?.fatherImage || profile?.image
+                    ? { uri: getImagePath(profile.fatherImage || profile.image) }
+                    : null,
+            );
+            setMotherPhoto(
+                profile?.motherImage
+                    ? { uri: getImagePath(profile.motherImage) }
+                    : null,
+            );
         }
     }, [profile]);
 
@@ -58,14 +83,33 @@ export default function ProfileForm() {
             fatherLastName: formData.fatherLastName,
             motherFirstName: formData.motherFirstName,
             motherLastName: formData.motherLastName,
-            email: formData.email,
-            phone: formData.phone,
+            phone: toPhonePayload(formData.phone, formData.phoneCountry),
             address: formData.address,
             city: formData.city,
             state: formData.state,
         };
 
-        const result = await dispatch(asyncUpdateProfile(payload));
+        const fatherPicked = fatherPhoto?.uri && !fatherPhoto.uri.startsWith('http');
+        const motherPicked = motherPhoto?.uri && !motherPhoto.uri.startsWith('http');
+
+        let body = payload;
+        if (fatherPicked || motherPicked) {
+            const data = new FormData();
+            Object.keys(payload).forEach(key => {
+                if (payload[key] !== undefined && payload[key] !== null) {
+                    data.append(key, payload[key]);
+                }
+            });
+            if (fatherPicked) {
+                appendParentPhoto(data, 'fatherImage', fatherPhoto);
+            }
+            if (motherPicked) {
+                appendParentPhoto(data, 'motherImage', motherPhoto);
+            }
+            body = data;
+        }
+
+        const result = await dispatch(asyncUpdateProfile(body));
         if (result.type === 'updateProfile/fulfilled' && result.payload?.status) {
             navigation.goBack();
         }
@@ -98,6 +142,22 @@ export default function ProfileForm() {
                     showsVerticalScrollIndicator={false}
                 >
                     <FormContainer>
+                        <ParentPhotoPickers
+                            fatherUri={fatherPhoto?.uri}
+                            motherUri={motherPhoto?.uri}
+                            onPickFather={async () => {
+                                const photo = await pickParentPhoto();
+                                if (photo) {
+                                    setFatherPhoto(photo);
+                                }
+                            }}
+                            onPickMother={async () => {
+                                const photo = await pickParentPhoto();
+                                if (photo) {
+                                    setMotherPhoto(photo);
+                                }
+                            }}
+                        />
                         {/* Father Name */}
                         <View style={styles.inputFieldContainer}>
                             <FormTextInput
@@ -153,11 +213,17 @@ export default function ProfileForm() {
                         <View style={styles.inputFieldContainer}>
                             <FormTextInput
                                 label={'Phone'}
-                                placeholder={'923091245985'}
                                 value={formData.phone}
                                 onChangeText={handleChange}
                                 name="phone"
                                 icon={'call-outline'}
+                                countryIso={formData.phoneCountry}
+                                onCountryChange={iso =>
+                                    setFormData(prev => ({
+                                        ...prev,
+                                        phoneCountry: iso,
+                                    }))
+                                }
                             />
                         </View>
 

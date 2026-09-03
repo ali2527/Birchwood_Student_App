@@ -34,12 +34,19 @@ import {
   setUserState,
 } from '../slices/user.slice';
 import { asyncShowError, asyncShowSuccess } from './common.action';
+import { persistAuthSession } from '../index';
 import type { RootState } from '../index';
 
 export const asyncLogin = createAsyncThunk(
   'login',
   async (data: LoginUserPayload, { dispatch }) => {
     dispatch(setLoading(true));
+
+    const rememberMe = data.rememberMe !== false;
+    const credentials = {
+      email: String(data.email || '').trim().toLowerCase(),
+      password: data.password,
+    };
 
     const loginPath = allApiPaths.getPath('login');
     const resolvedLoginPath = (
@@ -50,7 +57,7 @@ export const asyncLogin = createAsyncThunk(
     const res = await callApi<LoginUserResponse, LoginUserPayload>({
       method: 'POST',
       path: resolvedLoginPath,
-      body: data,
+      body: credentials,
       axiosSecure: false,
     });
     console.log('res:login:::::', res);
@@ -66,10 +73,14 @@ export const asyncLogin = createAsyncThunk(
           holidays: {},
           attendance: {} as UserAttendance,
           token,
+          rememberMe,
         })
       );
+      await persistAuthSession();
       dispatch(
-        asyncShowSuccess(res.message || 'Signed in successfully')
+        asyncShowSuccess(
+          data.successMessage || res.message || 'Signed in successfully',
+        ),
       );
     } else {
       dispatch(
@@ -88,22 +99,19 @@ export const asyncSignup = createAsyncThunk(
   'signup',
   async (data: any, { dispatch }) => {
     dispatch(setLoading(true));
-    console.log('data:::', data);
+    const isFormData = data instanceof FormData;
     const res = await callApi<any, any>({
       method: 'POST',
       path: allApiPaths.getPath('signup'),
       body: data,
+      isFormData,
       axiosSecure: false,
     });
 
     if (!res.status) {
       dispatch(asyncShowError(res.message));
-    } else {
-      dispatch(
-        asyncShowSuccess(res.message || 'Account created successfully'),
-      );
-      // Signup does not issue a JWT — caller should sign in for a USER token.
     }
+    // Signup does not issue a JWT — caller signs in for a USER token.
     dispatch(setLoading(false));
 
     return res;
@@ -230,31 +238,29 @@ export const asyncGetUserProfile = createAsyncThunk(
 
 export const asyncGetAllMyChildren = createAsyncThunk(
   'profile/getAllMyChildren',
-  async (_, { dispatch }) => {
+  async (_, { dispatch, getState }) => {
     dispatch(setLoading(true));
-    const res = await callApi<ClassResponse | Child[]>({
+    const res = await callApi<ClassResponse | Child[] | { children?: Child[] }>({
       path: allApiPaths.getPath('getAllMyChildren'),
     });
-    console.log('res:::', res);
     if (!res.status) {
       dispatch(asyncShowError(res.message));
     } else {
-      if (res.data) {
-        const docs = Array.isArray(res.data) ? res.data : res.data.docs;
+      const payload = (res.data ?? res) as any;
+      const docs: Child[] = Array.isArray(payload)
+        ? payload
+        : Array.isArray(payload?.children)
+          ? payload.children
+          : Array.isArray(payload?.docs)
+            ? payload.docs
+            : [];
 
-        // Always set the first child as selected if it exists
-        if (docs && docs.length > 0) {
-          dispatch(setSelectedChild(docs[0]));
-        }
+      dispatch(setChildren({ docs } as ClassResponse));
 
-        // Only save full children list to redux if there are 2 or more children
-        if (docs && docs.length >= 2) {
-          const childrenData = Array.isArray(res.data)
-            ? { docs: res.data }
-            : res.data;
-          dispatch(setChildren(childrenData as ClassResponse));
-        }
-      }
+      const current = (getState() as RootState).class.selectedChild;
+      const next =
+        (current && docs.find(child => child._id === current._id)) || docs[0] || null;
+      dispatch(setSelectedChild(next));
     }
 
     dispatch(setLoading(false));
@@ -655,6 +661,7 @@ export const asyncSignOut = createAsyncThunk(
   'signOut',
   async (_, { dispatch }) => {
     dispatch(resetUserState());
+    await persistAuthSession();
   }
 );
 

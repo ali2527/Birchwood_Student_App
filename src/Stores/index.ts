@@ -1,5 +1,5 @@
 import { Action, combineReducers, configureStore } from '@reduxjs/toolkit';
-import { persistReducer, persistStore } from 'redux-persist';
+import { createTransform, persistReducer, persistStore } from 'redux-persist';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ClassSlice from './slices/class.slice';
@@ -18,15 +18,28 @@ const allreducers = combineReducers({
   timeTable: TimeTableSlice,
 });
 
+/** Persist the JWT only when Remember me is on. Session still lives in memory either way. */
+const persistAuthTransform = createTransform(
+  (inboundState: any) => {
+    if (inboundState && inboundState.rememberMe === false) {
+      return { ...inboundState, token: null };
+    }
+    return inboundState;
+  },
+  (outboundState: any) => outboundState,
+  { whitelist: ['user'] },
+);
+
 const persistConfig = {
   key: 'birchwoodStudent',
   storage: AsyncStorage,
   whitelist: ['user'],
+  transforms: [persistAuthTransform],
 };
 
 const rootReducer = (state: any, action: Action) => {
   if (action.type === 'User/resetUserState') {
-    state = {};
+    state = undefined;
   }
   return allreducers(state, action);
 };
@@ -42,5 +55,13 @@ export const store = configureStore({
 });
 
 export const persistor = persistStore(store);
+
+export async function persistAuthSession() {
+  try {
+    await persistor.flush();
+  } catch (error) {
+    console.log('Failed to persist auth session', error);
+  }
+}
 
 export type RootState = ReturnType<typeof store.getState>;

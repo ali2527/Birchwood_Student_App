@@ -100,20 +100,15 @@ export const { setClassRoom, setChildren, setChild, setSelectedChild, setAttenda
 
 export default ClassSlice.reducer;
 
-export const selectClassRoom = createDraftSafeSelector(
-  [(state: RootState) => state.class.classRoom],
-  classRoom => classRoom
-);
+export const selectClassRoom = (state: RootState) => state.class.classRoom;
 
 export const selectChildren = createDraftSafeSelector(
   [(state: RootState) => state.class.children],
   children => Object.values(children) as Child[]
 );
 
-export const selectSelectedChild = createDraftSafeSelector(
-  [(state: RootState) => state.class.selectedChild],
-  selectedChild => selectedChild
-);
+export const selectSelectedChild = (state: RootState) =>
+  state.class.selectedChild;
 
 export const selectChildById = (childId: string) =>
   createDraftSafeSelector(
