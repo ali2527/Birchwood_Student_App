@@ -1,178 +1,270 @@
+import React, {useMemo} from 'react';
 import {
-    View,
-    ScrollView,
-    TextInput,
-    StyleSheet,
-    KeyboardAvoidingView,
-    TouchableWithoutFeedback,
-    Keyboard,
-    TouchableOpacity,
-    Text,
-    SafeAreaView
-} from 'react-native'
-import React, { useState } from 'react'
-import CustomStatusBar from '../../Components/StatusBar'
-import { colors } from '../../theme/colors'
-import MainLogo from '../../Components/MainLogo'
-import CustomButton from '../../Components/Button';
-import GlroyBold from '../../Components/GlroyBoldText';
-import { useNavigation } from '@react-navigation/native';
-import routes from '../../Navigation/routes';
-import GrayMediumText from '../../Components/GrayMediumText'
-import CustomTextInput from '../../Components/InputField'
-import SampleInputField from '../../Components/SampleInputField'
-import { BackArrow } from '../../Components/BackArrow'
-import { vh } from '../../theme/units';
-import Ionicon from 'react-native-vector-icons/Ionicons';
+  Image,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import {useNavigation, useRoute} from '@react-navigation/native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import LinearGradient from 'react-native-linear-gradient';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import moment from 'moment';
+import fonts from '../../Assets/fonts';
+import profile_icon from '../../Assets/images/profile_bg.png';
+import {getImagePath} from '../../Service/axios';
+import {useAppSelector} from '../../Stores/hooks';
+import {
+  selectChildren,
+  selectSelectedChild,
+} from '../../Stores/slices/class.slice';
 
+const NAVY = '#0F1F4B';
+const MUTED = '#8B93A7';
+const PAGE_BG = '#F4F5F8';
+
+function teacherName(classroom) {
+  const teacher = classroom?.teacher;
+  if (!teacher || typeof teacher === 'string') {
+    return '';
+  }
+  return `${teacher.firstName || ''} ${teacher.lastName || ''}`.trim();
+}
+
+function classroomLabel(classroom) {
+  if (!classroom || typeof classroom === 'string') {
+    return '';
+  }
+  const name = classroom.classroomName || classroom.classroomId || '';
+  const grade = classroom.classroomGrade;
+  if (name && grade) {
+    return `${name} • Grade ${grade}`;
+  }
+  return name || (grade ? `Grade ${grade}` : '');
+}
+
+function listOrNone(value) {
+  if (Array.isArray(value) && value.length > 0) {
+    return value.filter(Boolean).join(', ');
+  }
+  if (typeof value === 'string' && value.trim()) {
+    return value;
+  }
+  return 'None recorded';
+}
 
 export default function ChildProfile() {
-    const [formData, setFormData] = useState({
-        first_name: '',
-        last_name: '',
-        dod: '',
-        age: '',
-        gender: '',
-    })
-    const navigation = useNavigation();
+  const navigation = useNavigation();
+  const route = useRoute();
+  const insets = useSafeAreaInsets();
+  const children = useAppSelector(selectChildren);
+  const selectedChild = useAppSelector(selectSelectedChild);
+  const childId = route?.params?.childId;
 
-    function handleChange(name, value) {
-        setFormData({
-            ...formData,
-            [name]: value
-        })
+  const child = useMemo(() => {
+    if (childId) {
+      return children.find(item => item._id === childId) || selectedChild;
     }
+    return selectedChild || children[0] || null;
+  }, [childId, children, selectedChild]);
 
-    return (
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-            <SafeAreaView style={{ flex: 1 }}>
-                <CustomStatusBar
-                    backgroundColor={colors.theme.white}
-                    barStyle="dark-content"
-                />
-                <View style={styles.container}>
-                    <KeyboardAvoidingView
-                        style={{ flex: 1 }}
-                    // behavior="padding"
-                    // enabled
-                    >
+  const name = child
+    ? `${child.firstName || ''} ${child.lastName || ''}`.trim()
+    : '';
+  const photo = child?.image
+    ? {uri: getImagePath(child.image)}
+    : profile_icon;
+  const dob = child?.birthday
+    ? moment(child.birthday).format('D MMM YYYY')
+    : '';
+  const age =
+    child?.age ||
+    (child?.birthday ? moment().diff(moment(child.birthday), 'years') : '');
 
-                        <View style={styles.profileCircle}>
-                            <Ionicon name='person' size={30} color={colors.text.greyAlt2}
-                            />
-                        </View>
+  const rows = [
+    {label: 'Name', value: name || '—'},
+    {label: 'Roll number', value: child?.rollNumber || '—'},
+    {label: 'Date of birth', value: dob || '—'},
+    {label: 'Age', value: age ? String(age) : '—'},
+  ];
 
-                        <ScrollView contentContainerStyle={styles.scrollContainer}>
-                            {/* Your other components/content here */}
-                            <View style={{ alignItems: 'center' }}>
-                                <GlroyBold
-                                    text={'Child Profile'}
-                                    _style={styles.head}
-                                />
-                                <GrayMediumText
-                                    text={'Lorem Ipsum is simply dummy text of the printing and typesetting industry.'}
-                                    _style={styles.para}
-                                />
-                            </View>
-                            <CustomTextInput
-                                label="First Name"
-                                name={'first_name'}
-                                placeholder={'first name'}
-                                value={formData.first_name}
-                                required
-                                onChangeText={(name, value) => handleChange(name, value)}
-                            />
-                            <CustomTextInput
-                                label="Last Name"
-                                name={'last_name'}
-                                placeholder={'last name'}
-                                value={formData.last_name}
-                                required
-                                onChangeText={(name, value) => handleChange(name, value)}
-                            />
-                            <SampleInputField
-                                label="Age"
-                                name={'age'}
-                                onChangeText={(name, value) => handleChange(name, value)}
-                                placeholder={'12-12-1995'}
-                                value={formData.age}
-                                required
-                            />
-                            <SampleInputField
-                                label="Date Of Birth"
-                                name={'dob'}
-                                onChangeText={(name, value) => handleChange(name, value)}
-                                placeholder={'date of birt'}
-                                value={formData.dod}
-                                required
-                            />
-                            <SampleInputField
-                                label="Gender"
-                                name={'gender'}
-                                onChangeText={(name, value) => handleChange(name, value)}
-                                placeholder={'gender'}
-                                value={formData.gender}
-                                required
-                            />
+  return (
+    <View style={styles.screen}>
+      <StatusBar barStyle="dark-content" backgroundColor={PAGE_BG} />
+      <View style={[styles.header, {paddingTop: Math.max(insets.top, 12) + 6}]}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backBtn}
+          hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
+          <Ionicons name="chevron-back" size={22} color={NAVY} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Child profile</Text>
+      </View>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scroll}>
+        <LinearGradient
+          colors={['#1A73C7', '#035392']}
+          start={{x: 0, y: 0}}
+          end={{x: 1, y: 1}}
+          style={styles.hero}>
+          <Image source={photo} style={styles.photo} />
+          <Text style={styles.name}>{name || 'Child'}</Text>
+          {classroomLabel(child?.classroom) ? (
+            <View style={styles.heroPill}>
+              <Text style={styles.heroPillText}>
+                {classroomLabel(child?.classroom)}
+              </Text>
+            </View>
+          ) : null}
+          {teacherName(child?.classroom) ? (
+            <Text style={styles.heroMeta}>
+              Teacher: {teacherName(child?.classroom)}
+            </Text>
+          ) : null}
+        </LinearGradient>
 
-                            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-                                <BackArrow/>
-                                <CustomButton
-                                    isFocused={true}
-                                    title={'Next'}
-                                // onPress={() => navigation.navigate(routes.navigator.education)}
-                                />
-                            </View>
+        <Text style={styles.section}>Basic information</Text>
+        <View style={styles.card}>
+          {rows.map(row => (
+            <View key={row.label} style={styles.row}>
+              <Text style={styles.label}>{row.label}</Text>
+              <Text style={styles.value}>{row.value}</Text>
+            </View>
+          ))}
+        </View>
 
-                        </ScrollView>
-                    </KeyboardAvoidingView>
-                </View>
-            </SafeAreaView>
-        </TouchableWithoutFeedback>
-    )
+        <Text style={styles.section}>Classroom</Text>
+        <View style={styles.card}>
+          <Text style={styles.value}>
+            {classroomLabel(child?.classroom) || 'None recorded'}
+          </Text>
+        </View>
+
+        <Text style={styles.section}>Teacher</Text>
+        <View style={styles.card}>
+          <Text style={styles.value}>
+            {teacherName(child?.classroom) || 'None recorded'}
+          </Text>
+        </View>
+
+        <Text style={styles.section}>Allergies</Text>
+        <View style={styles.card}>
+          <Text style={styles.value}>{listOrNone(child?.allergies)}</Text>
+        </View>
+
+        <Text style={styles.section}>Medical conditions</Text>
+        <View style={styles.card}>
+          <Text style={styles.value}>{listOrNone(child?.conditions)}</Text>
+        </View>
+
+        <Text style={styles.section}>Fears</Text>
+        <View style={styles.card}>
+          <Text style={styles.value}>{listOrNone(child?.fears)}</Text>
+        </View>
+
+        <Text style={styles.section}>Health summary</Text>
+        <View style={styles.card}>
+          <Text style={styles.value}>{listOrNone(child?.summary)}</Text>
+        </View>
+      </ScrollView>
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1
-    },
-    scrollContainer: {
-        flexGrow: 1,
-        // justifyContent: 'center',
-        padding: 16,
-    },
-    textInput: {
-        height: 40,
-        borderColor: 'gray',
-        borderWidth: 1,
-        marginBottom: 16,
-        paddingHorizontal: 10,
-    },
-    head: {
-        // marginTop: 0,
-        color: colors.text.black
-    },
-    checkboxContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: 'red'
-    },
-    checkboxLabel: {
-        marginLeft: 8,
-    },
-    para: {
-        fontSize: 14,
-        fontWeight: 'normal'
-    },
-    profileCircle: {
-        height: 70,
-        width: 70,
-        borderRadius: 35,
-        backgroundColor: colors.text.grey,
-        alignItems: 'center',
-        alignSelf: 'center',
-        paddingVertical: 20,
-        marginTop: vh * 8,
-        position: 'relative'
-    }
-})
+  screen: {
+    flex: 1,
+    backgroundColor: PAGE_BG,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingBottom: 12,
+  },
+  backBtn: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerTitle: {
+    fontFamily: fonts.euclidCircularA.semiBold,
+    fontSize: 18,
+    color: NAVY,
+  },
+  scroll: {
+    paddingHorizontal: 18,
+    paddingBottom: 36,
+  },
+  hero: {
+    alignItems: 'center',
+    marginBottom: 18,
+    borderRadius: 20,
+    paddingVertical: 22,
+    paddingHorizontal: 16,
+  },
+  photo: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    marginBottom: 10,
+    borderWidth: 3,
+    borderColor: '#FFFFFF',
+  },
+  name: {
+    fontFamily: fonts.euclidCircularA.semiBold,
+    fontSize: 20,
+    color: '#FFFFFF',
+  },
+  heroPill: {
+    marginTop: 8,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  heroPillText: {
+    fontFamily: fonts.euclidCircularA.medium,
+    fontSize: 12,
+    color: '#FFFFFF',
+  },
+  heroMeta: {
+    marginTop: 6,
+    fontFamily: fonts.euclidCircularA.regular,
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.82)',
+  },
+  section: {
+    marginTop: 14,
+    marginBottom: 8,
+    fontFamily: fonts.euclidCircularA.semiBold,
+    fontSize: 12,
+    letterSpacing: 0.6,
+    color: MUTED,
+    textTransform: 'uppercase',
+  },
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    padding: 14,
+  },
+  row: {
+    marginBottom: 12,
+  },
+  label: {
+    fontFamily: fonts.euclidCircularA.medium,
+    fontSize: 11,
+    color: MUTED,
+    marginBottom: 3,
+  },
+  value: {
+    fontFamily: fonts.euclidCircularA.medium,
+    fontSize: 15,
+    color: NAVY,
+  },
+});

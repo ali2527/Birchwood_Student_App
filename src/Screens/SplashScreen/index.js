@@ -169,11 +169,9 @@ export default function AnimatedSplash({onDone, appReady = true}) {
       useNativeDriver: true,
     });
     exitAnimRef.current = exit;
-    exit.start(({finished}) => {
-      if (finished) {
-        endSplashImmersive();
-        onDone?.();
-      }
+    exit.start(() => {
+      endSplashImmersive();
+      onDone?.();
     });
   }, [onDone, screenOpacity]);
 
@@ -569,7 +567,12 @@ export default function AnimatedSplash({onDone, appReady = true}) {
   }, [animationDone, appReady, fadeOut]);
 
   useEffect(() => {
-    const hardCap = setTimeout(fadeOut, 14000);
+    const doneCap = setTimeout(() => setAnimationDone(true), 4200);
+    return () => clearTimeout(doneCap);
+  }, []);
+
+  useEffect(() => {
+    const hardCap = setTimeout(fadeOut, 7000);
     return () => clearTimeout(hardCap);
   }, [fadeOut]);
 

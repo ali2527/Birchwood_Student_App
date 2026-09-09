@@ -45,6 +45,10 @@ export interface Child {
   parent: Parent;
   todayAttendance: ChildCheckInOutResponse;
   chats: ChatRoom;
+  allergies?: string[];
+  fears?: string[];
+  conditions?: string[];
+  summary?: string[];
 }
 
 export interface ChatRoom {

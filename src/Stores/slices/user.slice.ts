@@ -63,6 +63,8 @@ export const selectUserProfile = (state: RootState) => state.user.user;
 export const selectUserAttendance = (state: RootState) =>
   state.user.attendance;
 
+export const selectHolidays = (state: RootState) => state.user.holidays;
+
 export const selectHolidaysMonthWise = (monthWithYear: string) =>
   createDraftSafeSelector(
     [(state: RootState) => state.user.holidays],

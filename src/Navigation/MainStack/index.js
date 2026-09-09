@@ -10,7 +10,7 @@ import PersonalInfo from '../../Screens/Auth/PersonalInfo';
 import Education from '../../Screens/Auth/Education';
 import ParentContact from '../../Screens/Auth/ParentContact';
 import Experience from '../../Screens/Auth/Experience';
-import HomeScreen from '../../Screens/HomeScreen';
+import MainTabs from '../MainTabs';
 import Profile from '../../Screens/Profile';
 import AddChild from '../../Screens/AddChild';
 import ChildProfile from '../../Screens/ChildProfile';
@@ -27,6 +27,10 @@ import ActivityScreen from '../../Screens/ActivityScreen';
 import ActivityDetail from '../../Screens/ActivityDetail';
 import EmptyDashboard from '../../Screens/EmptyDashboard';
 import Settings from '../../Screens/Settings';
+import DiaryHomework from '../../Screens/DiaryHomework';
+import Notifications from '../../Screens/Notifications';
+import HelpSupport from '../../Screens/HelpSupport';
+import ChangePassword from '../../Screens/ChangePassword';
 import { useAppSelector } from '../../Stores/hooks';
 import { selectUserToken } from '../../Stores/slices/user.slice';
 
@@ -36,7 +40,11 @@ const MainStack = () => {
   const token = useAppSelector(selectUserToken);
 
   return (
-    <Stack.Navigator screenOptions={NavigationOptions} initialRouteName={routes.navigator.onboard}>
+    <Stack.Navigator
+      screenOptions={NavigationOptions}
+      initialRouteName={
+        token ? routes.navigator.mainTabs : routes.navigator.onboard
+      }>
       {!token ?
         <Stack.Group>
           <Stack.Screen name={routes.navigator.onboard} component={OnBoardScreen} />
@@ -62,7 +70,7 @@ const MainStack = () => {
         </Stack.Group>
         :
         <Stack.Group>
-          <Stack.Screen name={routes.screens.homeScreen} component={HomeScreen} />
+          <Stack.Screen name={routes.navigator.mainTabs} component={MainTabs} />
           <Stack.Screen name={routes.screens.emptyDashboard} component={EmptyDashboard} />
           <Stack.Screen name={routes.navigator.experience} component={Experience} />
           <Stack.Screen name={routes.screens.profile} component={Profile} />
@@ -97,6 +105,22 @@ const MainStack = () => {
             component={ActivityDetail}
           />
           <Stack.Screen name={routes.screens.settings} component={Settings} />
+          <Stack.Screen
+            name={routes.screens.diaryHomework}
+            component={DiaryHomework}
+          />
+          <Stack.Screen
+            name={routes.screens.notifications}
+            component={Notifications}
+          />
+          <Stack.Screen
+            name={routes.screens.helpSupport}
+            component={HelpSupport}
+          />
+          <Stack.Screen
+            name={routes.screens.changePassword}
+            component={ChangePassword}
+          />
         </Stack.Group>
       }
     </Stack.Navigator>

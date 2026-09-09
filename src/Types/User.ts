@@ -165,8 +165,29 @@ export interface Holiday {
   _id: string;
   name: string;
   date: string;
+  title?: string;
+  type?: string;
+  endDate?: string;
+  audience?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface AppNotification {
+  _id: string;
+  title: string;
+  content?: string;
+  isRead?: boolean;
+  type?: string;
+  createdAt: string;
+}
+
+export interface UserNotificationsResponse {
+  docs?: AppNotification[];
+  totalDocs?: number;
+  page?: number;
+  limit?: number;
+  hasNextPage?: boolean;
 }
 
 /** POST children/attendance/markLeave */

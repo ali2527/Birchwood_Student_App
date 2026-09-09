@@ -47,7 +47,7 @@ function App() {
           <AppAlertHost />
           {showSplash ? (
             <AnimatedSplash
-              appReady={rehydrated && navReady}
+              appReady={rehydrated || navReady}
               onDone={onSplashDone}
             />
           ) : null}

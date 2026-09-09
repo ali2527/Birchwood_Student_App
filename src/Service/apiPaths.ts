@@ -22,6 +22,7 @@ export enum ProfileApiPaths {
   getAllHolidays = 'holiday/getAllHolidays',
   assignChild = 'profile/assignChild',
   getMonthlyAttendanceStats = 'teacher/attendance/getMonthlyAttendanceStats',
+  getUserNotifications = 'notification/getUserNotifications',
 }
 
 export enum ClassApiPaths {

@@ -3,6 +3,7 @@ import { DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import { colors } from '../theme/colors';
 
 import MainStack from './MainStack';
+import { navigationRef } from './rootNavigation';
 
 const MyTheme = {
   ...DefaultTheme,
@@ -14,7 +15,7 @@ const MyTheme = {
 
 const MainNavigator = ({onReady}) => {
   return (
-    <NavigationContainer theme={MyTheme} onReady={onReady}>
+    <NavigationContainer ref={navigationRef} theme={MyTheme} onReady={onReady}>
       <MainStack />
     </NavigationContainer>
   );

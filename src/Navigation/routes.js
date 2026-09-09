@@ -1,5 +1,6 @@
 const routes = {
   navigator: {
+    mainTabs: 'MainTabs',
     onboard: 'OnBoard',
     signin: 'SignIn',
     signup: 'SignUP',
@@ -27,6 +28,13 @@ const routes = {
     activityDetail: 'ActivityDetail',
     emptyDashboard: 'EmptyDashboard',
     settings: 'Settings',
+    children: 'Children',
+    schoolCalendar: 'SchoolCalendar',
+    diaryHomework: 'DiaryHomework',
+    notices: 'Notices',
+    notifications: 'Notifications',
+    helpSupport: 'HelpSupport',
+    changePassword: 'ChangePassword',
   },
 };
 

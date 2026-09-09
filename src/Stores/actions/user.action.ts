@@ -22,6 +22,7 @@ import {
   ParentLeaveSubmitInput,
   GetAllChildAttendanceResponse,
   ChildAttendanceRecord,
+  UserNotificationsResponse,
 } from '../../Types/User';
 import { Child, ClassResponse } from '../../Types/Class';
 import { setChildren, setSelectedChild } from '../slices/class.slice';
@@ -687,4 +688,23 @@ export const asyncAssignChild = createAsyncThunk(
     dispatch(setLoading(false));
     return res;
   }
+);
+
+export const asyncGetUserNotifications = createAsyncThunk(
+  'getUserNotifications',
+  async (_, { dispatch }) => {
+    dispatch(setLoading(true));
+    try {
+      const path = `${allApiPaths.getPath(
+        'getUserNotifications',
+      )}?page=1&limit=50` as ApiPaths;
+      const res = await callApi<UserNotificationsResponse>({ path });
+      if (!res?.status) {
+        dispatch(asyncShowError(res.message));
+      }
+      return res;
+    } finally {
+      dispatch(setLoading(false));
+    }
+  },
 );
