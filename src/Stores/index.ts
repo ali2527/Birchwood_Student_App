@@ -5,6 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import ClassSlice from './slices/class.slice';
 import CommonSlice from './slices/common.slice';
 import DiarySlice from './slices/diary.slice';
+import NotificationSlice from './slices/notification.slice';
 import PostSlice from './slices/post.slice';
 import TimeTableSlice from './slices/timeTable.slice';
 import UserSlice from './slices/user.slice';
@@ -16,6 +17,7 @@ const allreducers = combineReducers({
   post: PostSlice,
   diary: DiarySlice,
   timeTable: TimeTableSlice,
+  notification: NotificationSlice,
 });
 
 /** Persist the JWT only when Remember me is on. Session still lives in memory either way. */

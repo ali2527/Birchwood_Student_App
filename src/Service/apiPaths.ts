@@ -23,6 +23,9 @@ export enum ProfileApiPaths {
   assignChild = 'profile/assignChild',
   getMonthlyAttendanceStats = 'teacher/attendance/getMonthlyAttendanceStats',
   getUserNotifications = 'notification/getUserNotifications',
+  getUnreadUserNotifications = 'notification/getUnreadUserNotifications',
+  markNotificationAsRead = 'notification/markAsRead/:id',
+  getActiveAdvertisements = 'advertisement/getActiveAdvertisements',
 }
 
 export enum ClassApiPaths {

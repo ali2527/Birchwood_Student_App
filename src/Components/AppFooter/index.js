@@ -1,9 +1,11 @@
 import React, {memo, useCallback, useMemo, useState} from 'react';
-import {StyleSheet, TouchableOpacity, View} from 'react-native';
+import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Svg, {Path} from 'react-native-svg';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import routes from '../../Navigation/routes';
+import {useAppSelector} from '../../Stores/hooks';
+import {selectUnreadNotificationCount} from '../../Stores/slices/notification.slice';
 import {WIDTH} from '../../theme/units';
 import MoreSheet from '../MoreSheet';
 import {BAR_H, HILL_H, footerPath} from './shape';
@@ -23,12 +25,18 @@ const TABS = [
   {
     key: 'notices',
     icon: 'notifications-outline',
-    screen: routes.screens.notices,
+    screen: routes.screens.notifications,
   },
   {key: 'more', icon: 'settings-outline', screen: null},
 ];
 
-const TabButton = memo(function TabButton({tab, selected, onPress, raised}) {
+const TabButton = memo(function TabButton({
+  tab,
+  selected,
+  onPress,
+  raised,
+  badgeCount,
+}) {
   return (
     <TouchableOpacity
       style={styles.tabItem}
@@ -44,12 +52,19 @@ const TabButton = memo(function TabButton({tab, selected, onPress, raised}) {
           color={selected ? ACTIVE : MUTED}
           allowFontScaling={false}
         />
+        {badgeCount > 0 ? (
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>
+              {badgeCount > 99 ? '99+' : String(badgeCount)}
+            </Text>
+          </View>
+        ) : null}
       </View>
     </TouchableOpacity>
   );
 });
 
-function TabRow({activeKey, onPress, flush}) {
+function TabRow({activeKey, onPress, flush, unreadCount}) {
   return (
     <View style={[styles.row, flush && styles.rowFlush]}>
       {TABS.map((tab, index) => (
@@ -58,6 +73,7 @@ function TabRow({activeKey, onPress, flush}) {
           tab={tab}
           selected={tab.key === activeKey}
           raised={tab.key === 'home' && !flush}
+          badgeCount={tab.key === 'notices' ? unreadCount : 0}
           onPress={() => onPress(tab, index)}
         />
       ))}
@@ -67,6 +83,7 @@ function TabRow({activeKey, onPress, flush}) {
 
 function AppFooter({state, navigation} = {}) {
   const insets = useSafeAreaInsets();
+  const unreadCount = useAppSelector(selectUnreadNotificationCount);
   const [moreOpen, setMoreOpen] = useState(false);
   const [barWidth, setBarWidth] = useState(WIDTH);
   const inset = insets.bottom;
@@ -88,6 +105,15 @@ function AppFooter({state, navigation} = {}) {
       }
       setMoreOpen(false);
       if (!navigation || !tab.screen) {
+        return;
+      }
+      if (tab.screen === routes.screens.notifications) {
+        const parent = navigation.getParent?.();
+        if (parent) {
+          parent.navigate(tab.screen);
+        } else {
+          navigation.navigate(tab.screen);
+        }
         return;
       }
       if (routeIndex === index) {
@@ -116,13 +142,24 @@ function AppFooter({state, navigation} = {}) {
         style={styles.svg}>
         <Path d={d} fill="#FFFFFF" />
       </Svg>
-      <TabRow activeKey={activeKey} onPress={onPress} />
+      <TabRow
+        activeKey={activeKey}
+        onPress={onPress}
+        unreadCount={unreadCount}
+      />
       <MoreSheet
         visible={moreOpen}
         onClose={() => setMoreOpen(false)}
         barWidth={barWidth}
         inset={inset}
-        footer={<TabRow activeKey={activeKey} onPress={onPress} flush />}
+        footer={
+          <TabRow
+            activeKey={activeKey}
+            onPress={onPress}
+            flush
+            unreadCount={unreadCount}
+          />
+        }
       />
     </View>
   );
@@ -174,5 +211,23 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     transform: [{translateY: -8}],
+  },
+  badge: {
+    position: 'absolute',
+    top: -6,
+    right: -10,
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
+    paddingHorizontal: 3,
+    backgroundColor: '#E11D48',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  badgeText: {
+    color: '#FFFFFF',
+    fontSize: 9,
+    fontWeight: '700',
+    includeFontPadding: false,
   },
 });

@@ -33,11 +33,13 @@ import HelpSupport from '../../Screens/HelpSupport';
 import ChangePassword from '../../Screens/ChangePassword';
 import { useAppSelector } from '../../Stores/hooks';
 import { selectUserToken } from '../../Stores/slices/user.slice';
+import useNotificationSocket from '../../Hooks/useNotificationSocket';
 
 const Stack = createNativeStackNavigator();
 
 const MainStack = () => {
   const token = useAppSelector(selectUserToken);
+  useNotificationSocket();
 
   return (
     <Stack.Navigator

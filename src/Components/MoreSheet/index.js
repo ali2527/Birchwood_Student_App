@@ -28,6 +28,11 @@ const MUTED = '#8B93A7';
 
 const ACCOUNT_ITEMS = [
   {label: 'My Profile', icon: 'person-outline', screen: routes.screens.profile},
+  {
+    label: 'Notifications',
+    icon: 'notifications-outline',
+    screen: routes.screens.notifications,
+  },
   {label: 'Settings', icon: 'settings-outline', screen: routes.screens.settings},
 ];
 

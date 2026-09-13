@@ -32,6 +32,7 @@ import {
 } from '../../Stores/slices/class.slice';
 import profile_icon from '../../Assets/images/profile_bg.png';
 import ChildSwitcher from '../../Components/ChildSwitcher';
+import AdSlider from '../../Components/AdSlider';
 
 const NAVY = '#0F1F4B';
 const MUTED = '#8B93A7';
@@ -187,31 +188,35 @@ export default function HomeScreen() {
   return (
     <View style={styles.screen}>
       <StatusBar barStyle="dark-content" backgroundColor={PAGE_BG} />
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{
-            paddingTop: Math.max(insets.top, 10) + 6,
-            paddingBottom: 100 + insets.bottom,
-            flexGrow: 1,
-          }}>
-          <View style={styles.topRow}>
-            <View style={styles.helloWrap}>
-              <Text style={styles.hello} numberOfLines={1}>
-                {greetingWord()}, {parentFirst} 👋
-              </Text>
-              <Text style={styles.helloSub} numberOfLines={1}>
-                A quick look at today.
-              </Text>
-            </View>
-            <ChildSwitcher
-              childList={children}
-              selected={child}
-              onSelect={next => dispatch(setSelectedChild(next))}
-              onAdd={() => go(routes.screens.addChild)}
-            />
-          </View>
+      <View
+        style={[
+          styles.topRow,
+          {paddingTop: Math.max(insets.top, 10) + 6},
+        ]}>
+        <View style={styles.helloWrap}>
+          <Text style={styles.hello} numberOfLines={1}>
+            {greetingWord()}, {parentFirst} 👋
+          </Text>
+          <Text style={styles.helloSub} numberOfLines={1}>
+            A quick look at today.
+          </Text>
+        </View>
+        <ChildSwitcher
+          childList={children}
+          selected={child}
+          onSelect={next => dispatch(setSelectedChild(next))}
+          onAdd={() => go(routes.screens.addChild)}
+        />
+      </View>
 
-          <LinearGradient
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        nestedScrollEnabled
+        contentContainerStyle={{
+          paddingBottom: 100 + insets.bottom,
+          flexGrow: 1,
+        }}>
+        <LinearGradient
             colors={['#0E4F9C', '#1B6FCB']}
             start={{x: 0, y: 0.5}}
             end={{x: 1, y: 0.5}}
@@ -270,6 +275,8 @@ export default function HomeScreen() {
               <Text style={styles.yearValue}>{yearLabel}</Text>
             </View>
           </LinearGradient>
+
+          <AdSlider />
 
           <View style={styles.gridWrap}>
             <View style={styles.grid}>
