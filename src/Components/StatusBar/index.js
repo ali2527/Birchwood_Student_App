@@ -10,11 +10,16 @@ import {
 
 const STATUSBAR_HEIGHT = StatusBar.currentHeight;
 
-const CustomStatusBar = ({backgroundColor, ...props}) => {
+const CustomStatusBar = ({backgroundColor, barStyle = 'dark-content', ...props}) => {
   return (
     <View style={[styles.statusBar, {backgroundColor}]}>
       <SafeAreaView>
-        <StatusBar translucent backgroundColor={backgroundColor} {...props} />
+        <StatusBar
+          translucent
+          backgroundColor={backgroundColor}
+          barStyle={barStyle}
+          {...props}
+        />
       </SafeAreaView>
     </View>
   );

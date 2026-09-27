@@ -1,46 +1,33 @@
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   Animated,
   Easing,
   FlatList,
   Image,
   Modal,
+  PanResponder,
   Pressable,
-  ScrollView,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
 } from 'react-native';
-import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
-import Svg, {Circle} from 'react-native-svg';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {useNavigation} from '@react-navigation/native';
+import Svg, {Circle, Path} from 'react-native-svg';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import fonts from '../../Assets/fonts';
 import profile_icon from '../../Assets/images/profile_bg.png';
+import {HILL_H, raisedBarPath} from '../AppFooter/shape';
+import StudentSheetBody from '../StudentSheetBody';
 import {getImagePath} from '../../Service/axios';
-import {WIDTH} from '../../theme/units';
+import {HEIGHT, WIDTH} from '../../theme/units';
+import {setDrawerOpener} from '../../Utils/openPageDrawer';
+import {attendanceDotColor} from '../../Screens/DailyAttendance/status';
+import routes from '../../Navigation/routes';
 
-const NAVY = '#0F1F4B';
-const MUTED = '#8B93A7';
 const PRIMARY = '#035392';
 const SIZE = 44;
-const DRAWER_W = Math.min(WIDTH * 0.82, 340);
-
-function childName(child) {
-  return `${child?.firstName || ''} ${child?.lastName || ''}`.trim() || 'Child';
-}
-
-function classLabel(classroom) {
-  if (!classroom || typeof classroom === 'string') {
-    return '';
-  }
-  const name = classroom.classroomName || classroom.classroomId || '';
-  const grade = classroom.classroomGrade;
-  if (name && grade) {
-    return `${name} • Grade ${grade}`;
-  }
-  return name || (grade ? `Grade ${grade}` : '');
-}
+const SHEET = '#FFFFFF';
+const SHEET_H = Math.round(HEIGHT * 0.4);
 
 function photoOf(child) {
   return child?.image ? {uri: getImagePath(child.image)} : profile_icon;
@@ -78,16 +65,23 @@ export default function ChildSwitcher({
   selected,
   onSelect,
   onAdd,
+  openOnKey,
 }) {
+  const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const listRef = useRef(null);
   const jumping = useRef(false);
   const lastId = useRef(null);
   const [open, setOpen] = useState(false);
   const [shown, setShown] = useState(false);
-  const drawerX = useRef(new Animated.Value(DRAWER_W)).current;
+  const [barWidth, setBarWidth] = useState(WIDTH);
+  const sheetH = SHEET_H + insets.bottom;
+  const slideY = useRef(new Animated.Value(sheetH)).current;
   const dim = useRef(new Animated.Value(0)).current;
   const pop = useRef(new Animated.Value(1)).current;
+  const slideRef = useRef(sheetH);
+  const dragStart = useRef(0);
+  const atTopRef = useRef(true);
   const list = childList || [];
   const canLoop = list.length > 1;
   const active = selected || list[0] || null;
@@ -163,35 +157,56 @@ export default function ChildSwitcher({
 
   const openPicker = () => setOpen(true);
   const closePicker = () => setOpen(false);
+  const onAvatarPress = () => openPicker();
+
+  useEffect(() => {
+    const id = slideY.addListener(({value}) => {
+      slideRef.current = value;
+    });
+    return () => slideY.removeListener(id);
+  }, [slideY]);
+
+  useEffect(() => {
+    if (!openOnKey) {
+      return undefined;
+    }
+    return setDrawerOpener(openOnKey, openPicker);
+  }, [openOnKey]);
 
   useEffect(() => {
     if (open) {
       setShown(true);
+      atTopRef.current = true;
     }
   }, [open]);
 
+  const snapSheetOpen = useCallback(() => {
+    Animated.parallel([
+      Animated.spring(slideY, {
+        toValue: 0,
+        tension: 68,
+        friction: 11,
+        overshootClamping: true,
+        useNativeDriver: true,
+      }),
+      Animated.timing(dim, {
+        toValue: 1,
+        duration: 180,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [dim, slideY]);
+
   useEffect(() => {
     if (open && shown) {
-      drawerX.setValue(DRAWER_W);
-      Animated.parallel([
-        Animated.spring(drawerX, {
-          toValue: 0,
-          tension: 68,
-          friction: 11,
-          useNativeDriver: true,
-        }),
-        Animated.timing(dim, {
-          toValue: 1,
-          duration: 220,
-          useNativeDriver: true,
-        }),
-      ]).start();
+      slideY.setValue(sheetH);
+      snapSheetOpen();
       return;
     }
     if (!open && shown) {
       Animated.parallel([
-        Animated.timing(drawerX, {
-          toValue: DRAWER_W,
+        Animated.timing(slideY, {
+          toValue: sheetH,
           duration: 240,
           useNativeDriver: true,
         }),
@@ -206,11 +221,97 @@ export default function ChildSwitcher({
         }
       });
     }
-  }, [open, shown, drawerX, dim]);
+  }, [open, shown, slideY, dim, sheetH, snapSheetOpen]);
+
+  const sheetPan = useMemo(
+    () =>
+      PanResponder.create({
+        onStartShouldSetPanResponder: () => false,
+        onMoveShouldSetPanResponder: (_, g) =>
+          g.dy > 4 && Math.abs(g.dy) > Math.abs(g.dx) * 1.05,
+        onMoveShouldSetPanResponderCapture: (_, g) =>
+          atTopRef.current &&
+          g.dy > 6 &&
+          Math.abs(g.dy) > Math.abs(g.dx) * 1.05,
+        onPanResponderTerminationRequest: () => false,
+        onShouldBlockNativeResponder: () => true,
+        onPanResponderGrant: () => {
+          slideY.stopAnimation(value => {
+            dragStart.current = value;
+            slideRef.current = value;
+          });
+        },
+        onPanResponderMove: (_, g) => {
+          const next = Math.max(0, dragStart.current + Math.max(0, g.dy));
+          slideY.setValue(next);
+          dim.setValue(Math.max(0, Math.min(1, 1 - next / sheetH)));
+        },
+        onPanResponderRelease: (_, g) => {
+          const y = slideRef.current;
+          if (y > sheetH * 0.15 || g.vy > 0.55 || g.dy > 56) {
+            closePicker();
+          } else {
+            snapSheetOpen();
+          }
+        },
+        onPanResponderTerminate: () => {
+          if (slideRef.current > sheetH * 0.15) {
+            closePicker();
+          } else {
+            snapSheetOpen();
+          }
+        },
+      }),
+    [dim, sheetH, slideY, snapSheetOpen],
+  );
+
+  // Handle + title: claim once the finger moves down so taps still work
+  const handlePan = useMemo(
+    () =>
+      PanResponder.create({
+        onStartShouldSetPanResponder: () => false,
+        onMoveShouldSetPanResponder: (_, g) =>
+          g.dy > 3 && Math.abs(g.dy) > Math.abs(g.dx),
+        onPanResponderTerminationRequest: () => false,
+        onShouldBlockNativeResponder: () => true,
+        onPanResponderGrant: () => {
+          slideY.stopAnimation(value => {
+            dragStart.current = value;
+            slideRef.current = value;
+          });
+        },
+        onPanResponderMove: (_, g) => {
+          const next = Math.max(0, dragStart.current + Math.max(0, g.dy));
+          slideY.setValue(next);
+          dim.setValue(Math.max(0, Math.min(1, 1 - next / sheetH)));
+        },
+        onPanResponderRelease: (_, g) => {
+          const y = slideRef.current;
+          if (y > sheetH * 0.15 || g.vy > 0.55 || g.dy > 48) {
+            closePicker();
+          } else {
+            snapSheetOpen();
+          }
+        },
+        onPanResponderTerminate: () => {
+          if (slideRef.current > sheetH * 0.15) {
+            closePicker();
+          } else {
+            snapSheetOpen();
+          }
+        },
+      }),
+    [dim, sheetH, slideY, snapSheetOpen],
+  );
+
+  const onSheetScroll = useCallback(event => {
+    atTopRef.current = event.nativeEvent.contentOffset.y <= 2;
+  }, []);
 
   const choose = child => {
     onSelect?.(child);
     closePicker();
+    navigation.navigate(routes.screens.children);
   };
 
   const addMore = () => {
@@ -268,7 +369,7 @@ export default function ChildSwitcher({
   return (
     <>
       {list.length === 0 ? (
-        <EmptyAvatar onPress={openPicker} />
+        <EmptyAvatar onPress={onAvatarPress} />
       ) : (
         <Animated.View style={[styles.pagerShell, {transform: [{scale: pop}]}]}>
           <FlatList
@@ -294,13 +395,20 @@ export default function ChildSwitcher({
             onScrollEndDrag={onPagerEnd}
             renderItem={({item}) => (
               <Pressable
-                onPress={openPicker}
+                onPress={onAvatarPress}
                 style={styles.page}
                 accessibilityRole="button"
-                accessibilityLabel="Switch child">
+                accessibilityLabel="Open child list">
                 <Image source={photoOf(item.child)} style={styles.avatar} />
               </Pressable>
             )}
+          />
+          <View
+            pointerEvents="none"
+            style={[
+              styles.statusDot,
+              {backgroundColor: attendanceDotColor(active)},
+            ]}
           />
         </Animated.View>
       )}
@@ -309,97 +417,68 @@ export default function ChildSwitcher({
         visible={shown}
         transparent
         animationType="none"
-        statusBarTranslucent={false}
+        statusBarTranslucent
         onRequestClose={closePicker}>
-        <SafeAreaView style={styles.modalRoot} edges={['top']}>
-          <View style={styles.stage}>
-            <Pressable style={styles.backdropHit} onPress={closePicker}>
-              <Animated.View style={[styles.dim, {opacity: dim}]} />
-            </Pressable>
-            <View style={styles.drawerSlot} pointerEvents="box-none">
-              <Animated.View
-                style={[
-                  styles.drawer,
-                  {
-                    paddingTop: 12,
-                    paddingBottom: Math.max(insets.bottom, 16),
-                    transform: [{translateX: drawerX}],
-                  },
-                ]}>
-                <View style={styles.drawerHead}>
-                  <Text style={styles.cardTitle}>
-                    {list.length ? 'Children' : 'No children linked'}
-                  </Text>
-                  <TouchableOpacity
-                    onPress={closePicker}
-                    style={styles.closeBtn}
-                    hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}
-                    accessibilityRole="button"
-                    accessibilityLabel="Close">
-                    <Ionicons name="close" size={22} color={NAVY} />
-                  </TouchableOpacity>
-                </View>
-                {list.length ? (
-                  <ScrollView
-                    style={styles.list}
-                    showsVerticalScrollIndicator={false}>
-                    {list.map(child => {
-                      const selectedRow = child._id === active?._id;
-                      const klass = classLabel(child.classroom);
-                      return (
-                        <TouchableOpacity
-                          key={child._id}
-                          style={[
-                            styles.row,
-                            selectedRow && styles.rowSelected,
-                          ]}
-                          onPress={() => choose(child)}
-                          activeOpacity={0.8}>
-                          <Image
-                            source={photoOf(child)}
-                            style={styles.rowPhoto}
-                          />
-                          <View style={styles.rowCopy}>
-                            <Text style={styles.rowName} numberOfLines={1}>
-                              {childName(child)}
-                            </Text>
-                            {klass ? (
-                              <Text style={styles.rowMeta} numberOfLines={1}>
-                                {klass}
-                              </Text>
-                            ) : null}
-                          </View>
-                          {selectedRow ? (
-                            <View style={styles.check}>
-                              <Ionicons
-                                name="checkmark"
-                                size={14}
-                                color="#FFFFFF"
-                              />
-                            </View>
-                          ) : null}
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </ScrollView>
-                ) : (
-                  <Text style={styles.emptyCopy}>
-                    Link a child to personalize Home, attendance and homework.
-                  </Text>
-                )}
-                <TouchableOpacity
-                  style={styles.addBtn}
-                  onPress={addMore}
-                  activeOpacity={0.85}>
-                  <View style={styles.addIcon}>
-                    <Ionicons name="add" size={18} color={PRIMARY} />
-                  </View>
-                  <Text style={styles.addLabel}>Add child</Text>
-                </TouchableOpacity>
-              </Animated.View>
+        <View style={styles.modalRoot}>
+          <Pressable style={styles.backdropHit} onPress={closePicker}>
+            <Animated.View style={[styles.dim, {opacity: dim}]} />
+          </Pressable>
+          <Animated.View
+            style={[
+              styles.sheetDock,
+              {
+                height: sheetH,
+                transform: [{translateY: slideY}],
+              },
+            ]}
+            onLayout={event => {
+              const next = event.nativeEvent.layout.width;
+              if (next && Math.abs(next - barWidth) > 1) {
+                setBarWidth(next);
+              }
+            }}
+            {...sheetPan.panHandlers}>
+            <Svg
+              pointerEvents="none"
+              width={barWidth}
+              height={sheetH}
+              viewBox={`0 0 ${barWidth} ${sheetH}`}
+              style={styles.sheetSvg}>
+              <Path
+                d={raisedBarPath(barWidth, sheetH - HILL_H)}
+                fill={SHEET}
+              />
+            </Svg>
+            <View style={styles.humpBar} {...handlePan.panHandlers}>
+              <View style={styles.dragPill} />
+              <TouchableOpacity
+                style={styles.humpHit}
+                onPress={closePicker}
+                activeOpacity={0.75}
+                accessibilityRole="button"
+                accessibilityLabel="Close child list">
+                <Ionicons name="chevron-down" size={20} color="#C3C8D2" />
+              </TouchableOpacity>
             </View>
-          </View>
-        </SafeAreaView>
+            <StudentSheetBody
+              title="Switch child"
+              subtitle={
+                list.length
+                  ? 'Tap a child to open their profile'
+                  : 'Link a child to get started'
+              }
+              childList={list}
+              activeId={active?._id}
+              onSelectChild={choose}
+              onAdd={addMore}
+              showAddButton={false}
+              scrollEnabled={list.length > 5}
+              headerPanHandlers={handlePan.panHandlers}
+              onScroll={onSheetScroll}
+              style={{paddingBottom: Math.max(insets.bottom, 16)}}
+            />
+          </Animated.View>
+        </View>
       </Modal>
     </>
   );
@@ -409,6 +488,7 @@ const styles = StyleSheet.create({
   pagerShell: {
     width: SIZE,
     height: SIZE,
+    overflow: 'visible',
   },
   pager: {
     width: SIZE,
@@ -430,6 +510,17 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#FFFFFF',
   },
+  statusDot: {
+    position: 'absolute',
+    right: -2,
+    bottom: -2,
+    zIndex: 2,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: '#F4F5F8',
+  },
   avatarSlot: {
     width: SIZE,
     height: SIZE,
@@ -443,10 +534,7 @@ const styles = StyleSheet.create({
   },
   modalRoot: {
     flex: 1,
-  },
-  stage: {
-    flex: 1,
-    overflow: 'hidden',
+    justifyContent: 'flex-end',
   },
   backdropHit: {
     ...StyleSheet.absoluteFillObject,
@@ -455,113 +543,40 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(15, 23, 42, 0.35)',
   },
-  drawerSlot: {
-    ...StyleSheet.absoluteFillObject,
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
+  sheetDock: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    overflow: 'visible',
   },
-  drawer: {
-    width: DRAWER_W,
-    height: '100%',
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 8,
+  sheetSvg: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
   },
-  drawerHead: {
-    flexDirection: 'row',
+  humpBar: {
+    height: HILL_H,
+    width: '100%',
     alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingBottom: 12,
+    justifyContent: 'flex-start',
+    overflow: 'visible',
+    backgroundColor: 'transparent',
   },
-  closeBtn: {
+  dragPill: {
+    position: 'absolute',
+    top: 10,
     width: 36,
-    height: 36,
-    borderRadius: 18,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#D6DAE3',
+  },
+  humpHit: {
+    height: HILL_H,
+    width: 64,
+    paddingTop: 8,
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#F3F6FB',
-  },
-  cardTitle: {
-    flex: 1,
-    fontFamily: fonts.euclidCircularA.semiBold,
-    fontSize: 20,
-    color: NAVY,
-  },
-  list: {
-    flex: 1,
-  },
-  emptyCopy: {
-    paddingHorizontal: 10,
-    paddingBottom: 8,
-    fontFamily: fonts.euclidCircularA.regular,
-    fontSize: 13,
-    lineHeight: 19,
-    color: MUTED,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    marginHorizontal: 8,
-    borderRadius: 14,
-  },
-  rowSelected: {
-    backgroundColor: '#F3F6FB',
-  },
-  rowPhoto: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#E8EEF5',
-  },
-  rowCopy: {
-    flex: 1,
-    marginLeft: 12,
-    minWidth: 0,
-  },
-  rowName: {
-    fontFamily: fonts.euclidCircularA.medium,
-    fontSize: 15,
-    color: NAVY,
-  },
-  rowMeta: {
-    marginTop: 2,
-    fontFamily: fonts.euclidCircularA.regular,
-    fontSize: 12,
-    color: MUTED,
-  },
-  check: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: PRIMARY,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  addBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 6,
-    marginHorizontal: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#E5E7EB',
-  },
-  addIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    borderWidth: 1.4,
-    borderStyle: 'dashed',
-    borderColor: PRIMARY,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  addLabel: {
-    marginLeft: 12,
-    fontFamily: fonts.euclidCircularA.medium,
-    fontSize: 15,
-    color: PRIMARY,
+    justifyContent: 'flex-start',
+    zIndex: 2,
   },
 });

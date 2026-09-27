@@ -1,111 +1,295 @@
-import { StyleSheet } from 'react-native';
-import { vh, vw } from '../../theme/units';
-import { colors } from '../../theme/colors';
+import {StyleSheet} from 'react-native';
+import fonts from '../../Assets/fonts';
+
+const NAVY = '#0F1F4B';
+const MUTED = '#8B93A7';
+const PAGE = '#F4F5F8';
 
 export const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
-    padding: vh * 2,
-    backgroundColor: colors.theme.white,
+    backgroundColor: PAGE,
   },
-  childBadge: {
+  flex: {
+    flex: 1,
+  },
+  header: {
     flexDirection: 'row',
+    alignItems: 'flex-start',
+    paddingLeft: 8,
+    paddingRight: 18,
+    paddingBottom: 12,
+  },
+  switcher: {
+    marginLeft: 12,
+  },
+  backBtn: {
+    width: 40,
+    height: 40,
     alignItems: 'center',
-    backgroundColor: colors.theme.lightGray + '40',
-    padding: 12,
-    borderRadius: 10,
-    marginBottom: 15,
+    justifyContent: 'center',
+    marginBottom: 2,
   },
-  childLabel: {
+  headerCopy: {
+    flex: 1,
+    minWidth: 0,
+    paddingBottom: 2,
+  },
+  eyebrow: {
+    fontFamily: fonts.euclidCircularA.medium,
+    fontSize: 13,
+    color: MUTED,
+  },
+  headerTitle: {
+    marginTop: 2,
+    fontFamily: fonts.euclidCircularA.semiBold,
+    fontSize: 32,
+    letterSpacing: -0.6,
+    color: '#035392',
+  },
+  tabs: {
+    flexDirection: 'row',
+    gap: 8,
+    marginHorizontal: 18,
+    marginBottom: 12,
+  },
+  tab: {
+    flex: 1,
+    height: 38,
+    borderRadius: 999,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tabOn: {
+    backgroundColor: '#035392',
+  },
+  tabText: {
+    fontFamily: fonts.euclidCircularA.medium,
+    fontSize: 14,
+    color: NAVY,
+  },
+  tabTextOn: {
+    color: '#FFFFFF',
+  },
+  scroll: {
+    paddingHorizontal: 18,
+    paddingTop: 2,
+    paddingBottom: 36,
+  },
+  hero: {
+    borderRadius: 22,
+    paddingHorizontal: 18,
+    paddingVertical: 18,
+    marginBottom: 12,
+  },
+  heroKicker: {
+    fontFamily: fonts.euclidCircularA.medium,
+    fontSize: 13,
+    color: '#D6E6F5',
+  },
+  heroTitle: {
+    marginTop: 4,
+    fontFamily: fonts.euclidCircularA.semiBold,
+    fontSize: 22,
+    letterSpacing: -0.4,
+    color: '#FFFFFF',
+  },
+  heroMeta: {
+    marginTop: 6,
+    fontFamily: fonts.euclidCircularA.medium,
+    fontSize: 14,
+    color: '#FFFFFF',
+  },
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 22,
+    paddingHorizontal: 12,
+    paddingTop: 14,
+    paddingBottom: 8,
+    marginBottom: 12,
+  },
+  kicker: {
+    paddingHorizontal: 6,
+    fontFamily: fonts.euclidCircularA.semiBold,
+    fontSize: 11,
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+    color: MUTED,
+  },
+  monthTitle: {
+    fontFamily: fonts.euclidCircularA.semiBold,
     fontSize: 16,
-    color: colors.text.black,
-    fontFamily: 'Glory-Medium',
+    color: NAVY,
   },
-  childName: {
-    fontSize: 16,
-    color: colors.theme.primary,
+  dayText: {
+    fontFamily: fonts.euclidCircularA.medium,
+    fontSize: 14,
+    color: NAVY,
   },
-  calendarContainer: {
-    backgroundColor: '#fff',
-    borderRadius: 15,
-    padding: 10,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    marginBottom: 20,
+  todayText: {
+    color: '#035392',
+    fontFamily: fonts.euclidCircularA.semiBold,
   },
-  formContainer: {
-    paddingHorizontal: 5,
+  rangeDay: {
+    backgroundColor: '#B7D4EE',
   },
-  inputGroup: {
-    marginBottom: 20,
+  chips: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    paddingHorizontal: 6,
+    paddingTop: 12,
   },
-  label: {
-    fontSize: 16,
-    color: colors.text.black,
-    fontFamily: 'Glory-Bold',
+  chip: {
+    height: 34,
+    paddingHorizontal: 14,
+    borderRadius: 999,
+    backgroundColor: '#E7F1FA',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  chipOn: {
+    backgroundColor: '#035392',
+  },
+  chipText: {
+    fontFamily: fonts.euclidCircularA.medium,
+    fontSize: 13,
+    color: '#035392',
+  },
+  chipTextOn: {
+    color: '#FFFFFF',
+  },
+  note: {
+    marginTop: 12,
+    marginHorizontal: 6,
     marginBottom: 8,
-  },
-  reasonInput: {
-    backgroundColor: '#F8F9FA',
-    borderRadius: 10,
-    height: vh * 15,
+    minHeight: 88,
+    borderRadius: 16,
+    backgroundColor: '#F4F5F8',
+    paddingHorizontal: 14,
+    paddingTop: 12,
+    paddingBottom: 12,
     textAlignVertical: 'top',
-    paddingTop: 10,
+    fontFamily: fonts.euclidCircularA.regular,
+    fontSize: 15,
+    color: NAVY,
   },
-  buttonContainer: {
-    marginTop: 20,
+  submit: {
+    height: 52,
+    borderRadius: 16,
+    backgroundColor: '#035392',
     alignItems: 'center',
-    marginBottom: 40,
+    justifyContent: 'center',
+    marginBottom: 22,
   },
-  historyContainer: {
-    marginTop: 10,
-    backgroundColor: '#F1F3F5',
-    padding: 15,
-    borderRadius: 20,
-    marginBottom: 40,
+  submitText: {
+    fontFamily: fonts.euclidCircularA.semiBold,
+    fontSize: 16,
+    color: '#FFFFFF',
   },
-  historyTitle: {
-    fontSize: 18,
-    marginBottom: 15,
-    color: colors.text.black,
+  loader: {
+    marginTop: 28,
+  },
+  emptyCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 22,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+  },
+  emptyIcon: {
+    width: 58,
+    height: 58,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#035392',
+  },
+  emptyCopy: {
+    flex: 1,
+    minWidth: 0,
+    paddingTop: 4,
+  },
+  emptyTitle: {
+    fontFamily: fonts.euclidCircularA.semiBold,
+    fontSize: 16,
+    letterSpacing: -0.2,
+    color: NAVY,
+  },
+  emptyBody: {
+    marginTop: 4,
+    fontFamily: fonts.euclidCircularA.regular,
+    fontSize: 13,
+    lineHeight: 18,
+    color: MUTED,
   },
   historyCard: {
-    backgroundColor: colors.theme.white,
-    borderRadius: 15,
-    padding: 15,
-    marginBottom: 10,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 22,
+    marginBottom: 12,
+    overflow: 'hidden',
   },
-  historyHeader: {
+  historyRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    gap: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+  },
+  dateBox: {
+    width: 58,
+    borderRadius: 16,
     alignItems: 'center',
-    marginBottom: 8,
+    justifyContent: 'flex-start',
+    paddingTop: 8,
+    paddingBottom: 8,
+    backgroundColor: '#035392',
   },
-  historyDate: {
-    fontSize: 14,
-    color: colors.text.black,
-    fontFamily: 'Glory-Bold',
+  dateDay: {
+    fontFamily: fonts.euclidCircularA.semiBold,
+    fontSize: 22,
+    letterSpacing: -0.4,
+    color: '#FFFFFF',
   },
-  statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  statusText: {
+  dateMonth: {
+    marginTop: -2,
+    fontFamily: fonts.euclidCircularA.medium,
     fontSize: 12,
-    fontFamily: 'Glory-Bold',
+    textTransform: 'uppercase',
+    color: '#FFFFFF',
   },
-  historyReason: {
-    fontSize: 14,
-    color: colors.text.grey,
-    fontFamily: 'Glory-Regular',
+  historyBody: {
+    flex: 1,
+    minWidth: 0,
+  },
+  historyKicker: {
+    fontFamily: fonts.euclidCircularA.semiBold,
+    fontSize: 11,
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+    color: '#035392',
+  },
+  historyTitle: {
+    marginTop: 4,
+    fontFamily: fonts.euclidCircularA.semiBold,
+    fontSize: 16,
+    letterSpacing: -0.2,
+    color: NAVY,
+  },
+  historyWhen: {
+    marginTop: 4,
+    fontFamily: fonts.euclidCircularA.semiBold,
+    fontSize: 13,
+    color: NAVY,
+  },
+  historyNote: {
+    marginTop: 6,
+    fontFamily: fonts.euclidCircularA.regular,
+    fontSize: 13,
+    lineHeight: 18,
+    color: '#3E4658',
   },
 });

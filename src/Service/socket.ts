@@ -5,6 +5,12 @@ export const SOCKET_EVENTS = {
   CONNECTED: 'connected',
   NOTIFICATION_NEW: 'notification:new',
   NOTIFICATION_READ: 'notification:read',
+  NOTIFICATION_DELETED: 'notification:deleted',
+  SUPPORT_TICKET_NEW: 'support:ticket:new',
+  SUPPORT_TICKET_UPDATED: 'support:ticket:updated',
+  SUPPORT_MESSAGE_NEW: 'support:message:new',
+  SUPPORT_JOIN: 'support:join',
+  SUPPORT_LEAVE: 'support:leave',
 };
 
 let socket = null;

@@ -8,9 +8,13 @@ import {
   RawAxiosRequestHeaders,
 } from 'axios';
 import { axios, axiosPrivate } from './axios';
-import { ResponseCallback, responseCallback } from './responseCallback';
+import {
+  ResponseCallback,
+  responseCallback,
+} from './responseCallback';
 
-import { persistor, store } from '../Stores';
+import { persistAuthSession, persistor, store } from '../Stores';
+import { resetUserState } from '../Stores/slices/user.slice';
 import { ApiPaths } from './apiPaths';
 
 axiosPrivate.interceptors.request.use(config => {
@@ -56,7 +60,7 @@ export const callApi = async <RT, T = undefined>({
 
   if (isFormData) {
     headers = {
-      'Content-Type': 'multipart/form-data',
+      Accept: 'application/json',
     };
   }
 
@@ -68,7 +72,9 @@ export const callApi = async <RT, T = undefined>({
     if (userToken) {
       headers.Authorization = `Bearer ${userToken}`;
     } else {
-      return { status: false, message: 'Please sign in to continue.' };
+      store.dispatch(resetUserState());
+      await persistAuthSession();
+      return { status: false, message: 'Token Expired, Signing you out!' };
     }
   }
 
@@ -88,10 +94,11 @@ export const callApi = async <RT, T = undefined>({
       if (error.response) {
         return responseCallback<RT>(error.response);
       }
+      // Offline / unreachable — keep the session; surface a soft error.
       if (error.request) {
         return {
           status: false,
-          message: error.message || 'Network error',
+          message: 'No response from server. Check your connection and try again.',
           data: undefined,
         };
       }

@@ -24,7 +24,7 @@ import {
   ChildAttendanceRecord,
 } from '../../Types/User';
 import { Child, ClassResponse } from '../../Types/Class';
-import { setChildren, setSelectedChild } from '../slices/class.slice';
+import { setChild, setChildren, setSelectedChild } from '../slices/class.slice';
 import { setLoading } from '../slices/common.slice';
 import {
   resetUserState,
@@ -219,9 +219,9 @@ export const asyncGetUserProfile = createAsyncThunk(
     if (!res.status) {
       dispatch(asyncShowError(res.message));
     } else {
-      if (res.data?._id) {
-        let { classroom, ...teacher } = res.data ?? {}
-        // Map fatherFirstName/lastName to firstName/lastName for consistency if needed
+      const raw = res.data && typeof res.data === 'object' ? res.data : {};
+      if (raw._id) {
+        const {classroom, ...teacher} = raw;
         const userData = {
           ...teacher,
           firstName: teacher.fatherFirstName || teacher.firstName || '',
@@ -238,8 +238,11 @@ export const asyncGetUserProfile = createAsyncThunk(
 
 export const asyncGetAllMyChildren = createAsyncThunk(
   'profile/getAllMyChildren',
-  async (_, { dispatch, getState }) => {
-    dispatch(setLoading(true));
+  async (options: { silent?: boolean } | undefined, { dispatch, getState }) => {
+    const silent = options?.silent === true;
+    if (!silent) {
+      dispatch(setLoading(true));
+    }
     const res = await callApi<ClassResponse | Child[] | { children?: Child[] }>({
       path: allApiPaths.getPath('getAllMyChildren'),
     });
@@ -263,7 +266,9 @@ export const asyncGetAllMyChildren = createAsyncThunk(
       dispatch(setSelectedChild(next));
     }
 
-    dispatch(setLoading(false));
+    if (!silent) {
+      dispatch(setLoading(false));
+    }
     return res;
   }
 );
@@ -274,7 +279,10 @@ export const asyncUpdateProfile = createAsyncThunk(
     dispatch(setLoading(true));
 
     // Check if data is FormData (for image upload) or regular object (for profile update)
-    const isFormData = data instanceof FormData;
+    const isFormData =
+      typeof FormData !== 'undefined' &&
+      !!data &&
+      typeof (data as FormData).append === 'function';
 
     const res = await callApi<User, FormData | Record<string, any>>({
       method: 'POST',
@@ -394,6 +402,78 @@ export const asyncCheckOutUser = createAsyncThunk(
   }
 );
 
+async function postChildDay(
+  path: 'checkIn' | 'checkOut' | 'markLeave',
+  body: Record<string, string>,
+  dispatch: any
+) {
+  const res = await callApi({
+    method: 'POST',
+    path: allApiPaths.getPath(path),
+    body,
+  });
+  if (!res?.status) {
+    dispatch(asyncShowError(res?.message || 'Could not update attendance'));
+    return res;
+  }
+  await dispatch(asyncGetAllMyChildren({ silent: true }));
+  return res;
+}
+
+export const asyncMarkChildPresent = createAsyncThunk(
+  'markChildPresent',
+  async (childId: string, { dispatch }) => {
+    return postChildDay(
+      'checkIn',
+      {
+        children: childId,
+        markedBy: 'PARENT',
+        checkIn: new Date().toISOString(),
+      },
+      dispatch
+    );
+  }
+);
+
+export const asyncMarkChildPickup = createAsyncThunk(
+  'markChildPickup',
+  async (payload: string | { childId: string; pickupReason?: string }, { dispatch }) => {
+    const childId = typeof payload === 'string' ? payload : payload.childId;
+    const pickupReason = typeof payload === 'string' ? '' : String(payload.pickupReason || '').trim();
+    return postChildDay(
+      'checkOut',
+      {
+        children: childId,
+        markedBy: 'PARENT',
+        checkIn: new Date().toISOString(),
+        pickupReason,
+      },
+      dispatch
+    );
+  }
+);
+
+export const asyncMarkChildDayLeave = createAsyncThunk(
+  'markChildDayLeave',
+  async (payload: { childId: string; leaveReason: string }, { dispatch }) => {
+    const leaveReason = String(payload.leaveReason || '').trim();
+    if (!leaveReason) {
+      dispatch(asyncShowError('Add a reason for the leave.'));
+      return { status: false, message: 'Add a reason for the leave.' };
+    }
+    return postChildDay(
+      'markLeave',
+      {
+        children: payload.childId,
+        markedBy: 'PARENT',
+        leaveReason,
+        checkIn: new Date().toISOString(),
+      },
+      dispatch
+    );
+  }
+);
+
 function coerceToDate(value: unknown): Date | null {
   if (value == null) return null;
   if (value instanceof Date && !Number.isNaN(value.getTime())) {
@@ -489,10 +569,14 @@ export const asyncUserLeave = createAsyncThunk(
         ReturnType<typeof callApi<{ todayAttendance: UserCheckInOutLeave }, MarkChildLeaveBody>>
       > | null = null;
 
+      const note = String(data.reason || '').trim();
+      const kind = String(data.leaveType || 'Leave').trim();
+      const leaveReason = note ? `${kind} · ${note}` : kind;
+
       for (const ymd of dayKeys) {
         const body: MarkChildLeaveBody = {
           children: data.children,
-          leaveReason: data.leaveType,
+          leaveReason,
           checkIn: `${ymd}T08:00:00.000Z`,
           markedBy: 'PARENT',
         };
@@ -532,7 +616,9 @@ export const asyncUserLeave = createAsyncThunk(
 /** Fetches all pages of child attendance for calendar (parent app). */
 export const asyncGetAllChildAttendance = createAsyncThunk(
   'getAllChildAttendance',
-  async (childId: string, { dispatch }) => {
+  async (arg: string | { childId: string; silent?: boolean }, { dispatch }) => {
+    const childId = typeof arg === 'string' ? arg : arg?.childId;
+    const silent = typeof arg === 'string' ? false : Boolean(arg?.silent);
     if (!childId?.trim()) {
       dispatch(
         setUserAttendance({
@@ -543,7 +629,9 @@ export const asyncGetAllChildAttendance = createAsyncThunk(
       return { status: false, message: 'No child selected' };
     }
 
-    dispatch(setLoading(true));
+    if (!silent) {
+      dispatch(setLoading(true));
+    }
     try {
       const allDocs: ChildAttendanceRecord[] = [];
       let page = 1;
@@ -596,19 +684,34 @@ export const asyncGetAllChildAttendance = createAsyncThunk(
       );
       return { status: true, message: '', data: { docs: allDocs } };
     } finally {
-      dispatch(setLoading(false));
+      if (!silent) {
+        dispatch(setLoading(false));
+      }
     }
   }
 );
 
 export const asyncUserMonthlyAttendance = createAsyncThunk(
   'monthlyAttendance',
-  async ({ month, year }: any, { dispatch, getState }) => {
+  async (
+    { month, year, childId }: { month: number | string; year: number | string; childId?: string },
+    { dispatch, getState },
+  ) => {
     dispatch(setLoading(true));
     try {
+      const state = getState() as RootState;
+      const selectedChildId =
+        childId ||
+        (state.class as any)?.selectedChild?._id ||
+        (state.user as any)?.selectedChild?._id;
+      if (!selectedChildId) {
+        return { status: false, message: 'No child selected' };
+      }
+
       const res = await callApi<UserAttendanceResponse>({
-        path: (allApiPaths.getPath('getMonthlyAttendanceStats') +
-          `?month=${month}&year=${year}`) as ApiPaths,
+        path: (allApiPaths.getPath('getMonthlyAttendanceStats', {
+          childId: selectedChildId,
+        }) + `?month=${month}&year=${year}`) as ApiPaths,
       });
 
       if (!res?.status) {
@@ -624,35 +727,45 @@ export const asyncUserMonthlyAttendance = createAsyncThunk(
           setUserAttendance({
             ...prev,
             ...incoming,
-            attendance:
-              incomingDocs.length > 0 ? incomingDocs : prevDocs,
-          } as UserAttendance)
+            attendance: incomingDocs.length > 0 ? incomingDocs : prevDocs,
+          } as UserAttendance),
         );
       }
       return res;
     } finally {
       dispatch(setLoading(false));
     }
-  }
+  },
 );
 
 export const asyncGetAllHolidays = createAsyncThunk(
   'getAllHolidays',
-  async (_, { dispatch }) => {
-    dispatch(setLoading(true));
+  async (options: { silent?: boolean } | undefined, { dispatch }) => {
+    const silent = Boolean(options?.silent);
+    if (!silent) {
+      dispatch(setLoading(true));
+    }
     try {
       const res = await callApi<{ holidays: Holiday[] }>({
-        path: allApiPaths.getPath('getAllHolidays')
+        path: allApiPaths.getPath('getAllHolidays'),
+        headers: {
+          'Cache-Control': 'no-cache',
+          Pragma: 'no-cache',
+        },
+        options: { params: { _: Date.now() } },
       });
 
-      if (!res?.status) {
-        dispatch(asyncShowError(res.message));
-      } else {
-        dispatch(setHolidays(res.data?.holidays!));
+      const holidays = res.data?.holidays;
+      if (res?.status && Array.isArray(holidays)) {
+        dispatch(setHolidays(holidays));
+      } else if (!res?.status && res?.message !== 'Restoring your session...') {
+        dispatch(asyncShowError(res.message || 'Could not load the school calendar'));
       }
       return res;
     } finally {
-      dispatch(setLoading(false));
+      if (!silent) {
+        dispatch(setLoading(false));
+      }
     }
   }
 );
@@ -670,10 +783,15 @@ export const asyncAssignChild = createAsyncThunk(
   async (data: any, { dispatch }) => {
     dispatch(setLoading(true));
 
+    const body = {
+      rollNumber: String(data?.rollNumber || data?.rollNo || '').trim(),
+      birthday: data?.birthday || data?.dob,
+    };
+
     const res = await callApi<any, any>({
       method: 'POST',
       path: allApiPaths.getPath('assignChild'),
-      body: data,
+      body,
     });
 
     if (!res?.status) {
@@ -687,4 +805,44 @@ export const asyncAssignChild = createAsyncThunk(
     dispatch(setLoading(false));
     return res;
   }
+);
+
+export const asyncUpdateChildHealth = createAsyncThunk(
+  'updateChildHealth',
+  async (
+    data:
+      | FormData
+      | {
+          childId: string;
+          allergies?: string;
+          fears?: string;
+          conditions?: string;
+          summary?: string;
+        },
+    { dispatch },
+  ) => {
+    dispatch(setLoading(true));
+    const isFormData =
+      typeof FormData !== 'undefined' &&
+      typeof (data as FormData).append === 'function';
+    try {
+      const res = await callApi<{ child: Child }, typeof data>({
+        method: 'POST',
+        path: allApiPaths.getPath('updateChildHealth'),
+        body: data,
+        isFormData,
+      });
+
+      if (!res?.status) {
+        dispatch(asyncShowError(res.message));
+      } else if (res.data?.child) {
+        dispatch(setChild(res.data.child));
+        dispatch(setSelectedChild(res.data.child));
+        dispatch(asyncShowSuccess(res.message || 'Student updated'));
+      }
+      return res;
+    } finally {
+      dispatch(setLoading(false));
+    }
+  },
 );

@@ -19,7 +19,9 @@ const PAD = 18;
 const GAP = 12;
 const SLIDE_W = WIDTH - PAD * 2;
 const SLIDE_H = Math.round(SLIDE_W * 0.52);
+const STEP = SLIDE_W + GAP;
 const AUTO_MS = 4500;
+const LOOP_COPIES = 3;
 
 function resolveImage(image) {
   if (!image) {
@@ -31,14 +33,31 @@ function resolveImage(image) {
   return image;
 }
 
+function loopedSlides(items) {
+  if (items.length < 2) {
+    return items.map((item, i) => ({
+      ...item,
+      _loopKey: String(item.id || item._id || i),
+    }));
+  }
+  return Array.from({length: LOOP_COPIES}, (_, copy) =>
+    items.map((item, i) => ({
+      ...item,
+      _loopKey: `${copy}-${item.id || item._id || i}`,
+    })),
+  ).flat();
+}
+
 export default function AdSlider({ads, onPressAd}) {
   const listRef = useRef(null);
   const indexRef = useRef(0);
-  const [index, setIndex] = useState(0);
   const [lightbox, setLightbox] = useState(null);
   const [items, setItems] = useState(() =>
     Array.isArray(ads) && ads.length ? ads : [],
   );
+  const looping = items.length > 1;
+  const slides = loopedSlides(items);
+  const startIndex = looping ? items.length : 0;
 
   useEffect(() => {
     if (Array.isArray(ads)) {
@@ -74,27 +93,64 @@ export default function AdSlider({ads, onPressAd}) {
   }, [ads]);
 
   useEffect(() => {
-    if (items.length < 2 || lightbox) {
+    indexRef.current = startIndex;
+    if (!looping) {
+      return undefined;
+    }
+    requestAnimationFrame(() => {
+      listRef.current?.scrollToOffset({
+        offset: startIndex * STEP,
+        animated: false,
+      });
+    });
+  }, [items.length, looping, startIndex]);
+
+  useEffect(() => {
+    if (!looping || lightbox) {
       return undefined;
     }
     const timer = setInterval(() => {
-      const next = (indexRef.current + 1) % items.length;
-      indexRef.current = next;
-      setIndex(next);
+      const next = indexRef.current + 1;
+      const wrapAt = items.length * (LOOP_COPIES - 1);
       listRef.current?.scrollToOffset({
-        offset: next * (SLIDE_W + GAP),
+        offset: next * STEP,
         animated: true,
       });
+      if (next >= wrapAt) {
+        const middle = items.length + (next % items.length);
+        indexRef.current = middle;
+        setTimeout(() => {
+          listRef.current?.scrollToOffset({
+            offset: middle * STEP,
+            animated: false,
+          });
+        }, 350);
+      } else {
+        indexRef.current = next;
+      }
     }, AUTO_MS);
     return () => clearInterval(timer);
-  }, [items.length, lightbox]);
+  }, [looping, lightbox, items.length]);
+
+  const snapToLoop = rawIndex => {
+    if (!looping) {
+      indexRef.current = 0;
+      return;
+    }
+    const real = ((rawIndex % items.length) + items.length) % items.length;
+    const middle = items.length + real;
+    indexRef.current = middle;
+    if (rawIndex !== middle) {
+      listRef.current?.scrollToOffset({
+        offset: middle * STEP,
+        animated: false,
+      });
+    }
+  };
 
   const onScrollEnd = event => {
-    const x = event.nativeEvent.contentOffset.x;
-    const next = Math.round(x / (SLIDE_W + GAP));
-    const clamped = Math.max(0, Math.min(items.length - 1, next));
-    indexRef.current = clamped;
-    setIndex(clamped);
+    const raw = Math.round(event.nativeEvent.contentOffset.x / STEP);
+    snapToLoop(raw);
   };
 
   const openAd = item => {
@@ -124,21 +180,23 @@ export default function AdSlider({ads, onPressAd}) {
     <View style={styles.wrap}>
       <FlatList
         ref={listRef}
-        data={items}
-        keyExtractor={item => String(item.id || item._id)}
+        data={slides}
+        keyExtractor={item => item._loopKey}
         horizontal
         showsHorizontalScrollIndicator={false}
         decelerationRate="fast"
-        snapToInterval={SLIDE_W + GAP}
+        snapToInterval={STEP}
         snapToAlignment="start"
         disableIntervalMomentum
+        initialScrollIndex={startIndex}
         contentContainerStyle={styles.list}
         getItemLayout={(_, i) => ({
-          length: SLIDE_W + GAP,
-          offset: (SLIDE_W + GAP) * i,
+          length: STEP,
+          offset: STEP * i,
           index: i,
         })}
         onMomentumScrollEnd={onScrollEnd}
+        onScrollEndDrag={onScrollEnd}
         renderItem={({item}) => {
           const source = resolveImage(item.image);
           return (
@@ -162,16 +220,6 @@ export default function AdSlider({ads, onPressAd}) {
           );
         }}
       />
-      {items.length > 1 ? (
-        <View style={styles.dots}>
-          {items.map((item, i) => (
-            <View
-              key={String(item.id || item._id)}
-              style={[styles.dot, i === index && styles.dotActive]}
-            />
-          ))}
-        </View>
-      ) : null}
 
       <Modal
         visible={Boolean(lightbox)}
@@ -242,23 +290,6 @@ const styles = StyleSheet.create({
   },
   imageFallback: {
     backgroundColor: '#C5CEDC',
-  },
-  dots: {
-    marginTop: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  dot: {
-    width: 7,
-    height: 7,
-    borderRadius: 4,
-    marginHorizontal: 3,
-    backgroundColor: '#D0D6E2',
-  },
-  dotActive: {
-    width: 18,
-    backgroundColor: '#035392',
   },
   lightbox: {
     flex: 1,

@@ -7,8 +7,11 @@ import {
 } from '../../Types/User';
 import {
   setNotifications,
+  setNotices,
   setNotificationReadState,
   setUnreadCount,
+  setUnreadNoticeCount,
+  removeNotification,
 } from '../slices/notification.slice';
 
 function pickDocs(payload: any): AppNotification[] {
@@ -30,7 +33,7 @@ export const asyncGetUserNotifications = createAsyncThunk(
     try {
       const path = `${allApiPaths.getPath(
         'getUserNotifications',
-      )}?page=1&limit=50` as ApiPaths;
+      )}?page=1&limit=50&kind=inbox` as ApiPaths;
       const res = await callApi<UserNotificationsResponse>({path});
       if (res?.status) {
         const docs = pickDocs(res?.data ?? res);
@@ -44,11 +47,33 @@ export const asyncGetUserNotifications = createAsyncThunk(
   },
 );
 
+export const asyncGetUserNotices = createAsyncThunk(
+  'notification/getUserNotices',
+  async (_, {dispatch}) => {
+    try {
+      const path = `${allApiPaths.getPath(
+        'getUserNotifications',
+      )}?page=1&limit=50&kind=notice` as ApiPaths;
+      const res = await callApi<UserNotificationsResponse>({path});
+      if (res?.status) {
+        const docs = pickDocs(res?.data ?? res);
+        dispatch(setNotices(docs));
+      }
+      return res;
+    } catch (error) {
+      console.log('getUserNotices failed', error);
+      throw error;
+    }
+  },
+);
+
 export const asyncGetUnreadUserNotifications = createAsyncThunk(
   'notification/getUnreadUserNotifications',
   async (_, {dispatch}) => {
     try {
-      const path = allApiPaths.getPath('getUnreadUserNotifications') as ApiPaths;
+      const path = `${allApiPaths.getPath(
+        'getUnreadUserNotifications',
+      )}?kind=inbox` as ApiPaths;
       const res = await callApi<{
         count?: number;
         totalUnreadCount?: number;
@@ -62,6 +87,31 @@ export const asyncGetUnreadUserNotifications = createAsyncThunk(
       return res;
     } catch (error) {
       console.log('getUnreadUserNotifications failed', error);
+      throw error;
+    }
+  },
+);
+
+export const asyncGetUnreadUserNotices = createAsyncThunk(
+  'notification/getUnreadUserNotices',
+  async (_, {dispatch}) => {
+    try {
+      const path = `${allApiPaths.getPath(
+        'getUnreadUserNotifications',
+      )}?kind=notice` as ApiPaths;
+      const res = await callApi<{
+        count?: number;
+        totalUnreadCount?: number;
+        notifications?: AppNotification[];
+      }>({path});
+      if (res?.status) {
+        const count =
+          res?.data?.totalUnreadCount ?? res?.data?.count ?? 0;
+        dispatch(setUnreadNoticeCount(Number(count) || 0));
+      }
+      return res;
+    } catch (error) {
+      console.log('getUnreadUserNotices failed', error);
       throw error;
     }
   },
@@ -83,6 +133,23 @@ export const asyncMarkNotificationRead = createAsyncThunk(
     });
     if (res?.status) {
       dispatch(setNotificationReadState({id, isRead}));
+    }
+    return res;
+  },
+);
+
+export const asyncDeleteUserNotification = createAsyncThunk(
+  'notification/deleteUserNotification',
+  async ({id}: {id: string}, {dispatch}) => {
+    const path = allApiPaths.getPath('deleteUserNotification', {
+      id,
+    }) as ApiPaths;
+    const res = await callApi({
+      path,
+      method: 'POST',
+    });
+    if (res?.status) {
+      dispatch(removeNotification(id));
     }
     return res;
   },

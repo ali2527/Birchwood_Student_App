@@ -9,6 +9,7 @@ import NotificationSlice from './slices/notification.slice';
 import PostSlice from './slices/post.slice';
 import TimeTableSlice from './slices/timeTable.slice';
 import UserSlice from './slices/user.slice';
+import ModulesSlice from './slices/modules.slice';
 
 const allreducers = combineReducers({
   common: CommonSlice,
@@ -18,17 +19,19 @@ const allreducers = combineReducers({
   diary: DiarySlice,
   timeTable: TimeTableSlice,
   notification: NotificationSlice,
+  modules: ModulesSlice,
 });
 
 /** Persist the JWT only when Remember me is on. Session still lives in memory either way. */
 const persistAuthTransform = createTransform(
   (inboundState: any) => {
-    if (inboundState && inboundState.rememberMe === false) {
-      return { ...inboundState, token: null };
+    const next = { ...(inboundState || {}), holidays: {} };
+    if (next.rememberMe === false) {
+      next.token = null;
     }
-    return inboundState;
+    return next;
   },
-  (outboundState: any) => outboundState,
+  (outboundState: any) => ({ ...(outboundState || {}), holidays: {} }),
   { whitelist: ['user'] },
 );
 

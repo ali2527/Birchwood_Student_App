@@ -4,4 +4,6 @@
     <color name="splash_mid">#FFFFFF</color>
     <color name="splash_end">#FFFFFF</color>
     <color name="splash_background">#FFFFFF</color>
+    <color name="ic_launcher_background">#FFFFFF</color>
+    <color name="autofill_highlight">#00000000</color>
 </resources>

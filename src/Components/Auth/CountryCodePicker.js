@@ -60,6 +60,10 @@ export default function CountryCodePicker({visible, selectedIso, onSelect, onClo
               onChangeText={setQuery}
               autoCorrect={false}
               autoCapitalize="none"
+              autoComplete="off"
+              textContentType="none"
+              importantForAutofill="no"
+              underlineColorAndroid="transparent"
             />
           </View>
           <FlatList

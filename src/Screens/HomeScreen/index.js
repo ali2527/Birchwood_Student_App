@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {
   Image,
   Platform,
@@ -13,7 +13,7 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Feather from 'react-native-vector-icons/Feather';
-import {useNavigation} from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {useDispatch} from 'react-redux';
 import {WIDTH} from '../../theme/units';
 import fonts from '../../Assets/fonts';
@@ -23,16 +23,21 @@ import {
   asyncGetAllMyChildren,
   asyncGetUserProfile,
 } from '../../Stores/actions/user.action';
+import {asyncGetAppModules} from '../../Stores/actions/modules.action';
 import {useAppSelector} from '../../Stores/hooks';
 import {selectUserProfile} from '../../Stores/slices/user.slice';
+import {selectModules} from '../../Stores/slices/modules.slice';
 import {
   selectChildren,
   selectSelectedChild,
   setSelectedChild,
 } from '../../Stores/slices/class.slice';
+import {selectUnreadNoticeCount} from '../../Stores/slices/notification.slice';
 import profile_icon from '../../Assets/images/profile_bg.png';
 import ChildSwitcher from '../../Components/ChildSwitcher';
 import AdSlider from '../../Components/AdSlider';
+import {BAR_H} from '../../Components/AppFooter/shape';
+import {attendanceStatusLabel} from '../DailyAttendance/status';
 
 const NAVY = '#0F1F4B';
 const MUTED = '#8B93A7';
@@ -40,6 +45,7 @@ const PAGE_BG = '#F4F5F8';
 const GRID_GAP = 12;
 const GRID_PAD = 18;
 const CARD_W = (WIDTH - GRID_PAD * 2 - GRID_GAP) / 2;
+const CARD_FULL_W = WIDTH - GRID_PAD * 2 - GRID_GAP;
 
 const LOGO = {
   purple: {bg: '#C4A6DE', blob: '#7A3B9B'},
@@ -53,68 +59,77 @@ const LOGO = {
 
 const MODULES = [
   {
-    key: 'activities',
-    title: 'Activities',
-    icon: 'camera-outline',
-    bg: LOGO.purple.bg,
-    blob: LOGO.purple.blob,
-    screen: routes.screens.activityScreen,
-  },
-  {
-    key: 'leave',
-    title: 'Leave',
-    icon: 'document-text-outline',
-    bg: LOGO.pink.bg,
-    blob: LOGO.pink.blob,
-    screen: routes.screens.leaveApplication,
-  },
-  {
-    key: 'results',
-    title: 'Results',
-    icon: 'trophy-outline',
-    bg: LOGO.blue.bg,
-    blob: LOGO.blue.blob,
-    screen: routes.screens.result,
-  },
-  {
-    key: 'gallery',
-    title: 'Gallery',
-    icon: 'images-outline',
-    bg: LOGO.green.bg,
-    blob: LOGO.green.blob,
-    screen: routes.screens.schoolAlbums,
-  },
-  {
     key: 'diary',
     title: 'Diary',
-    icon: 'reader-outline',
+    icon: 'book-outline',
     bg: LOGO.yellow.bg,
     blob: LOGO.yellow.blob,
     screen: routes.screens.diaryHomework,
+    needsChild: true,
   },
   {
-    key: 'notices',
-    title: 'Notices',
-    icon: 'notifications-outline',
-    bg: LOGO.orange.bg,
-    blob: LOGO.orange.blob,
-    screen: routes.screens.notices,
+    key: 'timetable',
+    title: 'Timetable',
+    icon: 'time-outline',
+    bg: LOGO.blue.bg,
+    blob: LOGO.blue.blob,
+    screen: routes.screens.timeTable,
+    needsChild: true,
+  },
+  {
+    key: 'calendar',
+    title: 'Calendar',
+    icon: 'calendar-outline',
+    bg: LOGO.green.bg,
+    blob: LOGO.green.blob,
+    screen: routes.screens.schoolCalendar,
+  },
+  {
+    key: 'leave',
+    title: 'Leaves',
+    icon: 'calendar-outline',
+    bg: LOGO.pink.bg,
+    blob: LOGO.pink.blob,
+    screen: routes.screens.leaveApplication,
+    needsChild: true,
   },
   {
     key: 'fees',
     title: 'Fees',
-    icon: 'card-outline',
+    icon: 'wallet-outline',
     bg: LOGO.red.bg,
     blob: LOGO.red.blob,
     screen: routes.screens.feesDue,
+    needsChild: true,
+    module: 'fees',
   },
   {
-    key: 'attendance',
-    title: 'Attendance',
-    icon: 'checkmark-done-outline',
+    key: 'results',
+    title: 'Results',
+    icon: 'ribbon-outline',
     bg: LOGO.purple.bg,
     blob: LOGO.purple.blob,
-    screen: routes.screens.attendanceLog,
+    screen: routes.screens.result,
+    needsChild: true,
+    module: 'results',
+  },
+  {
+    key: 'tests',
+    title: 'Tests',
+    icon: 'clipboard-outline',
+    bg: LOGO.orange.bg,
+    blob: LOGO.orange.blob,
+    screen: routes.screens.assessments,
+    needsChild: true,
+    module: 'assessments',
+  },
+  {
+    key: 'notices',
+    title: 'Notices',
+    icon: 'megaphone-outline',
+    bg: LOGO.orange.bg,
+    blob: LOGO.orange.blob,
+    screen: routes.screens.notices,
   },
 ];
 
@@ -149,10 +164,13 @@ function classBadge(classroom) {
   return name || (grade ? `Grade ${grade}` : '');
 }
 
-function academicYearLabel() {
-  const now = new Date();
-  const start = now.getMonth() >= 6 ? now.getFullYear() : now.getFullYear() - 1;
-  return `${start} – ${String(start + 1).slice(-2)}`;
+function attendanceCardCopy(child) {
+  if (!child) {
+    return {title: 'Today', detail: ''};
+  }
+  const full = attendanceStatusLabel(child);
+  const [title, detail] = full.split(' · ');
+  return {title, detail: detail || ''};
 }
 
 export default function HomeScreen() {
@@ -160,18 +178,36 @@ export default function HomeScreen() {
   const dispatch = useDispatch();
   const insets = useSafeAreaInsets();
   const userProfile = useAppSelector(selectUserProfile);
+  const modules = useAppSelector(selectModules);
   const children = useAppSelector(selectChildren);
   const selectedChild = useAppSelector(selectSelectedChild);
+  const unreadNotices = useAppSelector(selectUnreadNoticeCount);
 
   const parentFirst =
     userProfile?.fatherFirstName || userProfile?.firstName || 'there';
   const child = selectedChild || children[0];
   const hasChildren = children.length > 0;
+  const visibleModules = MODULES.filter(
+    item => !item.module || modules[item.module] !== false,
+  );
 
   useEffect(() => {
     dispatch(asyncGetUserProfile());
-    dispatch(asyncGetAllMyChildren());
+    dispatch(asyncGetAppModules());
   }, [dispatch]);
+
+  useFocusEffect(
+    useCallback(() => {
+      dispatch(asyncGetAllMyChildren({ silent: true }));
+    }, [dispatch]),
+  );
+
+  useEffect(() => {
+    if (!children.some(item => item.todayPrompt)) {
+      return;
+    }
+    navigation.navigate(routes.screens.dailyAttendance);
+  }, [children, navigation]);
 
   const childPhoto = child?.image
     ? {uri: getImagePath(child.image)}
@@ -181,9 +217,17 @@ export default function HomeScreen() {
   const childFullName = child
     ? `${child.firstName || ''} ${child.lastName || ''}`.trim()
     : '';
-  const yearLabel = child?.term || academicYearLabel();
+  const attendance = attendanceCardCopy(hasChildren ? child : null);
 
   const go = screen => navigation.navigate(screen);
+
+  const openModule = item => {
+    if (item.needsChild && !child?._id) {
+      go(routes.screens.addChild);
+      return;
+    }
+    go(item.screen);
+  };
 
   return (
     <View style={styles.screen}>
@@ -195,7 +239,7 @@ export default function HomeScreen() {
         ]}>
         <View style={styles.helloWrap}>
           <Text style={styles.hello} numberOfLines={1}>
-            {greetingWord()}, {parentFirst} 👋
+            {greetingWord()}, Mr & Mrs {parentFirst}
           </Text>
           <Text style={styles.helloSub} numberOfLines={1}>
             A quick look at today.
@@ -213,8 +257,7 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
         nestedScrollEnabled
         contentContainerStyle={{
-          paddingBottom: 100 + insets.bottom,
-          flexGrow: 1,
+          paddingBottom: BAR_H + insets.bottom + 12,
         }}>
         <LinearGradient
             colors={['#0E4F9C', '#1B6FCB']}
@@ -228,11 +271,7 @@ export default function HomeScreen() {
                   go(routes.screens.addChild);
                   return;
                 }
-                if (child?._id) {
-                  navigation.navigate(routes.screens.childProfile, {
-                    childId: child._id,
-                  });
-                }
+                go(routes.screens.children);
               }}
               activeOpacity={0.9}>
               <View style={styles.photoWrap}>
@@ -267,39 +306,81 @@ export default function HomeScreen() {
             </TouchableOpacity>
 
             <View style={styles.yearDivider} />
-            <View style={styles.yearCol}>
+            <TouchableOpacity
+              style={styles.yearCol}
+              activeOpacity={0.85}
+              onPress={() => {
+                if (!hasChildren) {
+                  go(routes.screens.addChild);
+                  return;
+                }
+                if (child?.todayPrompt || child?.canLeave || child?.earlyPickup) {
+                  navigation.navigate(routes.screens.dailyAttendance, {
+                    optional: !child.todayPrompt,
+                  });
+                  return;
+                }
+                go(routes.screens.attendanceLog);
+              }}>
               <View style={styles.yearIcon}>
-                <Ionicons name="calendar-outline" size={16} color="#FFFFFF" />
+                <Ionicons name="time-outline" size={16} color="#FFFFFF" />
               </View>
-              <Text style={styles.yearLabel}>Academic Year</Text>
-              <Text style={styles.yearValue}>{yearLabel}</Text>
-            </View>
+              <Text style={styles.yearLabel}>Today</Text>
+              <Text style={styles.yearValue} numberOfLines={2}>
+                {attendance.title}
+              </Text>
+              {attendance.detail ? (
+                <Text style={styles.yearTime} numberOfLines={1}>
+                  {attendance.detail}
+                </Text>
+              ) : null}
+            </TouchableOpacity>
           </LinearGradient>
 
-          <AdSlider />
+          {modules.ads !== false ? <AdSlider /> : null}
 
           <View style={styles.gridWrap}>
             <View style={styles.grid}>
-              {MODULES.map(item => (
-                <TouchableOpacity
-                  key={item.key}
-                  style={styles.moduleWrap}
-                  onPress={() => go(item.screen)}
-                  activeOpacity={0.9}>
-                  <View style={[styles.module, {backgroundColor: item.bg}]}>
-                    <View style={[styles.blob, {backgroundColor: item.blob}]}>
-                      <Feather name="arrow-up-right" size={16} color="#FFFFFF" />
+              {visibleModules.map((item, index) => {
+                const aloneOnLastRow =
+                  visibleModules.length % 2 === 1 &&
+                  index === visibleModules.length - 1;
+                return (
+                  <TouchableOpacity
+                    key={item.key}
+                    style={[
+                      styles.moduleWrap,
+                      aloneOnLastRow && styles.moduleWrapFull,
+                    ]}
+                    onPress={() => openModule(item)}
+                    activeOpacity={0.9}>
+                    <View style={[styles.module, {backgroundColor: item.bg}]}>
+                      <View
+                        style={[styles.blob, {backgroundColor: item.blob}]}>
+                        <Feather
+                          name="arrow-up-right"
+                          size={16}
+                          color="#FFFFFF"
+                        />
+                      </View>
+                      {item.key === 'notices' && unreadNotices > 0 ? (
+                        <View style={styles.moduleBadge}>
+                          <Text style={styles.moduleBadgeText}>
+                            {unreadNotices > 9 ? '9+' : unreadNotices}
+                          </Text>
+                        </View>
+                      ) : null}
+                      <Ionicons
+                        name={item.icon}
+                        size={24}
+                        color="#FFFFFF"
+                        style={styles.moduleIcon}
+                      />
+                      <Text style={styles.moduleTitle}>{item.title}</Text>
                     </View>
-                    <Ionicons
-                      name={item.icon}
-                      size={24}
-                      color="#FFFFFF"
-                      style={styles.moduleIcon}
-                    />
-                    <Text style={styles.moduleTitle}>{item.title}</Text>
-                  </View>
-                </TouchableOpacity>
-              ))}
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           </View>
         </ScrollView>
@@ -324,7 +405,7 @@ const styles = StyleSheet.create({
   },
   hello: {
     fontFamily: fonts.euclidCircularA.semiBold,
-    fontSize: 18,
+    fontSize: 15,
     color: NAVY,
   },
   helloSub: {
@@ -425,7 +506,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 12,
   },
   yearCol: {
-    width: 86,
+    width: 92,
     alignItems: 'center',
   },
   yearIcon: {
@@ -446,12 +527,21 @@ const styles = StyleSheet.create({
   yearValue: {
     marginTop: 2,
     fontFamily: fonts.euclidCircularA.semiBold,
-    fontSize: 14,
+    fontSize: 13,
     color: '#FFFFFF',
+    textAlign: 'center',
+  },
+  yearTime: {
+    marginTop: 1,
+    fontFamily: fonts.euclidCircularA.medium,
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.85)',
+    textAlign: 'center',
   },
   gridWrap: {
     paddingHorizontal: GRID_PAD,
     paddingTop: 18,
+    paddingBottom: 4,
   },
   grid: {
     flexDirection: 'row',
@@ -472,6 +562,9 @@ const styles = StyleSheet.create({
       android: {elevation: 4},
     }),
   },
+  moduleWrapFull: {
+    width: CARD_FULL_W,
+  },
   module: {
     height: 140,
     borderRadius: 16,
@@ -491,6 +584,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 2,
+  },
+  moduleBadge: {
+    position: 'absolute',
+    bottom: 12,
+    right: 12,
+    minWidth: 20,
+    height: 20,
+    borderRadius: 10,
+    paddingHorizontal: 5,
+    backgroundColor: '#E11D48',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 3,
+  },
+  moduleBadgeText: {
+    fontFamily: fonts.euclidCircularA.semiBold,
+    fontSize: 10,
+    color: '#FFFFFF',
   },
   moduleIcon: {
     marginTop: 2,

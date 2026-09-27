@@ -12,7 +12,7 @@ import CustomStatusBar from '../StatusBar';
 const ContainerComponent = ({children, scrollview}) => {
   return (
     <>
-      <CustomStatusBar backgroundColor="#035392" />
+      <CustomStatusBar backgroundColor="#F4F5F8" barStyle="dark-content" />
       <SafeAreaView style={styles.container}>
         {scrollview ? (
           <ScrollView contentContainerStyle={{flexGrow: 1}}>

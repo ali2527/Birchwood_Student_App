@@ -1,147 +1,258 @@
-import React from 'react';
-import { StyleSheet } from 'react-native';
-import { vh, vw } from '../../theme/units';
-import { colors } from '../../theme/colors';
+import {StyleSheet} from 'react-native';
+import fonts from '../../Assets/fonts';
+
+const NAVY = '#0F1F4B';
+const MUTED = '#8B93A7';
+const PRIMARY = '#035392';
+const LOGO_BLUE = '#D3E6F6';
+const PAGE = '#F4F5F8';
 
 export const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
-    backgroundColor: colors.theme.white,
+    backgroundColor: PAGE,
   },
-  daySelector: {
+  header: {
     flexDirection: 'row',
-    paddingHorizontal: 20,
-    backgroundColor: colors.theme.primary + '08',
-    paddingVertical: 15,
-    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    paddingLeft: 8,
+    paddingRight: 18,
+    paddingBottom: 8,
+  },
+  switcher: {
+    marginLeft: 12,
+  },
+  backBtn: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 2,
+  },
+  headerCopy: {
+    flex: 1,
+    minWidth: 0,
+    paddingBottom: 2,
+  },
+  dateLabel: {
+    fontFamily: fonts.euclidCircularA.medium,
+    fontSize: 13,
+    color: MUTED,
+  },
+  headerTitle: {
+    marginTop: 2,
+    fontFamily: fonts.euclidCircularA.semiBold,
+    fontSize: 32,
+    letterSpacing: -0.6,
+    color: NAVY,
+  },
+  days: {
+    flexDirection: 'row',
+    paddingHorizontal: 12,
+    paddingTop: 8,
+    paddingBottom: 16,
   },
   dayBtn: {
-    width: vw * 15,
-    height: vh * 5,
+    flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 12,
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#eee',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-  },
-  dayBtnSelected: {
-    backgroundColor: colors.theme.primary,
-    borderColor: colors.theme.primary,
+    gap: 6,
   },
   dayText: {
+    fontFamily: fonts.euclidCircularA.medium,
     fontSize: 12,
-    fontFamily: 'Glory-Bold',
-    color: colors.text.grey,
+    color: MUTED,
   },
-  dayTextSelected: {
-    color: '#fff',
+  dateCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    overflow: 'hidden',
+    flexShrink: 0,
+    alignSelf: 'center',
+    borderWidth: 1.5,
+    borderColor: '#D5D8E2',
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  timelineContainer: {
-    padding: 20,
-    paddingBottom: 50,
+  dateCircleOn: {
+    backgroundColor: LOGO_BLUE,
+    borderColor: '#8BB8DC',
   },
-  timelineRow: {
+  dateNum: {
+    fontFamily: fonts.euclidCircularA.semiBold,
+    fontSize: 15,
+    lineHeight: 18,
+    textAlign: 'center',
+    color: NAVY,
+    includeFontPadding: false,
+  },
+  dateNumOn: {
+    color: NAVY,
+  },
+  scroll: {
+    paddingHorizontal: 16,
+    paddingBottom: 36,
+    flexGrow: 1,
+  },
+  periodRow: {
     flexDirection: 'row',
-    marginBottom: 0,
-    minHeight: vh * 10,
+    alignItems: 'stretch',
+    marginBottom: 12,
   },
-  timeContainer: {
-    width: vw * 15,
-    alignItems: 'flex-end',
-    paddingRight: 15,
-    paddingTop: 5,
+  breakRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    minHeight: 28,
   },
-  timeText: {
-    fontSize: 14,
-    fontFamily: 'Glory-Bold',
-    color: colors.text.black,
+  timeCol: {
+    width: 72,
+    paddingTop: 2,
   },
-  endTimeText: {
+  startTime: {
+    fontFamily: fonts.euclidCircularA.semiBold,
+    fontSize: 13,
+    color: NAVY,
+  },
+  startTimeNow: {
+    color: PRIMARY,
+  },
+  endTime: {
+    marginTop: 2,
+    fontFamily: fonts.euclidCircularA.regular,
     fontSize: 12,
-    fontFamily: 'Glory-Regular',
-    color: colors.text.grey,
+    color: MUTED,
   },
-  timelineGraphic: {
-    width: 20,
+  track: {
+    width: 18,
     alignItems: 'center',
   },
-  timelineDot: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    marginTop: 8,
-    borderWidth: 3,
-    borderColor: '#fff',
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
+  dot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    borderWidth: 2,
+    borderColor: '#D5D8E0',
+    backgroundColor: PAGE,
+    marginTop: 4,
   },
-  timelineLine: {
+  dotNow: {
+    borderColor: NAVY,
+    backgroundColor: NAVY,
+  },
+  line: {
     flex: 1,
     width: 2,
-    backgroundColor: '#E0E0E0',
-    marginVertical: 5,
+    marginTop: 4,
+    backgroundColor: '#E3E6EE',
+    borderRadius: 1,
   },
-  activityCard: {
+  card: {
     flex: 1,
+    minHeight: 108,
+    borderRadius: 22,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    overflow: 'hidden',
+    justifyContent: 'flex-start',
+  },
+  specialCard: {
+    flex: 1,
+    minHeight: 72,
+    borderRadius: 22,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+  },
+  specialTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    marginLeft: 15,
-    marginBottom: 20,
-    padding: 12,
-    borderRadius: 15,
-    borderWidth: 1,
-    borderColor: '#F0F0F0',
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
+    gap: 8,
   },
-  lunchCard: {
-    backgroundColor: '#FFF8E1',
-    borderColor: '#FFE082',
+  specialTitle: {
+    fontFamily: fonts.euclidCircularA.semiBold,
+    fontSize: 18,
+    letterSpacing: -0.3,
+    color: NAVY,
   },
-  iconContainer: {
-    width: 45,
-    height: 45,
-    borderRadius: 12,
+  subject: {
+    fontFamily: fonts.euclidCircularA.semiBold,
+    fontSize: 18,
+    letterSpacing: -0.3,
+    color: NAVY,
+  },
+  description: {
+    marginTop: 4,
+    fontFamily: fonts.euclidCircularA.regular,
+    fontSize: 13,
+    lineHeight: 18,
+    color: '#4B5568',
+  },
+  personRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    gap: 6,
+    marginTop: 10,
   },
-  activityInfo: {
-    marginLeft: 12,
+  person: {
     flex: 1,
+    fontFamily: fonts.euclidCircularA.medium,
+    fontSize: 13,
+    color: '#3E4658',
   },
-  activityName: {
-    fontSize: 16,
-    color: colors.text.black,
+  breakPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
   },
-  periodText: {
-    fontSize: 12,
-    fontFamily: 'Glory-Medium',
-    color: colors.text.grey,
-    marginTop: 2,
+  breakText: {
+    fontFamily: fonts.euclidCircularA.medium,
+    fontSize: 13,
+    color: MUTED,
   },
-  emptyContainer: {
-    padding: 50,
+  loading: {
+    paddingTop: 28,
+    alignItems: 'center',
+  },
+  emptyCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 22,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+  },
+  emptyIcon: {
+    width: 58,
+    height: 58,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: '#D3E6F6',
   },
-  emptyText: {
-    marginTop: 15,
-    fontSize: 15,
-    fontFamily: 'Glory-Medium',
-    color: colors.text.grey,
-    textAlign: 'center',
+  emptyCopy: {
+    flex: 1,
+    minWidth: 0,
+    paddingTop: 4,
+  },
+  emptyTitle: {
+    fontFamily: fonts.euclidCircularA.semiBold,
+    fontSize: 16,
+    letterSpacing: -0.2,
+    color: NAVY,
+  },
+  emptyBody: {
+    marginTop: 4,
+    fontFamily: fonts.euclidCircularA.regular,
+    fontSize: 13,
+    lineHeight: 18,
+    color: MUTED,
   },
 });

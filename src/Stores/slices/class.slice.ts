@@ -14,6 +14,7 @@ interface ClassSliceState {
   children: Record<string, Child>;
   selectedChild: Child | null;
   pagination: PaginationProps;
+  unreadChatCount: number;
   chatRooms: Record<string, {
     messages: Record<string, Message>,
     messagePagination: MessagePaginationProps
@@ -26,6 +27,7 @@ const initialState: ClassSliceState = {
   selectedChild: null,
   attendances: {},
   pagination: {} as PaginationProps,
+  unreadChatCount: 0,
   chatRooms: {}
 };
 
@@ -49,6 +51,9 @@ const ClassSlice = createSlice({
     },
     setSelectedChild: (state, { payload }: PayloadAction<Child | null>) => {
       state.selectedChild = payload;
+    },
+    setUnreadChatCount: (state, { payload }: PayloadAction<number>) => {
+      state.unreadChatCount = Math.max(0, Number(payload) || 0);
     },
     setAttendances: (state, { payload }: PayloadAction<Partial<ChildAttendance>>) => {
       state.attendances[payload._id] = { ...state.attendances[payload._id], ...payload };
@@ -95,7 +100,7 @@ const ClassSlice = createSlice({
   },
 });
 
-export const { setClassRoom, setChildren, setChild, setSelectedChild, setAttendances, setChatRoomMessages, setChatRoomMessage, resetClassState } =
+export const { setClassRoom, setChildren, setChild, setSelectedChild, setUnreadChatCount, setAttendances, setChatRoomMessages, setChatRoomMessage, resetClassState } =
   ClassSlice.actions;
 
 export default ClassSlice.reducer;
@@ -109,6 +114,9 @@ export const selectChildren = createDraftSafeSelector(
 
 export const selectSelectedChild = (state: RootState) =>
   state.class.selectedChild;
+
+export const selectUnreadChatCount = (state: RootState) =>
+  state.class.unreadChatCount;
 
 export const selectChildById = (childId: string) =>
   createDraftSafeSelector(

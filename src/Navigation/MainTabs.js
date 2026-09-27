@@ -3,9 +3,9 @@ import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import AppFooter from '../Components/AppFooter';
 import routes from './routes';
 import HomeScreen from '../Screens/HomeScreen';
-import Children from '../Screens/Children';
-import SchoolCalendar from '../Screens/SchoolCalendar';
-import Notices from '../Screens/Notices';
+import AttendanceLog from '../Screens/AttendanceLog';
+import ActivityScreen from '../Screens/ActivityScreen';
+import TeacherChat from '../Screens/TeacherChat';
 
 const Tab = createBottomTabNavigator();
 
@@ -25,18 +25,21 @@ export default function MainTabs() {
         },
       }}>
       <Tab.Screen
-        name={routes.screens.children}
-        component={Children}
+        name={routes.screens.teacherChat}
+        component={TeacherChat}
       />
       <Tab.Screen
-        name={routes.screens.schoolCalendar}
-        component={SchoolCalendar}
+        name={routes.screens.attendanceLog}
+        component={AttendanceLog}
       />
       <Tab.Screen
         name={routes.screens.homeScreen}
         component={HomeScreen}
       />
-      <Tab.Screen name={routes.screens.notices} component={Notices} />
+      <Tab.Screen
+        name={routes.screens.activityScreen}
+        component={ActivityScreen}
+      />
     </Tab.Navigator>
   );
 }

@@ -11,6 +11,9 @@ export interface HomeWork {
   status: string,
   assignee: string,
   type: string,
+  teacherName?: string,
+  classroomName?: string,
+  teacherDoc?: { firstName?: string; lastName?: string },
   createdAt: string,
   updatedAt: string,
 }

@@ -5,6 +5,7 @@ const NavigationOptions = () => {
     animationTypeForReplace: 'pop',
     gestureEnabled: true,
     fullScreenGestureEnabled: true,
+    contentStyle: {backgroundColor: '#F4F5F8'},
   };
 };
 

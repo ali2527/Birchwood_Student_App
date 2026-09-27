@@ -13,9 +13,9 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import moment from 'moment';
 import fonts from '../../Assets/fonts';
+import routes from '../../Navigation/routes';
 import {
   asyncGetUserNotifications,
-  asyncMarkNotificationRead,
 } from '../../Stores/actions/notification.action';
 import {useAppDispatch, useAppSelector} from '../../Stores/hooks';
 import {selectNotifications} from '../../Stores/slices/notification.slice';
@@ -58,9 +58,10 @@ export default function Notifications() {
     if (!item?._id) {
       return;
     }
-    if (!item.isRead) {
-      dispatch(asyncMarkNotificationRead({id: item._id, isRead: true}));
-    }
+    navigation.navigate(routes.screens.notificationDetail, {
+      notificationId: item._id,
+      notification: item,
+    });
   };
 
   const renderItem = item => {
@@ -72,7 +73,9 @@ export default function Notifications() {
         activeOpacity={0.85}
         onPress={() => onPressItem(item)}>
         <View style={styles.cardTop}>
-          <Text style={[styles.cardTitle, unread && styles.cardTitleUnread]}>
+          <Text
+            style={[styles.cardTitle, unread && styles.cardTitleUnread]}
+            numberOfLines={1}>
             {item.title || 'Notification'}
           </Text>
           {unread ? <View style={styles.dot} /> : null}
@@ -82,7 +85,11 @@ export default function Notifications() {
             {moment(item.createdAt).format('h:mm A')}
           </Text>
         ) : null}
-        {item.content ? <Text style={styles.body}>{item.content}</Text> : null}
+        {item.content ? (
+          <Text style={styles.body} numberOfLines={1}>
+            {item.content}
+          </Text>
+        ) : null}
       </TouchableOpacity>
     );
   };

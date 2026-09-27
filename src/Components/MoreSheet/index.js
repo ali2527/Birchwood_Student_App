@@ -1,8 +1,9 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   Animated,
   Image,
   Modal,
+  PanResponder,
   Pressable,
   StyleSheet,
   Text,
@@ -18,8 +19,11 @@ import profile_icon from '../../Assets/images/profile_bg.png';
 import routes from '../../Navigation/routes';
 import {getImagePath} from '../../Service/axios';
 import {asyncSignOut} from '../../Stores/actions/user.action';
+import {asyncGetAppModules} from '../../Stores/actions/modules.action';
 import {useAppSelector} from '../../Stores/hooks';
 import {selectUserProfile} from '../../Stores/slices/user.slice';
+import {selectModules} from '../../Stores/slices/modules.slice';
+import {selectUnreadNotificationCount} from '../../Stores/slices/notification.slice';
 import {WIDTH} from '../../theme/units';
 import {BAR_H, HILL_H, humpBumpPath} from '../AppFooter/shape';
 
@@ -33,16 +37,21 @@ const ACCOUNT_ITEMS = [
     icon: 'notifications-outline',
     screen: routes.screens.notifications,
   },
+  {
+    label: 'Children',
+    icon: 'people-outline',
+    screen: routes.screens.children,
+  },
   {label: 'Settings', icon: 'settings-outline', screen: routes.screens.settings},
 ];
 
 const SCHOOL_ITEMS = [
   {
-    label: 'Albums',
+    label: 'Gallery',
     icon: 'images-outline',
     screen: routes.screens.schoolAlbums,
+    module: 'gallery',
   },
-  {label: 'Results', icon: 'trophy-outline', screen: routes.screens.result},
 ];
 
 const SUPPORT_ITEMS = [
@@ -56,6 +65,7 @@ const SUPPORT_ITEMS = [
 function MenuBody({
   parentName,
   parentPhoto,
+  schoolItems,
   renderRow,
   onLogout,
 }) {
@@ -73,8 +83,8 @@ function MenuBody({
       </View>
       <Text style={styles.section}>ACCOUNT</Text>
       {ACCOUNT_ITEMS.map(renderRow)}
-      <Text style={styles.section}>SCHOOL</Text>
-      {SCHOOL_ITEMS.map(renderRow)}
+      {schoolItems.length ? <Text style={styles.section}>SCHOOL</Text> : null}
+      {schoolItems.map(renderRow)}
       <Text style={styles.section}>SUPPORT</Text>
       {SUPPORT_ITEMS.map(renderRow)}
       <TouchableOpacity
@@ -98,10 +108,133 @@ export default function MoreSheet({
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const userProfile = useAppSelector(selectUserProfile);
+  const modules = useAppSelector(selectModules);
+  const unreadNotifications = useAppSelector(selectUnreadNotificationCount);
   const [shown, setShown] = useState(false);
   const [menuH, setMenuH] = useState(0);
   const open = useRef(new Animated.Value(0)).current;
   const dim = useRef(new Animated.Value(0)).current;
+  const afterClose = useRef(null);
+  const openRef = useRef(0);
+  const dragStart = useRef(1);
+  const closingRef = useRef(false);
+
+  useEffect(() => {
+    const id = open.addListener(({value}) => {
+      openRef.current = value;
+    });
+    return () => open.removeListener(id);
+  }, [open]);
+
+  useEffect(() => {
+    if (visible) {
+      closingRef.current = false;
+    }
+  }, [visible]);
+
+  const snapSheetOpen = useCallback(() => {
+    Animated.parallel([
+      Animated.spring(open, {
+        toValue: 1,
+        tension: 68,
+        friction: 11,
+        useNativeDriver: false,
+      }),
+      Animated.timing(dim, {
+        toValue: 1,
+        duration: 160,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [dim, open]);
+
+  const finishClose = useCallback(() => {
+    if (closingRef.current) {
+      return;
+    }
+    closingRef.current = true;
+    onClose?.();
+  }, [onClose]);
+
+  const dismissPan = useMemo(
+    () =>
+      PanResponder.create({
+        onStartShouldSetPanResponder: () => false,
+        onMoveShouldSetPanResponder: (_, g) =>
+          g.dy > 4 && Math.abs(g.dy) > Math.abs(g.dx) * 1.05,
+        onMoveShouldSetPanResponderCapture: (_, g) =>
+          g.dy > 6 && Math.abs(g.dy) > Math.abs(g.dx) * 1.05,
+        onPanResponderTerminationRequest: () => false,
+        onShouldBlockNativeResponder: () => true,
+        onPanResponderGrant: () => {
+          open.stopAnimation(value => {
+            dragStart.current = value;
+            openRef.current = value;
+          });
+        },
+        onPanResponderMove: (_, g) => {
+          const height = menuH || 280;
+          const next = Math.max(0, Math.min(1, dragStart.current - g.dy / height));
+          open.setValue(next);
+          dim.setValue(next);
+        },
+        onPanResponderRelease: (_, g) => {
+          const value = openRef.current;
+          if (value < 0.82 || g.vy > 0.55 || g.dy > 56) {
+            finishClose();
+          } else {
+            snapSheetOpen();
+          }
+        },
+        onPanResponderTerminate: () => {
+          if (openRef.current < 0.82) {
+            finishClose();
+          } else {
+            snapSheetOpen();
+          }
+        },
+      }),
+    [dim, finishClose, menuH, open, snapSheetOpen],
+  );
+
+  const handlePan = useMemo(
+    () =>
+      PanResponder.create({
+        onStartShouldSetPanResponder: () => false,
+        onMoveShouldSetPanResponder: (_, g) =>
+          g.dy > 3 && Math.abs(g.dy) > Math.abs(g.dx),
+        onPanResponderTerminationRequest: () => false,
+        onShouldBlockNativeResponder: () => true,
+        onPanResponderGrant: () => {
+          open.stopAnimation(value => {
+            dragStart.current = value;
+            openRef.current = value;
+          });
+        },
+        onPanResponderMove: (_, g) => {
+          const height = menuH || 280;
+          const next = Math.max(0, Math.min(1, dragStart.current - g.dy / height));
+          open.setValue(next);
+          dim.setValue(next);
+        },
+        onPanResponderRelease: (_, g) => {
+          const value = openRef.current;
+          if (value < 0.82 || g.vy > 0.55 || g.dy > 48) {
+            finishClose();
+          } else {
+            snapSheetOpen();
+          }
+        },
+        onPanResponderTerminate: () => {
+          if (openRef.current < 0.82) {
+            finishClose();
+          } else {
+            snapSheetOpen();
+          }
+        },
+      }),
+    [dim, finishClose, menuH, open, snapSheetOpen],
+  );
 
   const parentName =
     `${userProfile?.fatherFirstName || userProfile?.firstName || ''} ${
@@ -111,6 +244,15 @@ export default function MoreSheet({
     userProfile?.fatherImage || userProfile?.image
       ? {uri: getImagePath(userProfile.fatherImage || userProfile.image)}
       : profile_icon;
+  const schoolItems = SCHOOL_ITEMS.filter(
+    item => !item.module || modules[item.module] !== false,
+  );
+
+  useEffect(() => {
+    if (visible) {
+      dispatch(asyncGetAppModules());
+    }
+  }, [visible, dispatch]);
 
   useEffect(() => {
     if (visible) {
@@ -142,19 +284,30 @@ export default function MoreSheet({
     if (!visible && shown) {
       Animated.timing(open, {
         toValue: 0,
-        duration: 240,
+        duration: 180,
         useNativeDriver: false,
       }).start(({finished}) => {
-        if (finished) {
-          setShown(false);
+        if (!finished) {
+          return;
         }
+        setShown(false);
       });
     }
   }, [visible, shown, menuH, open]);
 
+  useEffect(() => {
+    if (shown || !afterClose.current) {
+      return;
+    }
+    const job = afterClose.current;
+    afterClose.current = null;
+    const frame = requestAnimationFrame(job);
+    return () => cancelAnimationFrame(frame);
+  }, [shown]);
+
   const go = screen => {
+    afterClose.current = () => navigation.navigate(screen);
     onClose?.();
-    navigation.navigate(screen);
   };
 
   const renderRow = item => (
@@ -165,6 +318,10 @@ export default function MoreSheet({
       activeOpacity={0.8}>
       <Ionicons name={item.icon} size={18} color={NAVY} />
       <Text style={styles.rowLabel}>{item.label}</Text>
+      {item.screen === routes.screens.notifications &&
+      unreadNotifications > 0 ? (
+        <View style={styles.rowDot} />
+      ) : null}
       <Ionicons name="chevron-forward" size={16} color={MUTED} />
     </TouchableOpacity>
   );
@@ -182,10 +339,11 @@ export default function MoreSheet({
   const menuProps = {
     parentName,
     parentPhoto,
+    schoolItems,
     renderRow,
     onLogout: () => {
+      afterClose.current = () => dispatch(asyncSignOut());
       onClose?.();
-      dispatch(asyncSignOut());
     },
   };
 
@@ -217,7 +375,7 @@ export default function MoreSheet({
         </View>
 
         <View style={styles.dock} pointerEvents="box-none">
-          <View style={styles.humpBar}>
+          <View style={styles.humpBar} {...handlePan.panHandlers}>
             <Svg
               pointerEvents="none"
               width={width}
@@ -228,7 +386,7 @@ export default function MoreSheet({
             </Svg>
             <TouchableOpacity
               style={styles.humpClose}
-              onPress={onClose}
+              onPress={finishClose}
               activeOpacity={0.7}
               hitSlop={{top: 8, bottom: 8, left: 16, right: 16}}
               accessibilityRole="button"
@@ -236,7 +394,9 @@ export default function MoreSheet({
               <Ionicons name="chevron-down" size={20} color="#C3C8D2" />
             </TouchableOpacity>
           </View>
-          <Animated.View style={[styles.menuClip, {height: contentHeight}]}>
+          <Animated.View
+            style={[styles.menuClip, {height: contentHeight}]}
+            {...dismissPan.panHandlers}>
             <Animated.View
               style={[styles.menu, {transform: [{translateY: slideUp}]}]}>
               <View style={styles.menuInner}>
@@ -372,6 +532,13 @@ const styles = StyleSheet.create({
     fontFamily: fonts.euclidCircularA.medium,
     fontSize: 15,
     color: NAVY,
+  },
+  rowDot: {
+    width: 9,
+    height: 9,
+    borderRadius: 5,
+    backgroundColor: '#E11D48',
+    marginRight: 2,
   },
   logoutRow: {
     flexDirection: 'row',

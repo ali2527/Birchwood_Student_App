@@ -31,13 +31,20 @@ const DiarySlice = createSlice({
   name: 'Diary',
   initialState,
   reducers: {
-    setHomeWorks: (state, { payload }: PayloadAction<GetAllHomeWorks>) => {
-      const { docs, ...pagination } = payload;
+    setHomeWorks: (state, { payload }: PayloadAction<GetAllHomeWorks | HomeWork[]>) => {
+      const docs = Array.isArray(payload)
+        ? payload
+        : Array.isArray(payload?.docs)
+          ? payload.docs
+          : [];
       state.homeworks = docs.reduce((acc, curr) => {
         acc["homework_" + curr._id] = curr;
         return acc;
       }, {} as Record<string, HomeWork>);
-      state.pagination = pagination;
+      if (!Array.isArray(payload) && payload) {
+        const { docs: _docs, ...pagination } = payload;
+        state.pagination = pagination as PaginationProps;
+      }
     },
     setHomeWork: (state, { payload }: PayloadAction<Partial<HomeWork>>) => {
       state.homeworks["homework_" + payload._id] = { ...state.homeworks["homework_" + payload._id], ...payload };

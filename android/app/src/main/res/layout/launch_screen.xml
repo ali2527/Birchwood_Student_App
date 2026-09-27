@@ -3,7 +3,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/splash_background">
-    <!-- 288dp = OS circle (192dp) × adaptive inset (1.5) so tree matches OS -->
     <ImageView
         android:layout_width="@dimen/splash_icon_size"
         android:layout_height="@dimen/splash_icon_size"

@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   Animated,
   Dimensions,
@@ -9,6 +9,7 @@ import {
   StatusBar,
   StyleSheet,
   Text,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import splashBackground from '../../Assets/images/background.png';
@@ -19,15 +20,19 @@ import planetImage from '../../Assets/images/planet.png';
 import planet2Image from '../../Assets/images/planet_2.png';
 import fonts from '../../Assets/fonts';
 
-const {width: SCREEN_W, height: SCREEN_H} = Dimensions.get('window');
-const STATUS_TOP = StatusBar.currentHeight || 24;
+// BIRCHWOOD wordmark on the blue animated splash only
+const LOGO_ASPECT = 356 / 2136;
 
-const LOGO_W = SCREEN_W * 0.72;
-const LOGO_FULL_H = LOGO_W * (182 / 668);
-const LOGO_CLIP_H = LOGO_FULL_H * 0.66;
+// Splash layout v23: blue splash = BIRCHWOOD wordmark; native splash = tree
+const SPLASH_LAYOUT_VERSION = 23;
 
-// Splash layout v18: boy → planes → planets one by one
-const SPLASH_LAYOUT_VERSION = 17;
+function measureScreen(winW, winH) {
+  const window = Dimensions.get('window');
+  const screen = Dimensions.get('screen');
+  const width = winW > 1 ? winW : window.width || screen.width || 360;
+  const height = winH > 1 ? winH : window.height || screen.height || 800;
+  return {width, height};
+}
 
 function hideNativeSplash() {
   try {
@@ -50,23 +55,6 @@ function endSplashImmersive() {
     console.log('Error restoring system bars:', error);
   }
 }
-
-const PLANE1_TOP = SCREEN_H * 0.42;
-const PLANE2_TOP = SCREEN_H * 0.58;
-const PLANE1_ANCHOR_LEFT = SCREEN_W * 0.18;
-const PLANE2_ANCHOR_RIGHT = SCREEN_W * 0.26;
-const PLANE_ASPECT = 58 / 94;
-const PLANE1_W = 58;
-const PLANE1_H = PLANE1_W * PLANE_ASPECT;
-const PLANE2_W = 36;
-const PLANE2_H = PLANE2_W * PLANE_ASPECT;
-const PLANE1_START_X = -SCREEN_W * 0.58;
-const PLANE1_END_X = -SCREEN_W * 0.08;
-const PLANE1_START_Y = -SCREEN_H * 0.07;
-const PLANE1_START_ROTATE = -18;
-const PLANE2_START_X = SCREEN_W * 0.58;
-const PLANE2_START_Y = -SCREEN_H * 0.055;
-const PLANE2_START_ROTATE = 16;
 
 /** Clean white 4-point sparkle */
 function Star({size = 10}) {
@@ -109,6 +97,33 @@ function Star({size = 10}) {
 }
 
 export default function AnimatedSplash({onDone, appReady = true}) {
+  const {width: winW, height: winH} = useWindowDimensions();
+  const {width: SCREEN_W, height: SCREEN_H} = useMemo(
+    () => measureScreen(winW, winH),
+    [winW, winH],
+  );
+  const STATUS_TOP = StatusBar.currentHeight || 24;
+
+  const LOGO_W = Math.min(SCREEN_W * 0.72, 300);
+  const LOGO_H = Math.max(LOGO_W * LOGO_ASPECT, 44);
+
+  const PLANE1_TOP = SCREEN_H * 0.42;
+  const PLANE2_TOP = SCREEN_H * 0.58;
+  const PLANE1_ANCHOR_LEFT = SCREEN_W * 0.18;
+  const PLANE2_ANCHOR_RIGHT = SCREEN_W * 0.26;
+  const PLANE_ASPECT = 58 / 94;
+  const PLANE1_W = 58;
+  const PLANE1_H = PLANE1_W * PLANE_ASPECT;
+  const PLANE2_W = 36;
+  const PLANE2_H = PLANE2_W * PLANE_ASPECT;
+  const PLANE1_START_X = -SCREEN_W * 0.58;
+  const PLANE1_END_X = -SCREEN_W * 0.08;
+  const PLANE1_START_Y = -SCREEN_H * 0.07;
+  const PLANE1_START_ROTATE = -18;
+  const PLANE2_START_X = SCREEN_W * 0.58;
+  const PLANE2_START_Y = -SCREEN_H * 0.055;
+  const PLANE2_START_ROTATE = 16;
+
   const screenOpacity = useRef(new Animated.Value(1)).current;
 
   const cloudLeftY = useRef(new Animated.Value(SCREEN_H * 0.18)).current;
@@ -143,8 +158,8 @@ export default function AnimatedSplash({onDone, appReady = true}) {
   const starPulseB = useRef(new Animated.Value(1)).current;
 
   const logoOpacity = useRef(new Animated.Value(0)).current;
-  const logoTranslateY = useRef(new Animated.Value(18)).current;
-  const logoScale = useRef(new Animated.Value(0.95)).current;
+  const logoTranslateY = useRef(new Animated.Value(22)).current;
+  const logoScale = useRef(new Animated.Value(0.88)).current;
 
   const [animationDone, setAnimationDone] = useState(false);
   const timelineStartedRef = useRef(false);
@@ -152,12 +167,69 @@ export default function AnimatedSplash({onDone, appReady = true}) {
   const revealStartedRef = useRef(false);
   const bgLoadedRef = useRef(false);
   const laidOutRef = useRef(false);
+  const logoShownRef = useRef(false);
   const exitAnimRef = useRef(null);
   const timelineAnimRef = useRef(null);
   const timersRef = useRef([]);
 
+  const showLogo = useCallback(() => {
+    if (logoShownRef.current) {
+      return;
+    }
+    logoShownRef.current = true;
+    Animated.parallel([
+      Animated.timing(logoOpacity, {
+        toValue: 1,
+        duration: 480,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.timing(logoTranslateY, {
+        toValue: 0,
+        duration: 480,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.spring(logoScale, {
+        toValue: 1,
+        friction: 6,
+        tension: 90,
+        useNativeDriver: true,
+      }),
+    ]).start(({finished}) => {
+      if (!finished) {
+        logoOpacity.setValue(1);
+        logoTranslateY.setValue(0);
+        logoScale.setValue(1);
+      }
+    });
+  }, [logoOpacity, logoScale, logoTranslateY]);
+
   const fadeOut = useCallback(() => {
     if (fadeStartedRef.current) {
+      return;
+    }
+    // Never leave before the logo has appeared
+    if (!logoShownRef.current) {
+      showLogo();
+      const wait = setTimeout(() => {
+        if (fadeStartedRef.current) {
+          return;
+        }
+        fadeStartedRef.current = true;
+        const exit = Animated.timing(screenOpacity, {
+          toValue: 0,
+          duration: 560,
+          easing: Easing.bezier(0.4, 0, 0.2, 1),
+          useNativeDriver: true,
+        });
+        exitAnimRef.current = exit;
+        exit.start(() => {
+          endSplashImmersive();
+          onDone?.();
+        });
+      }, 1200);
+      timersRef.current.push(wait);
       return;
     }
     fadeStartedRef.current = true;
@@ -173,7 +245,7 @@ export default function AnimatedSplash({onDone, appReady = true}) {
       endSplashImmersive();
       onDone?.();
     });
-  }, [onDone, screenOpacity]);
+  }, [onDone, screenOpacity, showLogo]);
 
   const startTimeline = useCallback(() => {
     if (timelineStartedRef.current) {
@@ -289,95 +361,95 @@ export default function AnimatedSplash({onDone, appReady = true}) {
     ]);
 
     const starLoop = Animated.loop(
-        Animated.parallel([
-          Animated.sequence([
-            Animated.timing(starTwinkleA, {
-              toValue: 1,
-              duration: 1100,
-              easing: softEase,
-              useNativeDriver: true,
-            }),
-            Animated.timing(starTwinkleA, {
-              toValue: 0.28,
-              duration: 1100,
-              easing: softEase,
-              useNativeDriver: true,
-            }),
-          ]),
-          Animated.sequence([
-            Animated.timing(starTwinkleB, {
-              toValue: 0.22,
-              duration: 1400,
-              easing: softEase,
-              useNativeDriver: true,
-            }),
-            Animated.timing(starTwinkleB, {
-              toValue: 1,
-              duration: 1400,
-              easing: softEase,
-              useNativeDriver: true,
-            }),
-          ]),
-          Animated.sequence([
-            Animated.delay(200),
-            Animated.timing(starTwinkleC, {
-              toValue: 1,
-              duration: 1200,
-              easing: softEase,
-              useNativeDriver: true,
-            }),
-            Animated.timing(starTwinkleC, {
-              toValue: 0.2,
-              duration: 1200,
-              easing: softEase,
-              useNativeDriver: true,
-            }),
-          ]),
-          Animated.sequence([
-            Animated.delay(360),
-            Animated.timing(starTwinkleD, {
-              toValue: 0.95,
-              duration: 1000,
-              easing: softEase,
-              useNativeDriver: true,
-            }),
-            Animated.timing(starTwinkleD, {
-              toValue: 0.25,
-              duration: 1000,
-              easing: softEase,
-              useNativeDriver: true,
-            }),
-          ]),
-          Animated.sequence([
-            Animated.timing(starPulseA, {
-              toValue: 1.28,
-              duration: 1100,
-              easing: softEase,
-              useNativeDriver: true,
-            }),
-            Animated.timing(starPulseA, {
-              toValue: 0.88,
-              duration: 1100,
-              easing: softEase,
-              useNativeDriver: true,
-            }),
-          ]),
-          Animated.sequence([
-            Animated.timing(starPulseB, {
-              toValue: 0.82,
-              duration: 1300,
-              easing: softEase,
-              useNativeDriver: true,
-            }),
-            Animated.timing(starPulseB, {
-              toValue: 1.32,
-              duration: 1300,
-              easing: softEase,
-              useNativeDriver: true,
-            }),
-          ]),
+      Animated.parallel([
+        Animated.sequence([
+          Animated.timing(starTwinkleA, {
+            toValue: 1,
+            duration: 1100,
+            easing: softEase,
+            useNativeDriver: true,
+          }),
+          Animated.timing(starTwinkleA, {
+            toValue: 0.28,
+            duration: 1100,
+            easing: softEase,
+            useNativeDriver: true,
+          }),
         ]),
-      );
+        Animated.sequence([
+          Animated.timing(starTwinkleB, {
+            toValue: 0.22,
+            duration: 1400,
+            easing: softEase,
+            useNativeDriver: true,
+          }),
+          Animated.timing(starTwinkleB, {
+            toValue: 1,
+            duration: 1400,
+            easing: softEase,
+            useNativeDriver: true,
+          }),
+        ]),
+        Animated.sequence([
+          Animated.delay(200),
+          Animated.timing(starTwinkleC, {
+            toValue: 1,
+            duration: 1200,
+            easing: softEase,
+            useNativeDriver: true,
+          }),
+          Animated.timing(starTwinkleC, {
+            toValue: 0.2,
+            duration: 1200,
+            easing: softEase,
+            useNativeDriver: true,
+          }),
+        ]),
+        Animated.sequence([
+          Animated.delay(360),
+          Animated.timing(starTwinkleD, {
+            toValue: 0.95,
+            duration: 1000,
+            easing: softEase,
+            useNativeDriver: true,
+          }),
+          Animated.timing(starTwinkleD, {
+            toValue: 0.25,
+            duration: 1000,
+            easing: softEase,
+            useNativeDriver: true,
+          }),
+        ]),
+        Animated.sequence([
+          Animated.timing(starPulseA, {
+            toValue: 1.28,
+            duration: 1100,
+            easing: softEase,
+            useNativeDriver: true,
+          }),
+          Animated.timing(starPulseA, {
+            toValue: 0.88,
+            duration: 1100,
+            easing: softEase,
+            useNativeDriver: true,
+          }),
+        ]),
+        Animated.sequence([
+          Animated.timing(starPulseB, {
+            toValue: 0.82,
+            duration: 1300,
+            easing: softEase,
+            useNativeDriver: true,
+          }),
+          Animated.timing(starPulseB, {
+            toValue: 1.32,
+            duration: 1300,
+            easing: softEase,
+            useNativeDriver: true,
+          }),
+        ]),
+      ]),
+    );
 
     const scene = Animated.parallel([
       Animated.parallel([
@@ -456,28 +528,17 @@ export default function AnimatedSplash({onDone, appReady = true}) {
             useNativeDriver: true,
           }),
         ]),
-        Animated.delay(50),
-        Animated.parallel([
-          Animated.timing(logoOpacity, {
-            toValue: 1,
-            duration: 460,
-            easing: flightEase,
-            useNativeDriver: true,
-          }),
-          Animated.timing(logoTranslateY, {
-            toValue: 0,
-            duration: 460,
-            easing: flightEase,
-            useNativeDriver: true,
-          }),
-          Animated.timing(logoScale, {
-            toValue: 1,
-            duration: 460,
-            easing: flightEase,
-            useNativeDriver: true,
-          }),
-        ]),
-        Animated.delay(900),
+        Animated.delay(120),
+        {
+          start(callback) {
+            showLogo();
+            const hold = setTimeout(() => {
+              callback?.({finished: true});
+            }, 1400);
+            timersRef.current.push(hold);
+          },
+          stop() {},
+        },
       ]),
     ]);
 
@@ -490,18 +551,17 @@ export default function AnimatedSplash({onDone, appReady = true}) {
     };
     scene.start(({finished}) => {
       if (!finished) {
+        showLogo();
         return;
       }
       setAnimationDone(true);
     });
   }, [
+    PLANE1_END_X,
     cloudLeftOpacity,
     cloudLeftY,
     cloudRightOpacity,
     cloudRightY,
-    logoOpacity,
-    logoScale,
-    logoTranslateY,
     plane1X,
     plane1Y,
     plane1Rotate,
@@ -514,6 +574,7 @@ export default function AnimatedSplash({onDone, appReady = true}) {
     planet1Scale,
     planet2Opacity,
     planet2Scale,
+    showLogo,
     starPulseA,
     starPulseB,
     starTwinkleA,
@@ -552,9 +613,11 @@ export default function AnimatedSplash({onDone, appReady = true}) {
 
   useEffect(() => {
     const fallbackPaint = setTimeout(() => {
+      bgLoadedRef.current = true;
+      laidOutRef.current = true;
       hideNativeSplash();
       startTimeline();
-    }, 1200);
+    }, 900);
     return () => clearTimeout(fallbackPaint);
   }, [startTimeline]);
 
@@ -566,13 +629,25 @@ export default function AnimatedSplash({onDone, appReady = true}) {
     return undefined;
   }, [animationDone, appReady, fadeOut]);
 
+  // Always reveal logo by 3.6s even if the scene stalls
   useEffect(() => {
-    const doneCap = setTimeout(() => setAnimationDone(true), 4200);
-    return () => clearTimeout(doneCap);
-  }, []);
+    const logoCap = setTimeout(() => {
+      showLogo();
+    }, 3600);
+    timersRef.current.push(logoCap);
+    return () => clearTimeout(logoCap);
+  }, [showLogo]);
 
   useEffect(() => {
-    const hardCap = setTimeout(fadeOut, 7000);
+    const doneCap = setTimeout(() => {
+      showLogo();
+      setAnimationDone(true);
+    }, 5600);
+    return () => clearTimeout(doneCap);
+  }, [showLogo]);
+
+  useEffect(() => {
+    const hardCap = setTimeout(fadeOut, 9000);
     return () => clearTimeout(hardCap);
   }, [fadeOut]);
 
@@ -621,42 +696,69 @@ export default function AnimatedSplash({onDone, appReady = true}) {
           <View style={styles.starsLayer} pointerEvents="none">
             <Animated.View
               style={[
-                styles.starPos1,
+                {
+                  position: 'absolute',
+                  top: SCREEN_H * 0.12,
+                  left: SCREEN_W * 0.1,
+                },
                 {opacity: starTwinkleA, transform: [{scale: starPulseA}]},
               ]}>
               <Star size={11} />
             </Animated.View>
             <Animated.View
               style={[
-                styles.starPos2,
+                {
+                  position: 'absolute',
+                  top: SCREEN_H * 0.18,
+                  right: SCREEN_W * 0.12,
+                },
                 {opacity: starTwinkleB, transform: [{scale: starPulseB}]},
               ]}>
               <Star size={9} />
             </Animated.View>
-            <Animated.View style={[styles.starPos3, {opacity: starTwinkleC}]}>
+            <Animated.View
+              style={[
+                {
+                  position: 'absolute',
+                  top: SCREEN_H * 0.42,
+                  left: SCREEN_W * 0.08,
+                },
+                {opacity: starTwinkleC},
+              ]}>
               <Star size={10} />
             </Animated.View>
             <Animated.View
               style={[
-                styles.starPos4,
+                {
+                  position: 'absolute',
+                  top: SCREEN_H * 0.28,
+                  right: SCREEN_W * 0.18,
+                },
                 {opacity: starTwinkleD, transform: [{scale: starPulseA}]},
               ]}>
               <Star size={8} />
             </Animated.View>
-            <Animated.View style={[styles.starPos5, {opacity: starTwinkleB}]}>
+            <Animated.View
+              style={[
+                {
+                  position: 'absolute',
+                  top: SCREEN_H * 0.52,
+                  right: SCREEN_W * 0.28,
+                },
+                {opacity: starTwinkleB},
+              ]}>
               <Star size={7} />
             </Animated.View>
-            <Animated.View style={[styles.dotA, {opacity: starTwinkleC}]} />
-            <Animated.View style={[styles.dotB, {opacity: starTwinkleA}]} />
-            <Animated.View style={[styles.dotC, {opacity: starTwinkleD}]} />
-            <Animated.View style={[styles.dotD, {opacity: starTwinkleB}]} />
-            <Animated.View style={[styles.dotE, {opacity: starTwinkleA}]} />
           </View>
 
           <Animated.View
             pointerEvents="none"
             style={[
-              styles.plane1,
+              {
+                position: 'absolute',
+                top: PLANE1_TOP,
+                left: PLANE1_ANCHOR_LEFT,
+              },
               {
                 opacity: plane1Opacity,
                 transform: [
@@ -668,7 +770,10 @@ export default function AnimatedSplash({onDone, appReady = true}) {
             ]}>
             <Image
               source={planeImage}
-              style={[styles.planeImage, styles.planeFlipX]}
+              style={[
+                {width: PLANE1_W, height: PLANE1_H},
+                {transform: [{scaleX: -1}]},
+              ]}
               resizeMode="contain"
             />
           </Animated.View>
@@ -676,7 +781,13 @@ export default function AnimatedSplash({onDone, appReady = true}) {
           <Animated.View
             pointerEvents="none"
             style={[
-              styles.student,
+              {
+                position: 'absolute',
+                left: 0,
+                right: 0,
+                top: SCREEN_H * 0.58,
+                alignItems: 'center',
+              },
               {
                 opacity: studentOpacity,
                 transform: [{translateX: studentX}, {rotate: studentRotateDeg}],
@@ -684,7 +795,7 @@ export default function AnimatedSplash({onDone, appReady = true}) {
             ]}>
             <Image
               source={boyImage}
-              style={styles.studentImage}
+              style={{width: SCREEN_W * 0.58, height: SCREEN_W * 0.39}}
               resizeMode="contain"
             />
           </Animated.View>
@@ -692,7 +803,11 @@ export default function AnimatedSplash({onDone, appReady = true}) {
           <Animated.View
             pointerEvents="none"
             style={[
-              styles.planet1,
+              {
+                position: 'absolute',
+                top: SCREEN_H * 0.46,
+                right: SCREEN_W * 0.05,
+              },
               {
                 opacity: planet1Opacity,
                 transform: [{scale: planet1Scale}],
@@ -700,14 +815,18 @@ export default function AnimatedSplash({onDone, appReady = true}) {
             ]}>
             <Image
               source={planetImage}
-              style={styles.planetImage}
+              style={{width: 78, height: 78}}
               resizeMode="contain"
             />
           </Animated.View>
           <Animated.View
             pointerEvents="none"
             style={[
-              styles.planet2,
+              {
+                position: 'absolute',
+                top: SCREEN_H * 0.6,
+                left: SCREEN_W * 0.06,
+              },
               {
                 opacity: planet2Opacity,
                 transform: [{scale: planet2Scale}],
@@ -715,7 +834,7 @@ export default function AnimatedSplash({onDone, appReady = true}) {
             ]}>
             <Image
               source={planet2Image}
-              style={styles.planetImageSm}
+              style={{width: 42, height: 42}}
               resizeMode="contain"
             />
           </Animated.View>
@@ -723,7 +842,11 @@ export default function AnimatedSplash({onDone, appReady = true}) {
           <Animated.View
             pointerEvents="none"
             style={[
-              styles.plane2,
+              {
+                position: 'absolute',
+                top: PLANE2_TOP,
+                right: PLANE2_ANCHOR_RIGHT,
+              },
               {
                 opacity: plane2Opacity,
                 transform: [
@@ -735,30 +858,30 @@ export default function AnimatedSplash({onDone, appReady = true}) {
             ]}>
             <Image
               source={planeImage}
-              style={styles.planeImageSm}
+              style={{width: PLANE2_W, height: PLANE2_H}}
               resizeMode="contain"
             />
           </Animated.View>
-
-          <Animated.View
-            pointerEvents="none"
-            style={[
-              styles.logoWrap,
-              {
-                opacity: logoOpacity,
-                transform: [{translateY: logoTranslateY}, {scale: logoScale}],
-              },
-            ]}>
-            <View style={styles.logoClip}>
-              <Image
-                source={mainLogo}
-                style={styles.logoImage}
-                resizeMode="contain"
-              />
-            </View>
-            <Text style={styles.logoSubtitle}>MONTESSORI ACADEMY</Text>
-          </Animated.View>
         </View>
+
+        <Animated.View
+          collapsable={false}
+          pointerEvents="none"
+          style={[
+            styles.logoWrap,
+            {
+              top: STATUS_TOP + SCREEN_H * 0.12,
+              opacity: logoOpacity,
+              transform: [{translateY: logoTranslateY}, {scale: logoScale}],
+            },
+          ]}>
+          <Image
+            source={mainLogo}
+            style={{width: LOGO_W, height: LOGO_H}}
+            resizeMode="contain"
+          />
+          <Text style={styles.logoSubtitle}>MONTESSORI ACADEMY</Text>
+        </Animated.View>
       </View>
     </Animated.View>
   );
@@ -797,149 +920,21 @@ const styles = StyleSheet.create({
     position: 'absolute',
     backgroundColor: '#FFFFFF',
   },
-  starPos1: {
-    position: 'absolute',
-    top: SCREEN_H * 0.12,
-    left: SCREEN_W * 0.1,
-  },
-  starPos2: {
-    position: 'absolute',
-    top: SCREEN_H * 0.18,
-    right: SCREEN_W * 0.12,
-  },
-  starPos3: {
-    position: 'absolute',
-    top: SCREEN_H * 0.42,
-    left: SCREEN_W * 0.08,
-  },
-  starPos4: {
-    position: 'absolute',
-    top: SCREEN_H * 0.28,
-    right: SCREEN_W * 0.18,
-  },
-  starPos5: {
-    position: 'absolute',
-    top: SCREEN_H * 0.52,
-    right: SCREEN_W * 0.28,
-  },
-  dotA: {
-    position: 'absolute',
-    top: SCREEN_H * 0.24,
-    left: SCREEN_W * 0.3,
-    width: 2.5,
-    height: 2.5,
-    borderRadius: 1.25,
-    backgroundColor: '#FFFFFF',
-  },
-  dotB: {
-    position: 'absolute',
-    top: SCREEN_H * 0.36,
-    right: SCREEN_W * 0.32,
-    width: 2,
-    height: 2,
-    borderRadius: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  dotC: {
-    position: 'absolute',
-    top: SCREEN_H * 0.48,
-    left: SCREEN_W * 0.22,
-    width: 2,
-    height: 2,
-    borderRadius: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  dotD: {
-    position: 'absolute',
-    top: SCREEN_H * 0.15,
-    left: SCREEN_W * 0.52,
-    width: 2,
-    height: 2,
-    borderRadius: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  dotE: {
-    position: 'absolute',
-    top: SCREEN_H * 0.33,
-    left: SCREEN_W * 0.62,
-    width: 2.5,
-    height: 2.5,
-    borderRadius: 1.25,
-    backgroundColor: '#FFFFFF',
-  },
-  plane1: {
-    position: 'absolute',
-    top: PLANE1_TOP,
-    left: PLANE1_ANCHOR_LEFT,
-  },
-  plane2: {
-    position: 'absolute',
-    top: PLANE2_TOP,
-    right: PLANE2_ANCHOR_RIGHT,
-  },
-  planeImage: {
-    width: PLANE1_W,
-    height: PLANE1_H,
-  },
-  planeFlipX: {
-    transform: [{scaleX: -1}],
-  },
-  planeImageSm: {
-    width: PLANE2_W,
-    height: PLANE2_H,
-  },
-  planetImage: {
-    width: 78,
-    height: 78,
-  },
-  planetImageSm: {
-    width: 42,
-    height: 42,
-  },
-  student: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: SCREEN_H * 0.58,
-    alignItems: 'center',
-  },
-  studentImage: {
-    width: SCREEN_W * 0.58,
-    height: SCREEN_W * 0.39,
-  },
-  planet1: {
-    position: 'absolute',
-    top: SCREEN_H * 0.46,
-    right: SCREEN_W * 0.05,
-  },
-  planet2: {
-    position: 'absolute',
-    top: SCREEN_H * 0.6,
-    left: SCREEN_W * 0.06,
-  },
   logoWrap: {
     position: 'absolute',
-    top: STATUS_TOP + SCREEN_H * 0.22,
     left: 0,
     right: 0,
     alignItems: 'center',
-  },
-  logoClip: {
-    width: LOGO_W,
-    height: LOGO_CLIP_H,
-    overflow: 'hidden',
-    alignItems: 'center',
-  },
-  logoImage: {
-    width: LOGO_W,
-    height: LOGO_FULL_H,
+    paddingHorizontal: 20,
+    zIndex: 20,
+    elevation: 20,
   },
   logoSubtitle: {
-    marginTop: 6,
+    marginTop: 8,
     color: '#FFFFFF',
     fontFamily: fonts.euclidCircularA.medium,
-    fontSize: 12,
-    letterSpacing: 2.4,
+    fontSize: 11,
+    letterSpacing: 2.6,
     textAlign: 'center',
   },
 });

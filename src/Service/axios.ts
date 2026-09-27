@@ -2,10 +2,11 @@ import ax from 'axios';
 import {Platform} from 'react-native';
 
 // Local Birchwood backend (parent/user token APIs on :3031).
-// Android emulator → 10.0.2.2; physical device / iOS sim → LAN IP.
+// Android emulator → 10.0.2.2
+// Physical phone on same Wi‑Fi → PC LAN IP (no adb reverse needed).
+// USB + adb reverse → 127.0.0.1 with `adb reverse tcp:3031 tcp:3031`.
 const LOCAL_HOST =
-  Platform.OS === 'android' ? '10.0.2.2' : '192.168.100.94';
-// Override for a physical Android device on the same Wi‑Fi:
+  Platform.OS === 'android' ? '10.0.2.2' : '10.101.46.171';
 const PHYSICAL_DEVICE_HOST = '192.168.100.94';
 const USE_PHYSICAL_DEVICE = true; // set false when using Android emulator
 
@@ -19,13 +20,22 @@ export const IMG_URL = APP_URL + 'uploads/';
 export const BASE_URL = APP_URL + 'api/';
 
 export const getImagePath = (str: string) => {
-  if (!str) {
-    return str;
+  if (str == null || str === '') {
+    return '';
   }
-  if (/^https?:\/\//i.test(str) || str.startsWith('file:')) {
-    return str;
+  const value = String(str).trim();
+  if (!value || value === 'undefined' || value === 'null') {
+    return '';
   }
-  return IMG_URL + str;
+  if (
+    /^https?:\/\//i.test(value) ||
+    value.startsWith('file:') ||
+    value.startsWith('content:')
+  ) {
+    return value;
+  }
+  const name = value.replace(/\\/g, '/').split('/').filter(Boolean).pop();
+  return name ? IMG_URL + name : '';
 };
 
 const axios = ax.create({

@@ -1,8 +1,8 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import { ChatRoom, ChildAttendance, ChildCheckInOutPayload, ChildCheckInOutResponse, ClassResponse, ClassRoom, CreateChatPayload, CreateChatRoomMessagePayload, CreateChatRoomMessageResponse, MessagesResponse } from '../../Types/Class';
+import { ChatRoom, ChildAttendance, ClassRoom, CreateChatPayload, CreateChatRoomMessagePayload, CreateChatRoomMessageResponse, MessagesResponse } from '../../Types/Class';
 import { callApi } from '../../Service/api';
 import { allApiPaths, ApiPaths } from '../../Service/apiPaths';
-import { setAttendances, setChatRoomMessage, setChatRoomMessages, setChild, setChildren, setClassRoom } from '../slices/class.slice';
+import { setAttendances, setChatRoomMessage, setChatRoomMessages, setChild, setClassRoom, setUnreadChatCount } from '../slices/class.slice';
 import { setLoading } from '../slices/common.slice';
 import { asyncShowError, asyncShowSuccess } from './common.action';
 import { RootState } from '..';
@@ -26,58 +26,6 @@ export const asyncGetClassRoomById = createAsyncThunk(
       dispatch(
         setClassRoom(res.data?.classroom!)
       );
-    }
-
-    dispatch(setLoading(false));
-    return res;
-  }
-);
-
-export const asyncGetChildrenByClassId = createAsyncThunk(
-  'getChildrenByClassId',
-  async (_, { dispatch, getState }) => {
-    dispatch(setLoading(true));
-
-    const classRoomId: string = (getState() as RootState).user.user?.classroom?._id
-
-    const res = await callApi<ClassResponse>({
-      path: (allApiPaths.getPath('getChildrenByClassId', {
-        classRoomId
-      }) +
-        `?limit=${100}`) as ApiPaths,
-    });
-
-    if (!res.status) {
-      dispatch(asyncShowError(res.message));
-    } else {
-      dispatch(
-        setChildren(res.data!)
-      );
-    }
-
-    dispatch(setLoading(false));
-    return res;
-  }
-);
-
-export const asyncCheckInChildByTeacher = createAsyncThunk(
-  'checkInChildByTeacher',
-  async (data: any, { dispatch }) => {
-    dispatch(setLoading(true));
-
-    const res = await callApi<{ newAttendance: ChildCheckInOutResponse }, ChildCheckInOutPayload>({
-      method: 'POST',
-      path: allApiPaths.getPath('checkInChildByTeacher'),
-      body: data,
-    });
-
-    if (!res?.status) {
-      dispatch(asyncShowError(res.message));
-    } else {
-      if (res.data?.newAttendance?.children) {
-        dispatch(setChild({ _id: res.data.newAttendance.children, todayAttendance: res.data.newAttendance }));
-      }
-      dispatch(asyncShowSuccess(res.message));
     }
 
     dispatch(setLoading(false));
@@ -180,5 +128,28 @@ export const asyncGetMessagesByChatRoomId = createAsyncThunk(
 
     dispatch(setLoading(false));
     return res;
+  }
+);
+
+export const asyncGetUnreadChatCount = createAsyncThunk(
+  'getUnreadChatCount',
+  async (_, { dispatch }) => {
+    try {
+      const res = await callApi<any>({
+        path: allApiPaths.getPath('getMyChats'),
+        options: { params: { type: 'parent' } },
+      });
+      const docs = res?.data?.docs || res?.data || [];
+      const list = Array.isArray(docs) ? docs : [];
+      const total = list.reduce((sum: number, chat: any) => {
+        const n = Number(chat?.parentUnread ?? chat?.unreadMessage ?? 0);
+        return sum + (Number.isFinite(n) ? n : 0);
+      }, 0);
+      dispatch(setUnreadChatCount(total));
+      return total;
+    } catch (error) {
+      console.log('getUnreadChatCount failed', error);
+      return 0;
+    }
   }
 );

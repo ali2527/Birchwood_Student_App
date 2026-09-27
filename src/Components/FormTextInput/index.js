@@ -61,6 +61,10 @@ const FormTextInput = ({
           secureTextEntry={secureTextEntry}
           keyboardType={isPhoneMask ? 'phone-pad' : keyboardType}
           maxLength={isPhoneMask ? 18 : undefined}
+          autoComplete="off"
+          textContentType="none"
+          importantForAutofill="no"
+          underlineColorAndroid="transparent"
           onChangeText={(next)=> onChangeText(name, isPhoneMask ? unmaskPhone(next, country.iso) : next)}
         />
         {icon && !isPhoneMask && (

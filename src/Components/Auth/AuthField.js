@@ -34,6 +34,8 @@ export default function AuthField({
   keyboardType,
   autoCapitalize,
   autoCorrect,
+  editable = true,
+  multiline = false,
   error,
   mask,
   countryIso = DEFAULT_PHONE_COUNTRY,
@@ -42,14 +44,20 @@ export default function AuthField({
   const [secure, setSecure] = useState(password);
   const [pickerOpen, setPickerOpen] = useState(false);
   const isPhoneMask = mask === 'phone';
-  const country = getPhoneCountry(countryIso);
+  const country = getPhoneCountry(countryIso) || getPhoneCountry(DEFAULT_PHONE_COUNTRY);
   const displayValue = isPhoneMask ? maskPhone(value, country.iso) : value;
 
   return (
     <View style={styles.wrap}>
       {!!label && <Text style={styles.label}>{label}</Text>}
-      <View style={[styles.field, error ? styles.fieldError : null]}>
-        {!isPhoneMask ? (
+      <View
+        style={[
+          styles.field,
+          multiline && styles.fieldMulti,
+          error ? styles.fieldError : null,
+          !editable && styles.fieldDisabled,
+        ]}>
+        {!isPhoneMask && leftIcon ? (
           <Icon
             name={leftIcon}
             size={18}
@@ -72,20 +80,27 @@ export default function AuthField({
           </>
         ) : null}
         <TextInput
-          style={styles.input}
+          style={[styles.input, multiline && styles.inputMulti]}
+          multiline={multiline}
+          textAlignVertical={multiline ? 'top' : 'center'}
           placeholder={
             isPhoneMask ? phonePlaceholder(country.iso) : placeholder
           }
           placeholderTextColor={PLACEHOLDER_COLOR}
           value={displayValue}
+          editable={editable}
           onChangeText={text =>
-            onChangeText(isPhoneMask ? unmaskPhone(text, country.iso) : text)
+            onChangeText?.(isPhoneMask ? unmaskPhone(text, country.iso) : text)
           }
           secureTextEntry={secure}
           keyboardType={isPhoneMask ? 'phone-pad' : keyboardType}
           maxLength={isPhoneMask ? 18 : undefined}
           autoCapitalize={isPhoneMask ? 'none' : autoCapitalize ?? 'sentences'}
           autoCorrect={isPhoneMask ? false : autoCorrect ?? true}
+          autoComplete="off"
+          textContentType="none"
+          importantForAutofill="no"
+          underlineColorAndroid="transparent"
         />
         {password ? (
           <TouchableOpacity
@@ -138,6 +153,15 @@ const styles = StyleSheet.create({
   fieldError: {
     borderColor: colors.theme.lightRed,
   },
+  fieldDisabled: {
+    backgroundColor: '#F3F4F6',
+  },
+  fieldMulti: {
+    height: undefined,
+    minHeight: 110,
+    alignItems: 'flex-start',
+    paddingVertical: 12,
+  },
   leftIcon: {
     marginRight: 8,
   },
@@ -168,6 +192,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#111827',
     paddingVertical: 0,
+    backgroundColor: 'transparent',
+  },
+  inputMulti: {
+    minHeight: 84,
   },
   eye: {
     paddingLeft: 8,

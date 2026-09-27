@@ -22,7 +22,6 @@ export interface Post {
   children?: string[];
   type: string;
   likes: string[];
-  loves: string[];
   createdAt: string;
   updatedAt: string;
 }

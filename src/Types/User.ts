@@ -179,6 +179,8 @@ export interface AppNotification {
   content?: string;
   isRead?: boolean;
   type?: string;
+  source?: string;
+  broadcastId?: string;
   createdAt: string;
 }
 
@@ -202,6 +204,7 @@ export interface MarkChildLeaveBody {
 export interface ParentLeaveSubmitInput {
   children: string;
   leaveType: string;
+  reason?: string;
   startDate: string | Date;
   endDate?: string | Date | null;
 }

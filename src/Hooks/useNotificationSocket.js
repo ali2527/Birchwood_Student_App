@@ -7,11 +7,15 @@ import {
 } from '../Service/socket';
 import {
   asyncGetUnreadUserNotifications,
+  asyncGetUnreadUserNotices,
   asyncGetUserNotifications,
+  asyncGetUserNotices,
 } from '../Stores/actions/notification.action';
 import {useAppDispatch, useAppSelector} from '../Stores/hooks';
 import {
+  isSchoolNotice,
   receiveNotification,
+  removeNotification,
   setNotificationReadState,
   setSocketConnected,
 } from '../Stores/slices/notification.slice';
@@ -20,6 +24,7 @@ import {selectUserToken} from '../Stores/slices/user.slice';
 /**
  * Keeps a Socket.IO connection alive while the parent is signed in and
  * mirrors notification:new / notification:read into Redux.
+ * School notices only bump the Notices tile badge — no toast alert.
  */
 export function useNotificationSocket() {
   const dispatch = useAppDispatch();
@@ -38,11 +43,14 @@ export function useNotificationSocket() {
     }
 
     dispatch(asyncGetUserNotifications());
+    dispatch(asyncGetUserNotices());
     dispatch(asyncGetUnreadUserNotifications());
+    dispatch(asyncGetUnreadUserNotices());
 
     const onConnected = () => {
       dispatch(setSocketConnected(true));
       dispatch(asyncGetUnreadUserNotifications());
+      dispatch(asyncGetUnreadUserNotices());
     };
 
     const onDisconnect = () => {
@@ -55,11 +63,12 @@ export function useNotificationSocket() {
         return;
       }
       dispatch(receiveNotification(notification));
-      const title = notification.title || 'New notification';
-      const description = notification.content || '';
+      if (isSchoolNotice(notification)) {
+        return;
+      }
       showAppAlert({
-        title,
-        description,
+        title: notification.title || 'New notification',
+        description: notification.content || '',
         type: 'info',
       });
     };
@@ -77,11 +86,21 @@ export function useNotificationSocket() {
       );
     };
 
+    const onNotificationDeleted = payload => {
+      const id = payload?.id;
+      const broadcastId = payload?.broadcastId;
+      if (!id && !broadcastId) {
+        return;
+      }
+      dispatch(removeNotification({id, broadcastId}));
+    };
+
     socket.on(SOCKET_EVENTS.CONNECTED, onConnected);
     socket.on('connect', onConnected);
     socket.on('disconnect', onDisconnect);
     socket.on(SOCKET_EVENTS.NOTIFICATION_NEW, onNotificationNew);
     socket.on(SOCKET_EVENTS.NOTIFICATION_READ, onNotificationRead);
+    socket.on(SOCKET_EVENTS.NOTIFICATION_DELETED, onNotificationDeleted);
 
     if (socket.connected) {
       onConnected();
@@ -93,6 +112,7 @@ export function useNotificationSocket() {
       socket.off('disconnect', onDisconnect);
       socket.off(SOCKET_EVENTS.NOTIFICATION_NEW, onNotificationNew);
       socket.off(SOCKET_EVENTS.NOTIFICATION_READ, onNotificationRead);
+      socket.off(SOCKET_EVENTS.NOTIFICATION_DELETED, onNotificationDeleted);
       disconnectAppSocket();
       dispatch(setSocketConnected(false));
     };

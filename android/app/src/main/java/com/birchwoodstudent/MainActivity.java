@@ -32,6 +32,15 @@ public class MainActivity extends ReactActivity {
     showNativeSplash();
     super.onCreate(savedInstanceState);
     prepareSplashWindow(getWindow());
+    disableAutofillHighlight();
+  }
+
+  private void disableAutofillHighlight() {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+      return;
+    }
+    View decor = getWindow().getDecorView();
+    decor.setImportantForAutofill(View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS);
   }
 
   @Override

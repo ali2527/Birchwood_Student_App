@@ -28,6 +28,10 @@ const SampleInputField = ({
           placeholderTextColor={colors.text.altGrey}
           value={value}
           name={name}
+          autoComplete="off"
+          textContentType="none"
+          importantForAutofill="no"
+          underlineColorAndroid="transparent"
           onChangeText={(text) => onChangeText(name, text)}
         />
         {icon && (

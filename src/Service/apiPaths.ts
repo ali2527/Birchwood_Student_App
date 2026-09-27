@@ -20,20 +20,23 @@ export enum ProfileApiPaths {
   monthlyAttendance = 'children/attendance/getAttendanceByMonth/:childId',
   getAllChildAttendance = 'children/attendance/getAllChildAttendance/:childId',
   getAllHolidays = 'holiday/getAllHolidays',
+  getAllChildVouchers = 'fees/getAllChildVouchers/:childId',
+  getActiveGalleries = 'gallery/getActiveGalleries',
   assignChild = 'profile/assignChild',
-  getMonthlyAttendanceStats = 'teacher/attendance/getMonthlyAttendanceStats',
+  updateChildHealth = 'profile/updateChildHealth',
+  getMonthlyAttendanceStats = 'children/attendance/getMonthlyAttendanceStats/:childId',
   getUserNotifications = 'notification/getUserNotifications',
   getUnreadUserNotifications = 'notification/getUnreadUserNotifications',
   markNotificationAsRead = 'notification/markAsRead/:id',
+  deleteUserNotification = 'notification/deleteUserNotification/:id',
   getActiveAdvertisements = 'advertisement/getActiveAdvertisements',
 }
 
 export enum ClassApiPaths {
   getClassRoomById = 'classroom/getClassroomById/:classRoomId',
-  getChildrenByClassId = 'admin/children/getChildrenByClassroom/:classRoomId',
-  checkInChildByTeacher = 'children/attendance/markCheckIn',
   childMonthlyAttendance = 'children/attendance/getAttendanceByMonth/:childId',
   createChat = 'chat/createChat',
+  getMyChats = 'chat/getMyChats',
   getMessagesByChatRoomId = 'message/getChatMessages/:chatRoomId',
   createChatRoomMessage = 'message/createMessage',
 }
@@ -46,26 +49,43 @@ export enum PostApiPaths {
   getAllClassPosts = 'post/getAllClassPosts/:classRoomId',
   getAllChildPosts = 'post/getAllChildPosts/:childId',
   likePost = 'post/likePost/:postId',
-  lovePost = 'post/lovePost/:postId',
   createPostComment = 'post/commentPost/:postId',
   getAllPostComments = 'post/getAllPostComments/:postId',
   deletePost = 'post/deletePost/:postId',
 }
 
+export enum SupportApiPaths {
+  createSupportTicket = 'support/createTicket',
+  getAllSupportTickets = 'support/getAllTickets',
+  getSupportTicket = 'support/getTicketById/:id',
+  updateSupportTicket = 'support/updateTicket/:id',
+  deleteSupportTicket = 'support/deleteTicket/:id',
+  getSupportMessages = 'support/getTicketMessages/:id',
+  sendSupportMessage = 'support/sendMessage/:id',
+  markSupportTicketRead = 'support/markTicketRead/:id',
+}
+
+export enum ResultApiPaths {
+  getPublishedByChild = 'result/getPublishedByChild/:childId',
+  getPublishedExam = 'result/getPublishedExam/:id',
+}
+
+export enum SettingsApiPaths {
+  getAppModules = 'settings/getModules',
+}
+
+export enum AssessmentApiPaths {
+  getPublishedAssessmentsByChild = 'assessment/getPublishedByChild/:childId',
+}
+
 export enum DiaryApiPaths {
-  createHomeWork = 'homework/addHomework',
   getAllHomeWork = 'homework/getAllHomework',
   getAllChildHomework = 'homework/getAllChildHomework/:childId',
   getHomeworkById = 'homework/getHomeworkById/:homeWorkId',
-  deleteHomeWork = 'homework/deleteHomework/:homeWorkId',
-  updateHomeWork = 'homework/updateHomework/:homeWorkId'
 }
 
 export enum TimeTableApiPaths {
   getAllClassTimeTable = 'timetable/getAllClassTimetables/:classRoomId',
-  createTimeTable = 'timetable/addTimetable',
-  deleteTimeTableRecord = 'timetable/deleteTimetable/:timeTableRecordId',
-  updateTimeTableRecord = 'timetable/updateTimetable/:timeTableRecordId'
 }
 
 export const AllApiPaths = Object.freeze({
@@ -74,11 +94,15 @@ export const AllApiPaths = Object.freeze({
   ...ProfileApiPaths,
   ...ClassApiPaths,
   ...PostApiPaths,
+  ...SupportApiPaths,
+  ...ResultApiPaths,
+  ...SettingsApiPaths,
+  ...AssessmentApiPaths,
   ...DiaryApiPaths,
   ...TimeTableApiPaths
 });
 
-export type ApiPaths = AuthApiPaths | ResetPasswordApiPaths | ProfileApiPaths | ClassApiPaths | PostApiPaths | DiaryApiPaths | TimeTableApiPaths;
+export type ApiPaths = AuthApiPaths | ResetPasswordApiPaths | ProfileApiPaths | ClassApiPaths | PostApiPaths | SupportApiPaths | ResultApiPaths | SettingsApiPaths | AssessmentApiPaths | DiaryApiPaths | TimeTableApiPaths;
 
 class ApiPathHandler<T> {
   private paths: T;

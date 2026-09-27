@@ -50,7 +50,8 @@ export const DEFAULT_PHONE_COUNTRY = 'US';
 export function getPhoneCountry(iso) {
   return (
     PHONE_COUNTRIES.find(item => item.iso === iso) ||
-    PHONE_COUNTRIES.find(item => item.iso === DEFAULT_PHONE_COUNTRY)
+    PHONE_COUNTRIES.find(item => item.iso === DEFAULT_PHONE_COUNTRY) ||
+    PHONE_COUNTRIES[0]
   );
 }
 

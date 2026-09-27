@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {View} from 'react-native';
+import {StatusBar, View} from 'react-native';
 import {Provider} from 'react-redux';
 import {PersistGate} from 'redux-persist/integration/react';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
@@ -36,6 +36,7 @@ function App() {
     <SafeAreaProvider>
       <Provider store={store}>
         <View style={{flex: 1, backgroundColor: '#FFFFFF'}}>
+          <StatusBar barStyle="dark-content" backgroundColor="#F4F5F8" />
           <PersistGate loading={null} persistor={persistor}>
             {bootstrapped =>
               bootstrapped ? (

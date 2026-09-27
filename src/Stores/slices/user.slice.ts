@@ -3,8 +3,8 @@ import {
   createDraftSafeSelector,
   createSlice,
 } from '@reduxjs/toolkit';
-import { format } from 'date-fns';
 import { Holiday, User, UserAttendance } from '../../Types/User';
+import { calendarMonthKey } from '../../Utils/calendarDay';
 import { RootState } from '../index';
 
 interface UserSliceState {
@@ -38,13 +38,25 @@ const UserSlice = createSlice({
       state.attendance = payload;
     },
     setHolidays: (state, { payload }: PayloadAction<Holiday[]>) => {
-      state.holidays = {}
-      payload.forEach(holiday => {
-        const date = format(holiday.date, 'yyyy-MM');
-        if (!state.holidays?.[date]) {
-          state.holidays[date] = {}
+      state.holidays = {};
+      (payload || []).forEach(holiday => {
+        const startMonth = calendarMonthKey(holiday.date);
+        if (!startMonth) {
+          return;
         }
-        state.holidays[date][holiday._id] = holiday;
+        let month = startMonth;
+        const endMonth = calendarMonthKey(holiday.endDate) || startMonth;
+        const stop = endMonth < startMonth ? startMonth : endMonth;
+        while (month <= stop) {
+          if (!state.holidays[month]) {
+            state.holidays[month] = {};
+          }
+          state.holidays[month][holiday._id] = holiday;
+          const [year, monthNumber] = month.split('-').map(Number);
+          const nextMonth = monthNumber === 12 ? 1 : monthNumber + 1;
+          const nextYear = monthNumber === 12 ? year + 1 : year;
+          month = `${nextYear}-${String(nextMonth).padStart(2, '0')}`;
+        }
       });
     },
     resetUserState: _ => initialState,

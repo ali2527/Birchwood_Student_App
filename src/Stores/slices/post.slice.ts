@@ -28,18 +28,18 @@ const PostSlice = createSlice({
   name: 'Post',
   initialState,
   reducers: {
-    setPosts: (state, { payload }: PayloadAction<GetAllClassPosts>) => {
-      const { docs, ...pagination } = payload;
+    setPosts: (
+      state,
+      { payload }: PayloadAction<GetAllClassPosts & { replace?: boolean }>,
+    ) => {
+      const { docs, replace, ...pagination } = payload;
+      const mapped = (docs || []).reduce((acc, curr) => {
+        acc['post_' + curr._id] = curr;
+        return acc;
+      }, {} as Record<string, Post>);
 
-      state.posts = {
-        ...state.posts,
-        ...docs.reduce((acc, curr) => {
-          acc["post_" + curr._id] = curr;
-          return acc;
-        }, {} as Record<string, Post>)
-      }
-
-      state.pagination = pagination;
+      state.posts = replace ? mapped : { ...state.posts, ...mapped };
+      state.pagination = pagination as PaginationProps;
     },
     setPost: (state, { payload }: PayloadAction<Partial<Post>>) => {
       state.posts = {
@@ -60,7 +60,14 @@ const PostSlice = createSlice({
     setComment: (state, { payload }: PayloadAction<{ postId: string, comment: Comment }>) => {
 
       const { postId, comment } = payload;
+      if (!comment?._id || !postId) {
+        return;
+      }
       const postKey = "post_" + postId;
+
+      if (!state.postsComments[postKey]) {
+        state.postsComments[postKey] = { comments: {}, commentPagination: {} };
+      }
 
       state.postsComments[postKey].comments = {
         [`comment_${comment._id}`]: comment,
@@ -71,29 +78,17 @@ const PostSlice = createSlice({
       const postKey = "post_" + payload._id;
       const post = state.posts[postKey];
 
-      if (post) {
-        const likeIndex = post.likes.indexOf(payload.userId);
+      if (post && payload.userId) {
+        if (!Array.isArray(post.likes)) {
+          post.likes = [];
+        }
+        const likeIndex = post.likes.findIndex(
+          (id: string) => String(id) === String(payload.userId),
+        );
         if (likeIndex === -1) {
-          // User has not liked the post, so add the userId
           post.likes.push(payload.userId);
         } else {
-          // User has already liked the post, so remove the userId
           post.likes.splice(likeIndex, 1);
-        }
-      }
-    },
-    setLoveUnlove: (state, { payload }: PayloadAction<{ _id: string, userId: string }>) => {
-      const postKey = "post_" + payload._id;
-      const post = state.posts[postKey];
-
-      if (post) {
-        const likeIndex = post.loves.indexOf(payload.userId);
-        if (likeIndex === -1) {
-          // User has not liked the post, so add the userId
-          post.loves.push(payload.userId);
-        } else {
-          // User has already liked the post, so remove the userId
-          post.loves.splice(likeIndex, 1);
         }
       }
     },
@@ -115,7 +110,7 @@ const PostSlice = createSlice({
   },
 });
 
-export const { setPosts, setPost, removePost, setLikeDislike, setLoveUnlove, setComments, setComment, setActivities, setActivity, removeActivity, resetPostState } =
+export const { setPosts, setPost, removePost, setLikeDislike, setComments, setComment, setActivities, setActivity, removeActivity, resetPostState } =
   PostSlice.actions;
 
 export default PostSlice.reducer;

@@ -3,9 +3,10 @@ export const HILL_H = 22;
 export const SLOPE = 26;
 export const CREST = 30;
 
-export function footerPath(width, inset) {
+/** Same raised-center hill used by the tab bar and the students/calendar drawers. */
+export function raisedBarPath(width, bodyHeight) {
   const top = HILL_H;
-  const bottom = HILL_H + BAR_H + inset;
+  const bottom = HILL_H + Math.max(bodyHeight, 1);
   const cx = width / 2;
   const l0 = cx - CREST - SLOPE;
   const l1 = cx - CREST;
@@ -24,6 +25,10 @@ export function footerPath(width, inset) {
   ].join(' ');
 }
 
+export function footerPath(width, inset) {
+  return raisedBarPath(width, BAR_H + inset);
+}
+
 export function humpBumpPath(width) {
   const top = HILL_H;
   const cx = width / 2;
@@ -40,4 +45,8 @@ export function humpBumpPath(width) {
     `L${r0} ${top + 1}`,
     'Z',
   ].join(' ');
+}
+
+export function sheetHillPath(width) {
+  return raisedBarPath(width, 4);
 }

@@ -1,300 +1,320 @@
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native'
-import React, { useState, useEffect } from 'react'
-import { vh, vw } from '../../theme/units'
-import { colors } from '../../theme/colors';
-import Ionicon from 'react-native-vector-icons/Ionicons';
-import TopBar from '../../Components/TopBar';
-import FormContainer from '../../Components/FormContainer';
-import FormTextInput from '../../Components/FormTextInput';
-import { BackArrow } from '../../Components/BackArrow';
-import { useNavigation } from '@react-navigation/native';
-import { useAppDispatch, useAppSelector } from '../../Stores/hooks';
-import { selectUserProfile } from '../../Stores/slices/user.slice';
-import { asyncUpdateProfile } from '../../Stores/actions/user.action';
-import { getImagePath } from '../../Service/axios';
+import React, {useEffect, useState} from 'react';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import {useNavigation} from '@react-navigation/native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import AuthField from '../../Components/Auth/AuthField';
 import ParentPhotoPickers, {
-    appendParentPhoto,
-    pickParentPhoto,
+  appendParentPhoto,
+  pickParentPhoto,
 } from '../../Components/Auth/ParentPhotoPickers';
 import {
-    DEFAULT_PHONE_COUNTRY,
-    parsePhone,
-    toPhonePayload,
+  DEFAULT_PHONE_COUNTRY,
+  parsePhone,
+  toPhonePayload,
 } from '../../Components/Auth/phoneMask';
+import fonts from '../../Assets/fonts';
+import {getImagePath} from '../../Service/axios';
+import {asyncUpdateProfile} from '../../Stores/actions/user.action';
+import {useAppDispatch, useAppSelector} from '../../Stores/hooks';
+import {selectUserProfile} from '../../Stores/slices/user.slice';
+import {colors} from '../../theme/colors';
+
+const NAVY = '#0F1F4B';
+const MUTED = '#8B93A7';
+const PAGE_BG = '#F4F5F8';
+const PRIMARY = colors.theme.primary;
+
+function isLocalPhoto(photo) {
+  const uri = photo?.uri || '';
+  return Boolean(uri) && !/^https?:\/\//i.test(uri);
+}
 
 export default function ProfileForm() {
-    const navigation = useNavigation();
-    const dispatch = useAppDispatch();
-    const profile = useAppSelector(selectUserProfile);
+  const navigation = useNavigation();
+  const dispatch = useAppDispatch();
+  const insets = useSafeAreaInsets();
+  const profile = useAppSelector(selectUserProfile);
 
-    const [formData, setFormData] = useState({
-        fatherFirstName: '',
-        fatherLastName: '',
-        motherFirstName: '',
-        motherLastName: '',
-        email: '',
-        phone: '',
-        phoneCountry: DEFAULT_PHONE_COUNTRY,
-        address: '',
-        city: '',
-        state: '',
+  const [formData, setFormData] = useState({
+    fatherFirstName: '',
+    fatherLastName: '',
+    motherFirstName: '',
+    motherLastName: '',
+    email: '',
+    phone: '',
+    phoneCountry: DEFAULT_PHONE_COUNTRY,
+    address: '',
+    city: '',
+    state: '',
+  });
+  const [fatherPhoto, setFatherPhoto] = useState(null);
+  const [motherPhoto, setMotherPhoto] = useState(null);
+  const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!profile?._id) {
+      return;
+    }
+    const parsed = parsePhone(profile?.phone || '');
+    setFormData({
+      fatherFirstName: profile?.fatherFirstName || '',
+      fatherLastName: profile?.fatherLastName || '',
+      motherFirstName: profile?.motherFirstName || '',
+      motherLastName: profile?.motherLastName || '',
+      email: profile?.email || '',
+      phone: parsed.local,
+      phoneCountry: parsed.iso || DEFAULT_PHONE_COUNTRY,
+      address: profile?.address || '',
+      city: profile?.city || '',
+      state: profile?.state || '',
     });
-    const [fatherPhoto, setFatherPhoto] = useState(null);
-    const [motherPhoto, setMotherPhoto] = useState(null);
+    const fatherUri = getImagePath(profile?.fatherImage || profile?.image);
+    const motherUri = getImagePath(profile?.motherImage);
+    setFatherPhoto(fatherUri ? {uri: fatherUri} : null);
+    setMotherPhoto(motherUri ? {uri: motherUri} : null);
+  }, [profile]);
 
-    useEffect(() => {
-        if (profile?._id) {
-            const parsed = parsePhone(profile?.phone || '');
-            setFormData({
-                fatherFirstName: profile?.fatherFirstName || '',
-                fatherLastName: profile?.fatherLastName || '',
-                motherFirstName: profile?.motherFirstName || '',
-                motherLastName: profile?.motherLastName || '',
-                email: profile?.email || '',
-                phone: parsed.local,
-                phoneCountry: parsed.iso,
-                address: profile?.address || '',
-                city: profile?.city || '',
-                state: profile?.state || '',
-            });
-            setFatherPhoto(
-                profile?.fatherImage || profile?.image
-                    ? { uri: getImagePath(profile.fatherImage || profile.image) }
-                    : null,
-            );
-            setMotherPhoto(
-                profile?.motherImage
-                    ? { uri: getImagePath(profile.motherImage) }
-                    : null,
-            );
-        }
-    }, [profile]);
+  const setField = (name, value) => {
+    setFormData(prev => ({...prev, [name]: value}));
+  };
 
-    const handleChange = (name, value) => {
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
+  const onSubmit = async () => {
+    setError('');
+    const fatherFirst = formData.fatherFirstName.trim();
+    const motherFirst = formData.motherFirstName.trim();
+    if (fatherFirst.length < 3) {
+      setError('Father first name must be at least 3 letters.');
+      return;
+    }
+    if (motherFirst.length < 3) {
+      setError('Mother first name must be at least 3 letters.');
+      return;
+    }
+    if (!formData.phone.trim()) {
+      setError('Enter a phone number so the school can reach you.');
+      return;
+    }
+
+    const payload = {
+      fatherFirstName: fatherFirst,
+      fatherLastName: formData.fatherLastName.trim(),
+      motherFirstName: motherFirst,
+      motherLastName: formData.motherLastName.trim(),
+      phone: toPhonePayload(formData.phone, formData.phoneCountry),
+      address: formData.address.trim(),
+      city: formData.city.trim(),
+      state: formData.state.trim(),
     };
 
-    const handleSubmit = async () => {
-        const payload = {
-            fatherFirstName: formData.fatherFirstName,
-            fatherLastName: formData.fatherLastName,
-            motherFirstName: formData.motherFirstName,
-            motherLastName: formData.motherLastName,
-            phone: toPhonePayload(formData.phone, formData.phoneCountry),
-            address: formData.address,
-            city: formData.city,
-            state: formData.state,
-        };
+    const fatherPicked = isLocalPhoto(fatherPhoto);
+    const motherPicked = isLocalPhoto(motherPhoto);
+    let body = payload;
+    if (fatherPicked || motherPicked) {
+      const data = new FormData();
+      Object.keys(payload).forEach(key => {
+        data.append(key, payload[key] ?? '');
+      });
+      if (fatherPicked) {
+        appendParentPhoto(data, 'fatherImage', fatherPhoto);
+      }
+      if (motherPicked) {
+        appendParentPhoto(data, 'motherImage', motherPhoto);
+      }
+      body = data;
+    }
 
-        const fatherPicked = fatherPhoto?.uri && !fatherPhoto.uri.startsWith('http');
-        const motherPicked = motherPhoto?.uri && !motherPhoto.uri.startsWith('http');
+    setSubmitting(true);
+    try {
+      const result = await dispatch(asyncUpdateProfile(body));
+      if (result.type === 'updateProfile/fulfilled' && result.payload?.status) {
+        navigation.goBack();
+        return;
+      }
+      setError(result.payload?.message || 'Could not update profile.');
+    } catch {
+      setError('Could not update profile. Try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
-        let body = payload;
-        if (fatherPicked || motherPicked) {
-            const data = new FormData();
-            Object.keys(payload).forEach(key => {
-                if (payload[key] !== undefined && payload[key] !== null) {
-                    data.append(key, payload[key]);
-                }
-            });
-            if (fatherPicked) {
-                appendParentPhoto(data, 'fatherImage', fatherPhoto);
-            }
-            if (motherPicked) {
-                appendParentPhoto(data, 'motherImage', motherPhoto);
-            }
-            body = data;
-        }
+  return (
+    <View style={styles.screen}>
+      <StatusBar barStyle="dark-content" backgroundColor={PAGE_BG} />
+      <View style={[styles.header, {paddingTop: Math.max(insets.top, 12) + 6}]}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backBtn}
+          hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
+          <Ionicons name="chevron-back" size={22} color={NAVY} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Edit profile</Text>
+      </View>
 
-        const result = await dispatch(asyncUpdateProfile(body));
-        if (result.type === 'updateProfile/fulfilled' && result.payload?.status) {
-            navigation.goBack();
-        }
-    };
+      <KeyboardAvoidingView
+        style={{flex: 1}}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scroll}
+          keyboardShouldPersistTaps="handled">
+          <ParentPhotoPickers
+            fatherUri={fatherPhoto?.uri}
+            motherUri={motherPhoto?.uri}
+            onPickFather={async () => {
+              const photo = await pickParentPhoto();
+              if (photo) {
+                setFatherPhoto(photo);
+              }
+            }}
+            onPickMother={async () => {
+              const photo = await pickParentPhoto();
+              if (photo) {
+                setMotherPhoto(photo);
+              }
+            }}
+          />
 
-    return (
-        <>
-            <TopBar>
-                <View style={styles.header}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <BackArrow/>
-                        <Text style={{ color: colors.text.white, marginLeft: 10, fontWeight: 'bold', bottom: 1 }}>Edit Profile</Text>
-                    </View>
-                    <TouchableOpacity 
-                        style={styles.editContainer}
-                        onPress={handleSubmit}
-                    >
-                        <Ionicon name="checkmark" size={15} color={colors.theme.white} style={styles.addIcon} />
-                        <Text style={{ color: colors.theme.secondary, fontWeight: 'bold', fontSize: 13 }}>Done</Text>
-                    </TouchableOpacity>
-                </View>
-            </TopBar>
-            <KeyboardAvoidingView 
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                style={{ flex: 1 }}
-            >
-                <ScrollView 
-                    style={{ flex: 1 }}
-                    contentContainerStyle={{ paddingBottom: 20 }}
-                    showsVerticalScrollIndicator={false}
-                >
-                    <FormContainer>
-                        <ParentPhotoPickers
-                            fatherUri={fatherPhoto?.uri}
-                            motherUri={motherPhoto?.uri}
-                            onPickFather={async () => {
-                                const photo = await pickParentPhoto();
-                                if (photo) {
-                                    setFatherPhoto(photo);
-                                }
-                            }}
-                            onPickMother={async () => {
-                                const photo = await pickParentPhoto();
-                                if (photo) {
-                                    setMotherPhoto(photo);
-                                }
-                            }}
-                        />
-                        {/* Father Name */}
-                        <View style={styles.inputFieldContainer}>
-                            <FormTextInput
-                                label={'Father First Name'}
-                                placeholder={'Enter first name'}
-                                containerStyle={{ marginRight: 5 }}
-                                value={formData.fatherFirstName}
-                                onChangeText={handleChange}
-                                name="fatherFirstName"
-                            />
-                            <FormTextInput
-                                label={'Father Last Name'}
-                                placeholder={'Enter last name'}
-                                containerStyle={{ marginLeft: 5 }}
-                                value={formData.fatherLastName}
-                                onChangeText={handleChange}
-                                name="fatherLastName"
-                            />
-                        </View>
+          <AuthField
+            label="Father first name"
+            placeholder="Father first name"
+            leftIcon="user"
+            value={formData.fatherFirstName}
+            onChangeText={value => setField('fatherFirstName', value)}
+          />
+          <AuthField
+            label="Father last name"
+            placeholder="Father last name"
+            leftIcon="user"
+            value={formData.fatherLastName}
+            onChangeText={value => setField('fatherLastName', value)}
+          />
+          <AuthField
+            label="Mother first name"
+            placeholder="Mother first name"
+            leftIcon="user"
+            value={formData.motherFirstName}
+            onChangeText={value => setField('motherFirstName', value)}
+          />
+          <AuthField
+            label="Mother last name"
+            placeholder="Mother last name"
+            leftIcon="user"
+            value={formData.motherLastName}
+            onChangeText={value => setField('motherLastName', value)}
+          />
+          <AuthField
+            label="Email"
+            placeholder="Email"
+            leftIcon="mail"
+            value={formData.email}
+            editable={false}
+          />
+          <AuthField
+            label="Phone"
+            placeholder="Phone"
+            mask="phone"
+            value={formData.phone}
+            onChangeText={value => setField('phone', value)}
+            countryIso={formData.phoneCountry}
+            onCountryChange={iso => setField('phoneCountry', iso)}
+          />
+          <AuthField
+            label="Address"
+            placeholder="Street address"
+            leftIcon="user"
+            value={formData.address}
+            onChangeText={value => setField('address', value)}
+          />
+          <AuthField
+            label="City"
+            placeholder="City"
+            leftIcon="user"
+            value={formData.city}
+            onChangeText={value => setField('city', value)}
+          />
+          <AuthField
+            label="State"
+            placeholder="State"
+            leftIcon="user"
+            value={formData.state}
+            onChangeText={value => setField('state', value)}
+          />
 
-                        {/* Mother Name */}
-                        <View style={styles.inputFieldContainer}>
-                            <FormTextInput
-                                label={'Mother First Name'}
-                                placeholder={'Enter first name'}
-                                containerStyle={{ marginRight: 5 }}
-                                value={formData.motherFirstName}
-                                onChangeText={handleChange}
-                                name="motherFirstName"
-                            />
-                            <FormTextInput
-                                label={'Mother Last Name'}
-                                placeholder={'Enter last name'}
-                                containerStyle={{ marginLeft: 5 }}
-                                value={formData.motherLastName}
-                                onChangeText={handleChange}
-                                name="motherLastName"
-                            />
-                        </View>
+          {error ? <Text style={styles.error}>{error}</Text> : null}
 
-                        {/* Contact Information */}
-                        <View style={styles.inputFieldContainer}>
-                            <FormTextInput
-                                label={'Email'}
-                                placeholder={'parent@email.com'}
-                                value={formData.email}
-                                onChangeText={handleChange}
-                                name="email"
-                                icon={'mail-outline'}
-                            />
-                        </View>
-
-                        <View style={styles.inputFieldContainer}>
-                            <FormTextInput
-                                label={'Phone'}
-                                value={formData.phone}
-                                onChangeText={handleChange}
-                                name="phone"
-                                icon={'call-outline'}
-                                countryIso={formData.phoneCountry}
-                                onCountryChange={iso =>
-                                    setFormData(prev => ({
-                                        ...prev,
-                                        phoneCountry: iso,
-                                    }))
-                                }
-                            />
-                        </View>
-
-                        {/* Address */}
-                        <View style={styles.inputFieldContainer}>
-                            <FormTextInput
-                                label={'Address'}
-                                placeholder={'Enter address'}
-                                value={formData.address}
-                                onChangeText={handleChange}
-                                name="address"
-                                icon={'location-outline'}
-                            />
-                        </View>
-
-                        <View style={styles.inputFieldContainer}>
-                            <FormTextInput
-                                label={'City'}
-                                placeholder={'Enter city'}
-                                containerStyle={{ marginRight: 5 }}
-                                value={formData.city}
-                                onChangeText={handleChange}
-                                name="city"
-                            />
-                            <FormTextInput
-                                label={'State'}
-                                placeholder={'Enter state'}
-                                containerStyle={{ marginLeft: 5 }}
-                                value={formData.state}
-                                onChangeText={handleChange}
-                                name="state"
-                            />
-                        </View>
-                    </FormContainer>
-                </ScrollView>
-            </KeyboardAvoidingView>
-        </>
-    )
+          <TouchableOpacity
+            style={[styles.submit, submitting && styles.submitDisabled]}
+            onPress={onSubmit}
+            activeOpacity={0.85}
+            disabled={submitting}>
+            <Text style={styles.submitText}>
+              {submitting ? 'Saving…' : 'Save changes'}
+            </Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
-    header: {
-        margin: 10,
-        bottom: vh * 5,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between'
-    },
-    editContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 20,
-        backgroundColor: colors.theme.white,
-        borderRadius: 15,
-        padding: 3,
-        bottom: 3
-    },
-    addIcon: {
-        // height:20,
-        // width:20,
-        backgroundColor: colors.theme.secondary,
-        borderRadius: 10,
-        marginHorizontal: 5
-    },
-    container: {
-        flex: 1,
-        marginHorizontal: 20
-    },
-    inputFieldContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginTop:10
-    }
-})
+  screen: {
+    flex: 1,
+    backgroundColor: PAGE_BG,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingBottom: 12,
+  },
+  backBtn: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerTitle: {
+    fontFamily: fonts.euclidCircularA.semiBold,
+    fontSize: 18,
+    color: NAVY,
+  },
+  scroll: {
+    paddingHorizontal: 18,
+    paddingBottom: 36,
+  },
+  error: {
+    marginTop: -8,
+    marginBottom: 12,
+    fontFamily: fonts.euclidCircularA.regular,
+    fontSize: 12,
+    color: '#E11D48',
+  },
+  submit: {
+    marginTop: 4,
+    backgroundColor: PRIMARY,
+    borderRadius: 14,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  submitDisabled: {
+    opacity: 0.65,
+  },
+  submitText: {
+    fontFamily: fonts.euclidCircularA.semiBold,
+    fontSize: 15,
+    color: '#FFFFFF',
+  },
+});

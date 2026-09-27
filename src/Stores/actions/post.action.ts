@@ -12,7 +12,7 @@ import { PaginationProps } from '../../Types/Common';
 import { callApi } from '../../Service/api';
 import { allApiPaths, ApiPaths } from '../../Service/apiPaths';
 import { setLoading } from '../slices/common.slice';
-import { removePost, setActivities, setComment, setComments, setLikeDislike, setLoveUnlove, setPost, setPosts } from '../slices/post.slice';
+import { removePost, setActivities, setComment, setComments, setLikeDislike, setPost, setPosts } from '../slices/post.slice';
 import { asyncShowError, asyncShowSuccess } from './common.action';
 
 type GetActivitiesParams = { page?: number; limit?: number };
@@ -132,7 +132,7 @@ export const asyncGetAllChildPosts = createAsyncThunk(
       dispatch(asyncShowError(res.message));
     } else {
       dispatch(
-        setPosts(res.data!)
+        setPosts({ ...res.data!, replace: true })
       );
     }
 
@@ -216,34 +216,17 @@ export const asyncLikePost = createAsyncThunk(
   async ({ postId }: { postId: string }, { getState, dispatch }) => {
     const userId = (getState() as RootState).user.user?._id
     const res = await callApi({
+      method: 'POST',
       path: allApiPaths.getPath('likePost', {
         postId
       }),
+      body: { authorType: 'parent' },
     });
 
     if (!res.status) {
       dispatch(asyncShowError(res.message));
-    } else {
+    } else if (userId) {
       dispatch(setLikeDislike({ _id: postId, userId }))
-    }
-    return res;
-  }
-);
-
-export const asyncLovePost = createAsyncThunk(
-  'lovePost',
-  async ({ postId }: { postId: string }, { getState, dispatch }) => {
-    const userId = (getState() as RootState).user.user?._id
-    const res = await callApi({
-      path: allApiPaths.getPath('lovePost', {
-        postId
-      }),
-    });
-
-    if (!res.status) {
-      dispatch(asyncShowError(res.message));
-    } else {
-      dispatch(setLoveUnlove({ _id: postId, userId }))
     }
     return res;
   }
@@ -272,28 +255,32 @@ export const asyncGetCommentsByPostId = createAsyncThunk(
 
 export const asyncCreatePostComment = createAsyncThunk(
   'createPostComment',
-  async (data: { postId: string, comment: { content: string } }, { dispatch }) => {
-    dispatch(setLoading(true));
-
-    const res = await callApi<{ newComment: Comment }, { content: string }>({
-      method: "POST",
+  async (
+    data: { postId: string; comment: { content: string } },
+    { dispatch, rejectWithValue },
+  ) => {
+    const res = await callApi<
+      { newComment: Comment },
+      { content: string; authorType: string }
+    >({
+      method: 'POST',
       path: allApiPaths.getPath('createPostComment', {
-        postId: data.postId
+        postId: data.postId,
       }),
-      body: { ...data.comment }
+      body: { ...data.comment, authorType: 'parent' },
     });
 
-    if (!res.status) {
-      dispatch(asyncShowError(res.message));
-    } else {
-      dispatch(setComment({
-        postId: data.postId,
-        comment: res.data?.newComment!
-      }))
-      dispatch(asyncShowSuccess(res.message));
+    if (!res.status || !res.data?.newComment) {
+      dispatch(asyncShowError(res.message || 'Could not add comment'));
+      return rejectWithValue(res.message || 'Could not add comment');
     }
 
-    dispatch(setLoading(false));
+    dispatch(
+      setComment({
+        postId: data.postId,
+        comment: res.data.newComment,
+      }),
+    );
     return res;
-  }
+  },
 );

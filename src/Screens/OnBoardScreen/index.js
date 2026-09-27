@@ -26,7 +26,7 @@ export default function OnBoardScreen() {
         </View>
 
         <Text style={styles.headline}>
-          Empowering dreams,{'\n'}Uniting Futures
+          Empowering Dreams,{'\n'}Uniting Futures
         </Text>
         <Text style={styles.body}>
           Welcome to Birchwood Montessori Academy, a family-owned and operated
@@ -78,10 +78,10 @@ const styles = StyleSheet.create({
     height: 58,
   },
   headline: {
-    fontFamily: fonts.euclidCircularA.semiBold,
-    fontSize: 23,
-    lineHeight: 31,
-    color: '#1F2937',
+    fontFamily: fonts.euclidCircularA.bold,
+    fontSize: 24,
+    lineHeight: 32,
+    color: '#111827',
     textAlign: 'center',
     marginTop: 18,
     paddingHorizontal: 8,
@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.euclidCircularA.regular,
     fontSize: 13,
     lineHeight: 20,
-    color: '#9CA3AF',
+    color: '#6B7280',
     textAlign: 'center',
     marginTop: 12,
     paddingHorizontal: 16,

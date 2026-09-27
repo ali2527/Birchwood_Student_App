@@ -13,6 +13,8 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import fonts from '../../Assets/fonts';
 import routes from '../../Navigation/routes';
+import {useAppSelector} from '../../Stores/hooks';
+import {selectUnreadNotificationCount} from '../../Stores/slices/notification.slice';
 import {colors} from '../../theme/colors';
 
 const NAVY = '#0F1F4B';
@@ -23,6 +25,7 @@ const PRIMARY = colors.theme.primary;
 export default function Settings() {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
+  const unreadNotifications = useAppSelector(selectUnreadNotificationCount);
   const [notificationsOn, setNotificationsOn] = useState(true);
 
   return (
@@ -42,6 +45,23 @@ export default function Settings() {
         contentContainerStyle={styles.scroll}>
         <Text style={styles.section}>Notifications</Text>
         <View style={styles.card}>
+          <TouchableOpacity
+            style={styles.row}
+            onPress={() => navigation.navigate(routes.screens.notifications)}
+            activeOpacity={0.8}>
+            <Ionicons name="notifications-outline" size={18} color={NAVY} />
+            <View style={styles.rowCopy}>
+              <Text style={styles.rowTitle}>Notification inbox</Text>
+              <Text style={styles.rowSub}>
+                {unreadNotifications > 0
+                  ? `${unreadNotifications} unread`
+                  : 'View recent alerts'}
+              </Text>
+            </View>
+            {unreadNotifications > 0 ? <View style={styles.rowDot} /> : null}
+            <Ionicons name="chevron-forward" size={16} color={MUTED} />
+          </TouchableOpacity>
+          <View style={styles.divider} />
           <View style={styles.row}>
             <Ionicons
               name={
@@ -53,7 +73,7 @@ export default function Settings() {
               color={NAVY}
             />
             <View style={styles.rowCopy}>
-              <Text style={styles.rowTitle}>Notifications</Text>
+              <Text style={styles.rowTitle}>Push notifications</Text>
               <Text style={styles.rowSub}>
                 {notificationsOn ? 'Enabled' : 'Disabled'}
               </Text>
@@ -84,14 +104,10 @@ export default function Settings() {
         <View style={styles.card}>
           <TouchableOpacity
             style={styles.row}
-            onPress={() =>
-              navigation.navigate(routes.navigator.mainTabs, {
-                screen: routes.screens.children,
-              })
-            }
+            onPress={() => navigation.navigate(routes.screens.children)}
             activeOpacity={0.8}>
             <Ionicons name="people-outline" size={18} color={NAVY} />
-            <Text style={styles.rowTitleFlex}>Manage Linked Children</Text>
+            <Text style={styles.rowTitleFlex}>Manage linked children</Text>
             <Ionicons name="chevron-forward" size={16} color={MUTED} />
           </TouchableOpacity>
         </View>
@@ -189,6 +205,12 @@ const styles = StyleSheet.create({
     fontFamily: fonts.euclidCircularA.regular,
     fontSize: 12,
     color: MUTED,
+  },
+  rowDot: {
+    width: 9,
+    height: 9,
+    borderRadius: 5,
+    backgroundColor: '#E11D48',
   },
   divider: {
     height: StyleSheet.hairlineWidth,

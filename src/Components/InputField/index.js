@@ -51,6 +51,10 @@ const CustomTextInput = ({
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize ?? 'sentences'}
           autoCorrect={autoCorrect ?? true}
+          autoComplete="off"
+          textContentType="none"
+          importantForAutofill="no"
+          underlineColorAndroid="transparent"
           onChangeText={(text) => {
             if (!onChangeText) return;
             if (name) {

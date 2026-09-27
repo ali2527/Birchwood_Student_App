@@ -1,31 +1,38 @@
 import React, {memo, useCallback, useMemo, useState} from 'react';
-import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {StyleSheet, TouchableOpacity, View} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Svg, {Path} from 'react-native-svg';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import routes from '../../Navigation/routes';
 import {useAppSelector} from '../../Stores/hooks';
+import {selectUnreadChatCount} from '../../Stores/slices/class.slice';
+import {selectModules} from '../../Stores/slices/modules.slice';
 import {selectUnreadNotificationCount} from '../../Stores/slices/notification.slice';
 import {WIDTH} from '../../theme/units';
 import MoreSheet from '../MoreSheet';
 import {BAR_H, HILL_H, footerPath} from './shape';
+import {openPageDrawer} from '../../Utils/openPageDrawer';
 
-const MUTED = '#C3C8D2';
+const MUTED = '#8B93A7';
 const ACTIVE = '#035392';
 const ICON_SIZE = 22;
 
 const TABS = [
-  {key: 'children', icon: 'people-outline', screen: routes.screens.children},
   {
-    key: 'calendar',
+    key: 'chat',
+    icon: 'chatbubble-ellipses-outline',
+    screen: routes.screens.teacherChat,
+  },
+  {
+    key: 'attendance',
     icon: 'calendar-outline',
-    screen: routes.screens.schoolCalendar,
+    screen: routes.screens.attendanceLog,
   },
   {key: 'home', icon: 'grid-outline', screen: routes.screens.homeScreen},
   {
-    key: 'notices',
-    icon: 'notifications-outline',
-    screen: routes.screens.notifications,
+    key: 'feed',
+    icon: 'newspaper-outline',
+    screen: routes.screens.activityScreen,
   },
   {key: 'more', icon: 'settings-outline', screen: null},
 ];
@@ -35,7 +42,7 @@ const TabButton = memo(function TabButton({
   selected,
   onPress,
   raised,
-  badgeCount,
+  showDot,
 }) {
   return (
     <TouchableOpacity
@@ -52,28 +59,30 @@ const TabButton = memo(function TabButton({
           color={selected ? ACTIVE : MUTED}
           allowFontScaling={false}
         />
-        {badgeCount > 0 ? (
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>
-              {badgeCount > 99 ? '99+' : String(badgeCount)}
-            </Text>
-          </View>
-        ) : null}
+        {showDot ? <View style={styles.dot} /> : null}
       </View>
     </TouchableOpacity>
   );
 });
 
-function TabRow({activeKey, onPress, flush, unreadCount}) {
+function TabRow({activeKey, onPress, flush, showChatDot, showMoreDot, chatOn}) {
   return (
     <View style={[styles.row, flush && styles.rowFlush]}>
-      {TABS.map((tab, index) => (
+      {TABS.map((tab, index) => tab.key === 'chat' && !chatOn ? (
+        <View key={tab.key} style={styles.tabItem} />
+      ) : (
         <TabButton
           key={tab.key}
           tab={tab}
           selected={tab.key === activeKey}
           raised={tab.key === 'home' && !flush}
-          badgeCount={tab.key === 'notices' ? unreadCount : 0}
+          showDot={
+            tab.key === 'chat'
+              ? showChatDot
+              : tab.key === 'more'
+                ? showMoreDot
+                : false
+          }
           onPress={() => onPress(tab, index)}
         />
       ))}
@@ -83,7 +92,12 @@ function TabRow({activeKey, onPress, flush, unreadCount}) {
 
 function AppFooter({state, navigation} = {}) {
   const insets = useSafeAreaInsets();
-  const unreadCount = useAppSelector(selectUnreadNotificationCount);
+  const modules = useAppSelector(selectModules);
+  const chatOn = modules.chat !== false;
+  const unreadNotifications = useAppSelector(selectUnreadNotificationCount);
+  const unreadChats = useAppSelector(selectUnreadChatCount);
+  const showChatDot = unreadChats > 0;
+  const showMoreDot = unreadNotifications > 0;
   const [moreOpen, setMoreOpen] = useState(false);
   const [barWidth, setBarWidth] = useState(WIDTH);
   const inset = insets.bottom;
@@ -99,6 +113,9 @@ function AppFooter({state, navigation} = {}) {
 
   const onPress = useCallback(
     (tab, index) => {
+      if (tab.key === 'chat' && !chatOn) {
+        return;
+      }
       if (tab.key === 'more') {
         setMoreOpen(open => !open);
         return;
@@ -107,13 +124,18 @@ function AppFooter({state, navigation} = {}) {
       if (!navigation || !tab.screen) {
         return;
       }
-      if (tab.screen === routes.screens.notifications) {
-        const parent = navigation.getParent?.();
-        if (parent) {
-          parent.navigate(tab.screen);
-        } else {
+      if (tab.key === 'attendance') {
+        if (routeIndex !== index) {
           navigation.navigate(tab.screen);
         }
+        openPageDrawer('attendance');
+        return;
+      }
+      if (tab.key === 'home') {
+        if (routeIndex === index) {
+          return;
+        }
+        navigation.navigate(tab.screen);
         return;
       }
       if (routeIndex === index) {
@@ -121,7 +143,7 @@ function AppFooter({state, navigation} = {}) {
       }
       navigation.navigate(tab.screen);
     },
-    [navigation, routeIndex],
+    [chatOn, navigation, routeIndex],
   );
 
   return (
@@ -145,7 +167,9 @@ function AppFooter({state, navigation} = {}) {
       <TabRow
         activeKey={activeKey}
         onPress={onPress}
-        unreadCount={unreadCount}
+        showChatDot={showChatDot}
+        showMoreDot={showMoreDot}
+        chatOn={chatOn}
       />
       <MoreSheet
         visible={moreOpen}
@@ -157,7 +181,9 @@ function AppFooter({state, navigation} = {}) {
             activeKey={activeKey}
             onPress={onPress}
             flush
-            unreadCount={unreadCount}
+            showChatDot={showChatDot}
+            showMoreDot={showMoreDot}
+            chatOn={chatOn}
           />
         }
       />
@@ -212,22 +238,15 @@ const styles = StyleSheet.create({
     height: 28,
     transform: [{translateY: -8}],
   },
-  badge: {
+  dot: {
     position: 'absolute',
-    top: -6,
-    right: -10,
-    minWidth: 16,
-    height: 16,
-    borderRadius: 8,
-    paddingHorizontal: 3,
+    top: -2,
+    right: -3,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
     backgroundColor: '#E11D48',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  badgeText: {
-    color: '#FFFFFF',
-    fontSize: 9,
-    fontWeight: '700',
-    includeFontPadding: false,
+    borderWidth: 1.5,
+    borderColor: '#FFFFFF',
   },
 });
