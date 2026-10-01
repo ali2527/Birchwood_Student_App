@@ -450,7 +450,6 @@ export default function ChildSwitcher({
               />
             </Svg>
             <View style={styles.humpBar} {...handlePan.panHandlers}>
-              <View style={styles.dragPill} />
               <TouchableOpacity
                 style={styles.humpHit}
                 onPress={closePicker}
@@ -562,14 +561,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     overflow: 'visible',
     backgroundColor: 'transparent',
-  },
-  dragPill: {
-    position: 'absolute',
-    top: 10,
-    width: 36,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#D6DAE3',
   },
   humpHit: {
     height: HILL_H,
