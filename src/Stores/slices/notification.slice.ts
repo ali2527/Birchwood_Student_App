@@ -26,11 +26,24 @@ function notificationId(item: AppNotification | {_id?: string; id?: string}) {
   return String(item?._id || (item as any)?.id || '');
 }
 
+const SCHOOL_NOTICE_TYPES = new Set([
+  'GENERAL',
+  'ALERT',
+  'ANNOUNCEMENT',
+  'EVENT',
+  'HOLIDAY',
+  'REMINDER',
+  'POLICY',
+]);
+
 export function isSchoolNotice(item?: AppNotification | null) {
   if (!item) {
     return false;
   }
-  return Boolean(item.broadcastId) || item.source === 'NOTICE';
+  if (item.broadcastId || item.source === 'NOTICE') {
+    return true;
+  }
+  return SCHOOL_NOTICE_TYPES.has(String(item.type || '').toUpperCase());
 }
 
 function upsertList(

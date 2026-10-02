@@ -1,5 +1,6 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {
+  Animated,
   FlatList,
   Image,
   Linking,
@@ -33,6 +34,48 @@ function resolveImage(image) {
   return image;
 }
 
+function Bone({style}) {
+  const pulse = useRef(new Animated.Value(0.55)).current;
+
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, {toValue: 1, duration: 700, useNativeDriver: true}),
+        Animated.timing(pulse, {toValue: 0.55, duration: 700, useNativeDriver: true}),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [pulse]);
+
+  return <Animated.View style={[styles.bone, style, {opacity: pulse}]} />;
+}
+
+function AdImage({source, style, resizeMode = 'cover'}) {
+  const [loaded, setLoaded] = useState(false);
+  const uri = source?.uri;
+
+  useEffect(() => {
+    setLoaded(false);
+  }, [uri]);
+
+  if (!source) {
+    return <Bone style={style} />;
+  }
+
+  return (
+    <View style={style}>
+      <Image
+        source={source}
+        style={StyleSheet.absoluteFill}
+        resizeMode={resizeMode}
+        onLoadEnd={() => setLoaded(true)}
+      />
+      {loaded ? null : <Bone style={StyleSheet.absoluteFill} />}
+    </View>
+  );
+}
+
 function loopedSlides(items) {
   if (items.length < 2) {
     return items.map((item, i) => ({
@@ -52,6 +95,9 @@ export default function AdSlider({ads, onPressAd}) {
   const listRef = useRef(null);
   const indexRef = useRef(0);
   const [lightbox, setLightbox] = useState(null);
+  const [loadingAds, setLoadingAds] = useState(
+    () => !(Array.isArray(ads) && ads.length),
+  );
   const [items, setItems] = useState(() =>
     Array.isArray(ads) && ads.length ? ads : [],
   );
@@ -85,6 +131,10 @@ export default function AdSlider({ads, onPressAd}) {
         setItems(Array.isArray(list) ? list : []);
       } catch (error) {
         console.log('Failed to load advertisements', error);
+      } finally {
+        if (mounted) {
+          setLoadingAds(false);
+        }
       }
     })();
     return () => {
@@ -171,7 +221,18 @@ export default function AdSlider({ads, onPressAd}) {
   };
 
   if (!items.length) {
-    return null;
+    if (!loadingAds) {
+      return null;
+    }
+    return (
+      <View style={styles.wrap}>
+        <View style={styles.list}>
+          <View style={styles.slide}>
+            <Bone style={styles.image} />
+          </View>
+        </View>
+      </View>
+    );
   }
 
   const lightboxSource = resolveImage(lightbox?.image);
@@ -206,15 +267,7 @@ export default function AdSlider({ads, onPressAd}) {
               accessibilityRole="button"
               accessibilityLabel="Advertisement">
               <View style={styles.slide}>
-                {source ? (
-                  <Image
-                    source={source}
-                    style={styles.image}
-                    resizeMode="cover"
-                  />
-                ) : (
-                  <View style={[styles.image, styles.imageFallback]} />
-                )}
+                <AdImage source={source} style={styles.image} />
               </View>
             </Pressable>
           );
@@ -244,7 +297,7 @@ export default function AdSlider({ads, onPressAd}) {
           </Pressable>
           <View style={styles.lightboxBody} pointerEvents="box-none">
             {lightboxSource ? (
-              <Image
+              <AdImage
                 source={lightboxSource}
                 style={styles.lightboxImage}
                 resizeMode="contain"
@@ -288,8 +341,8 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  imageFallback: {
-    backgroundColor: '#C5CEDC',
+  bone: {
+    backgroundColor: '#E4E9F2',
   },
   lightbox: {
     flex: 1,

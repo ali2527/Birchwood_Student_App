@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -17,8 +17,11 @@ import fonts from '../../Assets/fonts';
 import routes from '../../Navigation/routes';
 import {callApi} from '../../Service/api';
 import {allApiPaths} from '../../Service/apiPaths';
-import {useAppSelector} from '../../Stores/hooks';
+import {useAppDispatch, useAppSelector} from '../../Stores/hooks';
+import {selectUserToken} from '../../Stores/slices/user.slice';
 import {selectChildren} from '../../Stores/slices/class.slice';
+import {asyncGetUnreadChatCount} from '../../Stores/actions/class.action';
+import {connectAppSocket, getAppSocket} from '../../Service/socket';
 import {BAR_H} from '../../Components/AppFooter/shape';
 import {
   Avatar,
@@ -146,6 +149,8 @@ function ChatList({children, chats, loading, onOpen, insets}) {
 export default function TeacherChat() {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
+  const dispatch = useAppDispatch();
+  const token = useAppSelector(selectUserToken);
   const children = useAppSelector(selectChildren);
   const [chats, setChats] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -175,6 +180,19 @@ export default function TeacherChat() {
       };
     }, [loadChats]),
   );
+
+  useEffect(() => {
+    const socket = connectAppSocket(token) || getAppSocket();
+    if (!socket) return undefined;
+    const onMessage = () => {
+      loadChats();
+      dispatch(asyncGetUnreadChatCount());
+    };
+    socket.on('message', onMessage);
+    return () => {
+      socket.off('message', onMessage);
+    };
+  }, [dispatch, loadChats, token]);
 
   const openThread = item => {
     const teacher = resolveTeacher(item.child, item.chat);

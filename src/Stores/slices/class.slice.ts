@@ -4,6 +4,7 @@ import {
   createSlice
 } from '@reduxjs/toolkit';
 import { isSameWeek } from 'date-fns';
+import { freshChild } from '../../Utils/schoolTime';
 import { RootState } from '..';
 import { Child, ChildAttendance, ClassResponse, ClassRoom, Message, MessagesResponse } from '../../Types/Class';
 import { MessagePaginationProps, PaginationProps } from '../../Types/Common';
@@ -109,11 +110,13 @@ export const selectClassRoom = (state: RootState) => state.class.classRoom;
 
 export const selectChildren = createDraftSafeSelector(
   [(state: RootState) => state.class.children],
-  children => Object.values(children) as Child[]
+  children => Object.values(children).map(child => freshChild(child) as Child)
 );
 
-export const selectSelectedChild = (state: RootState) =>
-  state.class.selectedChild;
+export const selectSelectedChild = createDraftSafeSelector(
+  [(state: RootState) => state.class.selectedChild],
+  child => (child ? (freshChild(child) as Child) : child)
+);
 
 export const selectUnreadChatCount = (state: RootState) =>
   state.class.unreadChatCount;

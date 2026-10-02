@@ -47,9 +47,14 @@ export function noticeTypeAccent(type) {
   return TYPE_ACCENTS[key] || TYPE_ACCENTS.NOTIFICATION;
 }
 
+const SCHOOL_NOTICE_TYPES = new Set(NOTICE_TYPES.map(item => item.value));
+
 export function isSchoolNotice(item) {
   if (!item) {
     return false;
   }
-  return Boolean(item.broadcastId) || item.source === 'NOTICE';
+  if (item.broadcastId || item.source === 'NOTICE') {
+    return true;
+  }
+  return SCHOOL_NOTICE_TYPES.has(String(item.type || '').toUpperCase());
 }

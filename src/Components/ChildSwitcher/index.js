@@ -227,14 +227,13 @@ export default function ChildSwitcher({
     () =>
       PanResponder.create({
         onStartShouldSetPanResponder: () => false,
-        onMoveShouldSetPanResponder: (_, g) =>
-          g.dy > 4 && Math.abs(g.dy) > Math.abs(g.dx) * 1.05,
+        onMoveShouldSetPanResponder: () => false,
         onMoveShouldSetPanResponderCapture: (_, g) =>
           atTopRef.current &&
-          g.dy > 6 &&
-          Math.abs(g.dy) > Math.abs(g.dx) * 1.05,
-        onPanResponderTerminationRequest: () => false,
-        onShouldBlockNativeResponder: () => true,
+          g.dy > 10 &&
+          Math.abs(g.dy) > Math.abs(g.dx) * 1.4,
+        onPanResponderTerminationRequest: () => !atTopRef.current,
+        onShouldBlockNativeResponder: () => false,
         onPanResponderGrant: () => {
           slideY.stopAnimation(value => {
             dragStart.current = value;
@@ -471,7 +470,7 @@ export default function ChildSwitcher({
               onSelectChild={choose}
               onAdd={addMore}
               showAddButton={false}
-              scrollEnabled={list.length > 5}
+              scrollEnabled
               headerPanHandlers={handlePan.panHandlers}
               onScroll={onSheetScroll}
               style={{paddingBottom: Math.max(insets.bottom, 16)}}

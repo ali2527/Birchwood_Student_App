@@ -61,6 +61,19 @@ function isPastDue(item) {
   return !!due && due.isBefore(moment().startOf('day'));
 }
 
+/** Monday through Sunday of the current week, plus tomorrow when that falls on the next Monday. */
+function isDueThisWeek(due) {
+  if (!due) {
+    return false;
+  }
+  const day = due.clone().startOf('day');
+  const today = moment().startOf('day');
+  const weekStart = today.clone().startOf('isoWeek');
+  const weekEnd = today.clone().endOf('isoWeek').startOf('day');
+  const tomorrow = today.clone().add(1, 'day');
+  return day.isBetween(weekStart, weekEnd, 'day', '[]') || day.isSame(tomorrow, 'day');
+}
+
 function dueLabel(item) {
   const due = dueMoment(item.dueDate);
   if (!due) {
@@ -111,8 +124,6 @@ export default function DiaryHomework() {
 
   const items = useMemo(() => {
     const needle = query.trim().toLowerCase();
-    const weekStart = moment().startOf('isoWeek');
-    const weekEnd = moment().endOf('isoWeek');
     return (homeworks || [])
       .filter(item => item.type !== 'NOTICE')
       .filter(item => {
@@ -130,7 +141,7 @@ export default function DiaryHomework() {
           return isPastDue(item);
         }
         if (filter === 'WEEK') {
-          return !!due && due.isBetween(weekStart, weekEnd, undefined, '[]');
+          return isDueThisWeek(due);
         }
         return true;
       })

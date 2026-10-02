@@ -105,6 +105,7 @@ export default function StudentSheetBody({
         {subtitle ? <Text style={styles.sheetSub}>{subtitle}</Text> : null}
       </View>
       <ScrollView
+        style={styles.list}
         showsVerticalScrollIndicator={false}
         nestedScrollEnabled
         scrollEnabled={scrollEnabled}
@@ -243,6 +244,9 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  list: {
+    flex: 1,
   },
   sheetSub: {
     marginTop: 4,

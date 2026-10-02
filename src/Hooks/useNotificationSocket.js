@@ -1,4 +1,5 @@
 import {useEffect} from 'react';
+import {AppState} from 'react-native';
 import {showAppAlert} from '../Components/AppAlert/host';
 import {
   connectAppSocket,
@@ -47,10 +48,15 @@ export function useNotificationSocket() {
     dispatch(asyncGetUnreadUserNotifications());
     dispatch(asyncGetUnreadUserNotices());
 
+    const refreshNotices = () => {
+      dispatch(asyncGetUserNotices());
+      dispatch(asyncGetUnreadUserNotices());
+    };
+
     const onConnected = () => {
       dispatch(setSocketConnected(true));
+      refreshNotices();
       dispatch(asyncGetUnreadUserNotifications());
-      dispatch(asyncGetUnreadUserNotices());
     };
 
     const onDisconnect = () => {
@@ -58,12 +64,15 @@ export function useNotificationSocket() {
     };
 
     const onNotificationNew = payload => {
-      const notification = payload?.notification;
-      if (!notification) {
+      const raw = payload?.notification || payload;
+      const id = raw?._id || raw?.id;
+      if (!raw || !id) {
         return;
       }
+      const notification = {...raw, _id: String(id)};
       dispatch(receiveNotification(notification));
       if (isSchoolNotice(notification)) {
+        refreshNotices();
         return;
       }
       showAppAlert({
@@ -106,6 +115,12 @@ export function useNotificationSocket() {
       onConnected();
     }
 
+    const appStateSub = AppState.addEventListener('change', next => {
+      if (next === 'active') {
+        refreshNotices();
+      }
+    });
+
     return () => {
       socket.off(SOCKET_EVENTS.CONNECTED, onConnected);
       socket.off('connect', onConnected);
@@ -113,6 +128,7 @@ export function useNotificationSocket() {
       socket.off(SOCKET_EVENTS.NOTIFICATION_NEW, onNotificationNew);
       socket.off(SOCKET_EVENTS.NOTIFICATION_READ, onNotificationRead);
       socket.off(SOCKET_EVENTS.NOTIFICATION_DELETED, onNotificationDeleted);
+      appStateSub.remove();
       disconnectAppSocket();
       dispatch(setSocketConnected(false));
     };

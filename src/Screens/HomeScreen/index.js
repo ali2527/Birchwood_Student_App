@@ -37,7 +37,7 @@ import profile_icon from '../../Assets/images/profile_bg.png';
 import ChildSwitcher from '../../Components/ChildSwitcher';
 import AdSlider from '../../Components/AdSlider';
 import {BAR_H} from '../../Components/AppFooter/shape';
-import {attendanceStatusLabel} from '../DailyAttendance/status';
+import {attendanceDotColor, attendanceStatusLabel} from '../DailyAttendance/status';
 
 const NAVY = '#0F1F4B';
 const MUTED = '#8B93A7';
@@ -144,24 +144,19 @@ function greetingWord() {
   return 'Good evening';
 }
 
-function teacherName(classroom) {
-  const teacher = classroom?.teacher;
-  if (!teacher || typeof teacher === 'string') {
-    return '';
-  }
-  return `${teacher.firstName || ''} ${teacher.lastName || ''}`.trim();
-}
-
-function classBadge(classroom) {
+function className(classroom) {
   if (!classroom || typeof classroom === 'string') {
     return '';
   }
-  const name = classroom.classroomName || classroom.classroomId || '';
-  const grade = classroom.classroomGrade;
-  if (name && grade) {
-    return `${name} (Grade ${grade})`;
+  return classroom.classroomName || classroom.classroomId || '';
+}
+
+function gradeLabel(classroom) {
+  if (!classroom || typeof classroom === 'string') {
+    return '';
   }
-  return name || (grade ? `Grade ${grade}` : '');
+  const grade = classroom.classroomGrade;
+  return grade ? `Grade ${grade}` : '';
 }
 
 function attendanceCardCopy(child) {
@@ -212,8 +207,8 @@ export default function HomeScreen() {
   const childPhoto = child?.image
     ? {uri: getImagePath(child.image)}
     : profile_icon;
-  const classMeta = classBadge(child?.classroom);
-  const teacher = teacherName(child?.classroom);
+  const classMeta = className(child?.classroom);
+  const grade = gradeLabel(child?.classroom);
   const childFullName = child
     ? `${child.firstName || ''} ${child.lastName || ''}`.trim()
     : '';
@@ -279,7 +274,7 @@ export default function HomeScreen() {
                 <View
                   style={[
                     styles.onlineDot,
-                    !child?.checkIn && styles.onlineDotOff,
+                    {backgroundColor: attendanceDotColor(child)},
                   ]}
                 />
               </View>
@@ -297,9 +292,7 @@ export default function HomeScreen() {
                 ) : null}
                 <Text style={styles.metaText} numberOfLines={1}>
                   {hasChildren
-                    ? teacher
-                      ? `Teacher: ${teacher}`
-                      : 'Teacher not assigned'
+                    ? grade || 'Grade not assigned'
                     : 'Link a child to get started'}
                 </Text>
               </View>

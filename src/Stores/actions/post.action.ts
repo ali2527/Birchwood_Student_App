@@ -123,9 +123,9 @@ export const asyncGetAllChildPosts = createAsyncThunk(
     dispatch(setLoading(true));
 
     const res = await callApi<GetAllClassPosts>({
-      path: allApiPaths.getPath('getAllChildPosts', {
-        childId
-      }),
+      path: ((allApiPaths.getPath('getAllChildPosts', {
+        childId,
+      }) as string) + '?limit=100&page=1') as ApiPaths,
     });
 
     if (!res.status) {

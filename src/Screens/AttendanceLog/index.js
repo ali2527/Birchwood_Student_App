@@ -197,7 +197,7 @@ export default function AttendanceLog() {
         onPanResponderMove: (_, g) => {
           let next = startY.current + g.dy;
           if (next < 0) {
-            next *= 0.28;
+            next = 0;
           } else if (next > maxSlide) {
             next = maxSlide + (next - maxSlide) * 0.28;
           }
@@ -239,7 +239,7 @@ export default function AttendanceLog() {
         onPanResponderMove: (_, g) => {
           let next = startY.current + g.dy;
           if (next < 0) {
-            next *= 0.28;
+            next = 0;
           } else if (next > maxSlide) {
             next = maxSlide + (next - maxSlide) * 0.28;
           }

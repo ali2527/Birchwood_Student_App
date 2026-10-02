@@ -1,9 +1,10 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
   ActivityIndicator,
+  Dimensions,
   FlatList,
   Image,
-  KeyboardAvoidingView,
+  Keyboard,
   Platform,
   StatusBar,
   StyleSheet,
@@ -21,9 +22,9 @@ import {callApi} from '../../Service/api';
 import {allApiPaths} from '../../Service/apiPaths';
 import {getImagePath} from '../../Service/axios';
 import {useAppDispatch, useAppSelector} from '../../Stores/hooks';
-import {selectUserProfile} from '../../Stores/slices/user.slice';
+import {selectUserProfile, selectUserToken} from '../../Stores/slices/user.slice';
 import {asyncGetUnreadChatCount} from '../../Stores/actions/class.action';
-import {getAppSocket} from '../../Service/socket';
+import {connectAppSocket, getAppSocket} from '../../Service/socket';
 
 const NAVY = '#0F1F4B';
 const MUTED = '#8B93A7';
@@ -57,6 +58,30 @@ export function resolveTeacher(child, chat) {
     return fromClass;
   }
   return fromChat || fromClass || null;
+}
+
+export function parentDisplayName(person) {
+  if (!person || typeof person === 'string') return 'Parent';
+  const father = `${person.fatherFirstName || ''} ${person.fatherLastName || ''}`.trim();
+  const mother = `${person.motherFirstName || ''} ${person.motherLastName || ''}`.trim();
+  if (father && mother && father !== mother) {
+    return `${father} & ${mother}`;
+  }
+  return father || mother || personName(person, 'Parent');
+}
+
+function keyboardOverlap(event) {
+  const screenY = event?.endCoordinates?.screenY;
+  const reported = event?.endCoordinates?.height || 0;
+  if (typeof screenY !== 'number') return reported;
+  const overlap = Math.round(Dimensions.get('window').height - screenY);
+  return overlap > 0 ? overlap : 0;
+}
+
+function chatIdOf(record) {
+  const chat = record?.chat;
+  if (!chat) return '';
+  return typeof chat === 'string' ? chat : String(chat._id || '');
 }
 
 export function photoUri(person) {
@@ -98,7 +123,12 @@ export default function TeacherChatThread() {
   const insets = useSafeAreaInsets();
   const dispatch = useAppDispatch();
   const userProfile = useAppSelector(selectUserProfile);
+  const token = useAppSelector(selectUserToken);
   const listRef = useRef(null);
+  const typingTimer = useRef(null);
+  const peerTypingTimer = useRef(null);
+  const lastTypingEmit = useRef(0);
+  const typingOn = useRef(false);
 
   const child = route.params?.child || null;
   const teacher = resolveTeacher(child, {teacher: route.params?.teacher});
@@ -110,9 +140,28 @@ export default function TeacherChatThread() {
   const [sending, setSending] = useState(false);
   const [activeChat, setActiveChat] = useState(initialChatId);
   const [error, setError] = useState('');
+  const [peerTyping, setPeerTyping] = useState('');
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
 
   const teacherLabel = personName(teacher, 'Teacher');
   const teacherPhoto = photoUri(teacher);
+  const myName = parentDisplayName(userProfile);
+
+  const stopTyping = useCallback(
+    chatId => {
+      if (typingTimer.current) {
+        clearTimeout(typingTimer.current);
+        typingTimer.current = null;
+      }
+      if (!typingOn.current || !chatId) {
+        typingOn.current = false;
+        return;
+      }
+      typingOn.current = false;
+      getAppSocket()?.emit('chat:typing', {chatId, typing: false, name: myName});
+    },
+    [myName],
+  );
 
   const openOrCreate = useCallback(async () => {
     if (initialChatId) return initialChatId;
@@ -180,22 +229,64 @@ export default function TeacherChatThread() {
   }, [loadMessages, openOrCreate]);
 
   useEffect(() => {
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+    const onShow = event => {
+      setKeyboardHeight(keyboardOverlap(event));
+      requestAnimationFrame(() => listRef.current?.scrollToEnd?.({animated: true}));
+    };
+    const onHide = () => setKeyboardHeight(0);
+    const showSub = Keyboard.addListener(showEvent, onShow);
+    const hideSub = Keyboard.addListener(hideEvent, onHide);
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
+
+  useEffect(() => {
     if (!activeChat) return undefined;
-    const socket = getAppSocket();
+    const socket = connectAppSocket(token) || getAppSocket();
     if (!socket) return undefined;
+    const roomId = String(activeChat);
+    const join = () => {
+      socket.emit('join chat', roomId);
+    };
     const onMessage = record => {
-      if (!record || String(record.chat) !== String(activeChat)) return;
+      const incomingChat = chatIdOf(record);
+      if (!record?._id || incomingChat !== roomId) return;
       setMessages(prev => {
         if (prev.some(item => item?._id && item._id === record._id)) return prev;
         return [...prev, record];
       });
+      dispatch(asyncGetUnreadChatCount());
     };
-    socket.emit('join chat', activeChat);
+    const onTyping = payload => {
+      if (String(payload?.chatId || '') !== roomId) return;
+      if (String(payload?.userId || '') === String(userProfile?._id || '')) return;
+      if (peerTypingTimer.current) {
+        clearTimeout(peerTypingTimer.current);
+        peerTypingTimer.current = null;
+      }
+      if (!payload?.typing) {
+        setPeerTyping('');
+        return;
+      }
+      setPeerTyping(payload.name ? `${payload.name} is typing…` : 'Teacher is typing…');
+      peerTypingTimer.current = setTimeout(() => setPeerTyping(''), 2200);
+    };
+    socket.on('connect', join);
     socket.on('message', onMessage);
+    socket.on('chat:typing', onTyping);
+    if (socket.connected) join();
     return () => {
+      stopTyping(roomId);
+      socket.off('connect', join);
       socket.off('message', onMessage);
+      socket.off('chat:typing', onTyping);
+      setPeerTyping('');
     };
-  }, [activeChat]);
+  }, [activeChat, dispatch, stopTyping, token, userProfile?._id]);
 
   useEffect(() => {
     if (!messages.length) return;
@@ -208,6 +299,7 @@ export default function TeacherChatThread() {
   const send = async () => {
     const body = draft.trim();
     if (!body || !activeChat || sending) return;
+    stopTyping(String(activeChat));
     setSending(true);
     setError('');
     try {
@@ -217,7 +309,11 @@ export default function TeacherChatThread() {
         body: {chatId: activeChat, content: body, senderType: 'parent'},
       });
       if (res?.data?.message) {
-        setMessages(prev => [...prev, res.data.message]);
+        setMessages(prev => {
+          const saved = res.data.message;
+          if (prev.some(item => item?._id && item._id === saved._id)) return prev;
+          return [...prev, saved];
+        });
         setDraft('');
         requestAnimationFrame(() => {
           listRef.current?.scrollToEnd?.({animated: true});
@@ -262,9 +358,7 @@ export default function TeacherChatThread() {
       {loading ? (
         <ActivityIndicator style={{marginTop: 40}} color={BLUE} />
       ) : (
-        <KeyboardAvoidingView
-          style={styles.body}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <View style={[styles.body, keyboardHeight > 0 && {paddingBottom: keyboardHeight}]}>
           {error ? <Text style={styles.error}>{error}</Text> : null}
           <FlatList
             ref={listRef}
@@ -328,15 +422,40 @@ export default function TeacherChatThread() {
               </View>
             }
           />
+          {peerTyping ? (
+            <Text style={styles.typing} numberOfLines={1}>
+              {peerTyping}
+            </Text>
+          ) : null}
           <View
             style={[
               styles.composer,
-              {paddingBottom: Math.max(insets.bottom, 10)},
+              {paddingBottom: keyboardHeight > 0 ? 8 : Math.max(insets.bottom, 10)},
             ]}>
             <TextInput
               style={styles.input}
               value={draft}
-              onChangeText={setDraft}
+              onChangeText={text => {
+                setDraft(text);
+                const chatId = String(activeChat || '');
+                const socket = getAppSocket();
+                if (!socket || !chatId) return;
+                if (!text.trim()) {
+                  stopTyping(chatId);
+                  return;
+                }
+                if (!typingOn.current || Date.now() - lastTypingEmit.current > 800) {
+                  typingOn.current = true;
+                  lastTypingEmit.current = Date.now();
+                  socket.emit('chat:typing', {
+                    chatId,
+                    typing: true,
+                    name: myName,
+                  });
+                }
+                if (typingTimer.current) clearTimeout(typingTimer.current);
+                typingTimer.current = setTimeout(() => stopTyping(chatId), 1200);
+              }}
               placeholder={`Message ${teacherLabel}…`}
               placeholderTextColor={MUTED}
               multiline
@@ -357,7 +476,7 @@ export default function TeacherChatThread() {
               <Ionicons name="send" size={16} color="#FFF" />
             </TouchableOpacity>
           </View>
-        </KeyboardAvoidingView>
+        </View>
       )}
     </View>
   );
@@ -485,6 +604,14 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: MUTED,
     lineHeight: 18,
+  },
+  typing: {
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    backgroundColor: '#FFF',
+    fontFamily: fonts.euclidCircularA.medium,
+    fontSize: 12,
+    color: MUTED,
   },
   composer: {
     flexDirection: 'row',
