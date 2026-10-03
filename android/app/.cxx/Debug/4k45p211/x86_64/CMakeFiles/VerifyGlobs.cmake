@@ -62,6 +62,31 @@ if(NOT "${NEW_GLOB}" STREQUAL "${OLD_GLOB}")
   file(TOUCH_NOCREATE "D:/Projects/birchwood-student/android/app/.cxx/Debug/4k45p211/x86_64/CMakeFiles/cmake.verify_globs")
 endif()
 
+# react_codegen_SRCS at D:/Projects/birchwood-student/node_modules/@react-native-documents/picker/android/build/generated/source/codegen/jni/CMakeLists.txt:9 (file)
+file(GLOB NEW_GLOB LIST_DIRECTORIES true "D:/Projects/birchwood-student/node_modules/@react-native-documents/picker/android/build/generated/source/codegen/jni/*.cpp")
+set(OLD_GLOB
+  "D:/Projects/birchwood-student/node_modules/@react-native-documents/picker/android/build/generated/source/codegen/jni/rndocumentpickerCGen-generated.cpp"
+  )
+if(NOT "${NEW_GLOB}" STREQUAL "${OLD_GLOB}")
+  message("-- GLOB mismatch!")
+  file(TOUCH_NOCREATE "D:/Projects/birchwood-student/android/app/.cxx/Debug/4k45p211/x86_64/CMakeFiles/cmake.verify_globs")
+endif()
+
+# react_codegen_SRCS at D:/Projects/birchwood-student/node_modules/@react-native-documents/picker/android/build/generated/source/codegen/jni/CMakeLists.txt:9 (file)
+file(GLOB NEW_GLOB LIST_DIRECTORIES true "D:/Projects/birchwood-student/node_modules/@react-native-documents/picker/android/build/generated/source/codegen/jni/react/renderer/components/rndocumentpickerCGen/*.cpp")
+set(OLD_GLOB
+  "D:/Projects/birchwood-student/node_modules/@react-native-documents/picker/android/build/generated/source/codegen/jni/react/renderer/components/rndocumentpickerCGen/ComponentDescriptors.cpp"
+  "D:/Projects/birchwood-student/node_modules/@react-native-documents/picker/android/build/generated/source/codegen/jni/react/renderer/components/rndocumentpickerCGen/EventEmitters.cpp"
+  "D:/Projects/birchwood-student/node_modules/@react-native-documents/picker/android/build/generated/source/codegen/jni/react/renderer/components/rndocumentpickerCGen/Props.cpp"
+  "D:/Projects/birchwood-student/node_modules/@react-native-documents/picker/android/build/generated/source/codegen/jni/react/renderer/components/rndocumentpickerCGen/ShadowNodes.cpp"
+  "D:/Projects/birchwood-student/node_modules/@react-native-documents/picker/android/build/generated/source/codegen/jni/react/renderer/components/rndocumentpickerCGen/States.cpp"
+  "D:/Projects/birchwood-student/node_modules/@react-native-documents/picker/android/build/generated/source/codegen/jni/react/renderer/components/rndocumentpickerCGen/rndocumentpickerCGenJSI-generated.cpp"
+  )
+if(NOT "${NEW_GLOB}" STREQUAL "${OLD_GLOB}")
+  message("-- GLOB mismatch!")
+  file(TOUCH_NOCREATE "D:/Projects/birchwood-student/android/app/.cxx/Debug/4k45p211/x86_64/CMakeFiles/cmake.verify_globs")
+endif()
+
 # react_codegen_SRCS at D:/Projects/birchwood-student/node_modules/react-native-image-picker/android/build/generated/source/codegen/jni/CMakeLists.txt:9 (file)
 file(GLOB NEW_GLOB LIST_DIRECTORIES true "D:/Projects/birchwood-student/node_modules/react-native-image-picker/android/build/generated/source/codegen/jni/*.cpp")
 set(OLD_GLOB
@@ -81,6 +106,31 @@ set(OLD_GLOB
   "D:/Projects/birchwood-student/node_modules/react-native-image-picker/android/build/generated/source/codegen/jni/react/renderer/components/RNImagePickerSpec/RNImagePickerSpecJSI-generated.cpp"
   "D:/Projects/birchwood-student/node_modules/react-native-image-picker/android/build/generated/source/codegen/jni/react/renderer/components/RNImagePickerSpec/ShadowNodes.cpp"
   "D:/Projects/birchwood-student/node_modules/react-native-image-picker/android/build/generated/source/codegen/jni/react/renderer/components/RNImagePickerSpec/States.cpp"
+  )
+if(NOT "${NEW_GLOB}" STREQUAL "${OLD_GLOB}")
+  message("-- GLOB mismatch!")
+  file(TOUCH_NOCREATE "D:/Projects/birchwood-student/android/app/.cxx/Debug/4k45p211/x86_64/CMakeFiles/cmake.verify_globs")
+endif()
+
+# react_codegen_SRCS at D:/Projects/birchwood-student/node_modules/react-native-nitro-modules/android/build/generated/source/codegen/jni/CMakeLists.txt:9 (file)
+file(GLOB NEW_GLOB LIST_DIRECTORIES true "D:/Projects/birchwood-student/node_modules/react-native-nitro-modules/android/build/generated/source/codegen/jni/*.cpp")
+set(OLD_GLOB
+  "D:/Projects/birchwood-student/node_modules/react-native-nitro-modules/android/build/generated/source/codegen/jni/NitroModulesSpec-generated.cpp"
+  )
+if(NOT "${NEW_GLOB}" STREQUAL "${OLD_GLOB}")
+  message("-- GLOB mismatch!")
+  file(TOUCH_NOCREATE "D:/Projects/birchwood-student/android/app/.cxx/Debug/4k45p211/x86_64/CMakeFiles/cmake.verify_globs")
+endif()
+
+# react_codegen_SRCS at D:/Projects/birchwood-student/node_modules/react-native-nitro-modules/android/build/generated/source/codegen/jni/CMakeLists.txt:9 (file)
+file(GLOB NEW_GLOB LIST_DIRECTORIES true "D:/Projects/birchwood-student/node_modules/react-native-nitro-modules/android/build/generated/source/codegen/jni/react/renderer/components/NitroModulesSpec/*.cpp")
+set(OLD_GLOB
+  "D:/Projects/birchwood-student/node_modules/react-native-nitro-modules/android/build/generated/source/codegen/jni/react/renderer/components/NitroModulesSpec/ComponentDescriptors.cpp"
+  "D:/Projects/birchwood-student/node_modules/react-native-nitro-modules/android/build/generated/source/codegen/jni/react/renderer/components/NitroModulesSpec/EventEmitters.cpp"
+  "D:/Projects/birchwood-student/node_modules/react-native-nitro-modules/android/build/generated/source/codegen/jni/react/renderer/components/NitroModulesSpec/NitroModulesSpecJSI-generated.cpp"
+  "D:/Projects/birchwood-student/node_modules/react-native-nitro-modules/android/build/generated/source/codegen/jni/react/renderer/components/NitroModulesSpec/Props.cpp"
+  "D:/Projects/birchwood-student/node_modules/react-native-nitro-modules/android/build/generated/source/codegen/jni/react/renderer/components/NitroModulesSpec/ShadowNodes.cpp"
+  "D:/Projects/birchwood-student/node_modules/react-native-nitro-modules/android/build/generated/source/codegen/jni/react/renderer/components/NitroModulesSpec/States.cpp"
   )
 if(NOT "${NEW_GLOB}" STREQUAL "${OLD_GLOB}")
   message("-- GLOB mismatch!")

@@ -53,6 +53,31 @@
         }
       }
     },
+    "@react-native-documents/picker": {
+      "root": "D:\\Projects\\birchwood-student\\node_modules\\@react-native-documents\\picker",
+      "name": "@react-native-documents/picker",
+      "platforms": {
+        "ios": {
+          "podspecPath": "D:\\Projects\\birchwood-student\\node_modules\\@react-native-documents\\picker\\react-native-document-picker.podspec",
+          "version": "12.0.2",
+          "configurations": [],
+          "scriptPhases": []
+        },
+        "android": {
+          "sourceDir": "D:\\Projects\\birchwood-student\\node_modules\\@react-native-documents\\picker\\android",
+          "packageImportPath": "import com.reactnativedocumentpicker.RNDocumentPickerPackage;",
+          "packageInstance": "new RNDocumentPickerPackage()",
+          "buildTypes": [],
+          "libraryName": "rndocumentpickerCGen",
+          "componentDescriptors": [],
+          "cmakeListsPath": "D:/Projects/birchwood-student/node_modules/@react-native-documents/picker/android/build/generated/source/codegen/jni/CMakeLists.txt",
+          "cxxModuleCMakeListsModuleName": null,
+          "cxxModuleCMakeListsPath": null,
+          "cxxModuleHeaderName": null,
+          "isPureCxxDependency": false
+        }
+      }
+    },
     "react-native-image-picker": {
       "root": "D:\\Projects\\birchwood-student\\node_modules\\react-native-image-picker",
       "name": "react-native-image-picker",
@@ -102,6 +127,55 @@
         }
       }
     },
+    "react-native-nitro-modules": {
+      "root": "D:\\Projects\\birchwood-student\\node_modules\\react-native-nitro-modules",
+      "name": "react-native-nitro-modules",
+      "platforms": {
+        "ios": {
+          "podspecPath": "D:\\Projects\\birchwood-student\\node_modules\\react-native-nitro-modules\\NitroModules.podspec",
+          "version": "0.37.1",
+          "configurations": [],
+          "scriptPhases": []
+        },
+        "android": {
+          "sourceDir": "D:\\Projects\\birchwood-student\\node_modules\\react-native-nitro-modules\\android",
+          "packageImportPath": "import com.margelo.nitro.NitroModulesPackage;",
+          "packageInstance": "new NitroModulesPackage()",
+          "buildTypes": [],
+          "libraryName": "NitroModulesSpec",
+          "componentDescriptors": [],
+          "cmakeListsPath": "D:/Projects/birchwood-student/node_modules/react-native-nitro-modules/android/build/generated/source/codegen/jni/CMakeLists.txt",
+          "cxxModuleCMakeListsModuleName": null,
+          "cxxModuleCMakeListsPath": null,
+          "cxxModuleHeaderName": null,
+          "isPureCxxDependency": false
+        }
+      }
+    },
+    "react-native-nitro-sound": {
+      "root": "D:\\Projects\\birchwood-student\\node_modules\\react-native-nitro-sound",
+      "name": "react-native-nitro-sound",
+      "platforms": {
+        "ios": {
+          "podspecPath": "D:\\Projects\\birchwood-student\\node_modules\\react-native-nitro-sound\\NitroSound.podspec",
+          "version": "0.2.20",
+          "configurations": [],
+          "scriptPhases": []
+        },
+        "android": {
+          "sourceDir": "D:\\Projects\\birchwood-student\\node_modules\\react-native-nitro-sound\\android",
+          "packageImportPath": "import com.margelo.nitro.sound.SoundPackage;",
+          "packageInstance": "new SoundPackage()",
+          "buildTypes": [],
+          "componentDescriptors": [],
+          "cmakeListsPath": "D:/Projects/birchwood-student/node_modules/react-native-nitro-sound/android/build/generated/source/codegen/jni/CMakeLists.txt",
+          "cxxModuleCMakeListsModuleName": null,
+          "cxxModuleCMakeListsPath": null,
+          "cxxModuleHeaderName": null,
+          "isPureCxxDependency": false
+        }
+      }
+    },
     "react-native-render-html": {
       "root": "D:\\Projects\\birchwood-student\\node_modules\\react-native-render-html",
       "name": "react-native-render-html",
@@ -121,7 +195,7 @@
       "platforms": {
         "ios": {
           "podspecPath": "D:\\Projects\\birchwood-student\\node_modules\\react-native-safe-area-context\\react-native-safe-area-context.podspec",
-          "version": "5.9.1",
+          "version": "5.10.1",
           "configurations": [],
           "scriptPhases": []
         },
@@ -292,7 +366,7 @@
       "platforms": {
         "ios": {
           "podspecPath": "D:\\Projects\\birchwood-student\\node_modules\\react-native-video\\react-native-video.podspec",
-          "version": "6.19.2",
+          "version": "6.19.3",
           "configurations": [],
           "scriptPhases": []
         },

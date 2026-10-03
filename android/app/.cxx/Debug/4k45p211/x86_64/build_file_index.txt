@@ -1,6 +1,8 @@
 D:\Projects\birchwood-student\node_modules\@bam.tech\react-native-image-resizer\android\build\generated\source\codegen\jni\CMakeLists.txt
 D:\Projects\birchwood-student\node_modules\@react-native-async-storage\async-storage\android\build\generated\source\codegen\jni\CMakeLists.txt
+D:\Projects\birchwood-student\node_modules\@react-native-documents\picker\android\build\generated\source\codegen\jni\CMakeLists.txt
 D:\Projects\birchwood-student\node_modules\react-native-image-picker\android\build\generated\source\codegen\jni\CMakeLists.txt
+D:\Projects\birchwood-student\node_modules\react-native-nitro-modules\android\build\generated\source\codegen\jni\CMakeLists.txt
 D:\Projects\birchwood-student\node_modules\react-native-safe-area-context\android\src\main\jni\CMakeLists.txt
 D:\Projects\birchwood-student\node_modules\react-native-screens\android\src\main\jni\CMakeLists.txt
 D:\Projects\birchwood-student\node_modules\react-native-svg\android\src\main\jni\CMakeLists.txt
