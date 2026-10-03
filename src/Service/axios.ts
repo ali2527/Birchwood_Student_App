@@ -10,7 +10,7 @@ const LOCAL_HOST =
 const PHYSICAL_DEVICE_HOST = '192.168.100.94';
 const USE_PHYSICAL_DEVICE = true; // set false when using Android emulator
 
-const USE_LOCAL_API = typeof __DEV__ !== 'undefined' ? __DEV__ : false;
+const USE_LOCAL_API = false;
 const DEV_HOST = USE_PHYSICAL_DEVICE ? PHYSICAL_DEVICE_HOST : LOCAL_HOST;
 
 export const APP_URL = USE_LOCAL_API

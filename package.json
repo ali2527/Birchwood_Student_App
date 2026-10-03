@@ -13,12 +13,14 @@
   "dependencies": {
     "@bam.tech/react-native-image-resizer": "^3.0.7",
     "@react-native-async-storage/async-storage": "^2.0.0",
+    "@react-native-documents/picker": "^12.0.2",
     "@react-navigation/bottom-tabs": "6.6.1",
     "@react-navigation/native": "^6.1.9",
     "@react-navigation/native-stack": "^6.9.17",
     "@reduxjs/toolkit": "^2.2.8",
     "@rneui/base": "4.0.0-rc.7",
     "@rneui/themed": "4.0.0-rc.8",
+    "@tanstack/react-query": "^5.104.1",
     "axios": "^1.7.7",
     "date-fns": "^4.1.0",
     "json-parse-better-errors": "^1.0.2",
@@ -32,6 +34,8 @@
     "react-native-flash-message": "^0.4.2",
     "react-native-image-picker": "^7.1.2",
     "react-native-linear-gradient": "^2.8.3",
+    "react-native-nitro-modules": "^0.37.1",
+    "react-native-nitro-sound": "^0.2.20",
     "react-native-render-html": "^6.3.4",
     "react-native-safe-area-context": "^5.5.2",
     "react-native-screens": "4.23.0",
@@ -41,6 +45,7 @@
     "react-native-video": "^6.16.1",
     "react-redux": "^9.1.2",
     "redux-persist": "^6.0.0",
+    "rn-emoji-keyboard": "1.7.0",
     "socket.io-client": "^4.8.0"
   },
   "devDependencies": {

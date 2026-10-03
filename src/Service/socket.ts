@@ -48,7 +48,9 @@ export function connectAppSocket(token) {
 
   socket = io(getSocketUrl(), {
     autoConnect: false,
-    transports: ['websocket', 'polling'],
+    // The live API accepts long-polling and rejects a direct websocket.
+    transports: ['polling'],
+    upgrade: false,
     reconnection: true,
     reconnectionAttempts: 12,
     reconnectionDelay: 1000,

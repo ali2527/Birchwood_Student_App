@@ -16,6 +16,7 @@ interface ClassSliceState {
   selectedChild: Child | null;
   pagination: PaginationProps;
   unreadChatCount: number;
+  readingChatId: string | null;
   chatRooms: Record<string, {
     messages: Record<string, Message>,
     messagePagination: MessagePaginationProps
@@ -29,6 +30,7 @@ const initialState: ClassSliceState = {
   attendances: {},
   pagination: {} as PaginationProps,
   unreadChatCount: 0,
+  readingChatId: null,
   chatRooms: {}
 };
 
@@ -55,6 +57,9 @@ const ClassSlice = createSlice({
     },
     setUnreadChatCount: (state, { payload }: PayloadAction<number>) => {
       state.unreadChatCount = Math.max(0, Number(payload) || 0);
+    },
+    setReadingChatId: (state, { payload }: PayloadAction<string | null>) => {
+      state.readingChatId = payload ? String(payload) : null;
     },
     setAttendances: (state, { payload }: PayloadAction<Partial<ChildAttendance>>) => {
       state.attendances[payload._id] = { ...state.attendances[payload._id], ...payload };
@@ -101,7 +106,7 @@ const ClassSlice = createSlice({
   },
 });
 
-export const { setClassRoom, setChildren, setChild, setSelectedChild, setUnreadChatCount, setAttendances, setChatRoomMessages, setChatRoomMessage, resetClassState } =
+export const { setClassRoom, setChildren, setChild, setSelectedChild, setUnreadChatCount, setReadingChatId, setAttendances, setChatRoomMessages, setChatRoomMessage, resetClassState } =
   ClassSlice.actions;
 
 export default ClassSlice.reducer;

@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {
   Image,
   Platform,
@@ -38,6 +38,7 @@ import ChildSwitcher from '../../Components/ChildSwitcher';
 import AdSlider from '../../Components/AdSlider';
 import {BAR_H} from '../../Components/AppFooter/shape';
 import {attendanceDotColor, attendanceStatusLabel} from '../DailyAttendance/status';
+import {schoolGreeting} from '../../Utils/schoolTime';
 
 const NAVY = '#0F1F4B';
 const MUTED = '#8B93A7';
@@ -133,15 +134,16 @@ const MODULES = [
   },
 ];
 
-function greetingWord() {
-  const hour = new Date().getHours();
-  if (hour < 12) {
-    return 'Good morning';
-  }
-  if (hour < 17) {
-    return 'Good afternoon';
-  }
-  return 'Good evening';
+function useSchoolGreeting() {
+  const [greeting, setGreeting] = useState(schoolGreeting);
+  useFocusEffect(
+    useCallback(() => {
+      setGreeting(schoolGreeting());
+      const timer = setInterval(() => setGreeting(schoolGreeting()), 60 * 1000);
+      return () => clearInterval(timer);
+    }, []),
+  );
+  return greeting;
 }
 
 function className(classroom) {
@@ -178,6 +180,7 @@ export default function HomeScreen() {
   const selectedChild = useAppSelector(selectSelectedChild);
   const unreadNotices = useAppSelector(selectUnreadNoticeCount);
 
+  const greeting = useSchoolGreeting();
   const parentFirst =
     userProfile?.fatherFirstName || userProfile?.firstName || 'there';
   const child = selectedChild || children[0];
@@ -234,7 +237,7 @@ export default function HomeScreen() {
         ]}>
         <View style={styles.helloWrap}>
           <Text style={styles.hello} numberOfLines={1}>
-            {greetingWord()}, Mr & Mrs {parentFirst}
+            {greeting}, Mr & Mrs {parentFirst}
           </Text>
           <Text style={styles.helloSub} numberOfLines={1}>
             A quick look at today.

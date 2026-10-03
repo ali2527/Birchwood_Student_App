@@ -5,7 +5,7 @@ import Svg, {Path} from 'react-native-svg';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import routes from '../../Navigation/routes';
 import {useAppSelector} from '../../Stores/hooks';
-import {selectUnreadChatCount} from '../../Stores/slices/class.slice';
+import {useChatList} from '../../Query/chats';
 import {selectModules} from '../../Stores/slices/modules.slice';
 import {selectUnreadNotificationCount} from '../../Stores/slices/notification.slice';
 import {WIDTH} from '../../theme/units';
@@ -95,7 +95,11 @@ function AppFooter({state, navigation} = {}) {
   const modules = useAppSelector(selectModules);
   const chatOn = modules.chat !== false;
   const unreadNotifications = useAppSelector(selectUnreadNotificationCount);
-  const unreadChats = useAppSelector(selectUnreadChatCount);
+  const chatsQuery = useChatList('parent');
+  const unreadChats = (chatsQuery.data || []).reduce((sum, chat) => {
+    const count = Number(chat?.parentUnread ?? chat?.unreadMessage ?? 0);
+    return sum + (Number.isFinite(count) ? count : 0);
+  }, 0);
   const showChatDot = unreadChats > 0;
   const showMoreDot = unreadNotifications > 0;
   const [moreOpen, setMoreOpen] = useState(false);

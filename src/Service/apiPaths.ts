@@ -39,6 +39,9 @@ export enum ClassApiPaths {
   getMyChats = 'chat/getMyChats',
   getMessagesByChatRoomId = 'message/getChatMessages/:chatRoomId',
   createChatRoomMessage = 'message/createMessage',
+  deleteChatMessage = 'message/deleteMessage',
+  markChatRead = 'message/markChatRead',
+  deleteChat = 'chat/deleteChat',
 }
 
 export enum PostApiPaths {
@@ -72,6 +75,8 @@ export enum ResultApiPaths {
 
 export enum SettingsApiPaths {
   getAppModules = 'settings/getModules',
+  getAppInfo = 'settings/getAppInfo',
+  openDays = 'settings/openDays',
 }
 
 export enum AssessmentApiPaths {

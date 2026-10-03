@@ -1,5 +1,5 @@
 import {useEffect} from 'react';
-import {AppState} from 'react-native';
+import {AppState, NativeModules} from 'react-native';
 import {showAppAlert} from '../Components/AppAlert/host';
 import {
   connectAppSocket,
@@ -72,6 +72,11 @@ export function useNotificationSocket() {
       const notification = {...raw, _id: String(id)};
       dispatch(receiveNotification(notification));
       if (isSchoolNotice(notification)) {
+        try {
+          NativeModules.SplashSystemUi?.playNoticeSound?.();
+        } catch (error) {
+          // The notice still arrives if the phone cannot play a sound.
+        }
         refreshNotices();
         return;
       }

@@ -11,7 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useDispatch} from 'react-redux';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -20,10 +20,7 @@ import ChildSwitcher from '../../Components/ChildSwitcher';
 import PostItem from '../../Components/PostItem';
 import routes from '../../Navigation/routes';
 import {getImagePath} from '../../Service/axios';
-import {
-  asyncGetAllActivities,
-  asyncGetAllChildPosts,
-} from '../../Stores/actions/post.action';
+import {useActivities, useChildPosts} from '../../Query/posts';
 import {asyncGetAllMyChildren} from '../../Stores/actions/user.action';
 import {useAppSelector} from '../../Stores/hooks';
 import {
@@ -31,10 +28,6 @@ import {
   selectSelectedChild,
   setSelectedChild,
 } from '../../Stores/slices/class.slice';
-import {
-  selectActivities,
-  selectPosts,
-} from '../../Stores/slices/post.slice';
 import {WIDTH} from '../../theme/units';
 
 const NAVY = '#0F1F4B';
@@ -102,20 +95,21 @@ export default function ActivityScreen() {
   const insets = useSafeAreaInsets();
   const listRef = useRef(null);
 
-  const activities = useAppSelector(selectActivities);
-  const posts = useAppSelector(selectPosts);
+  const activitiesQuery = useActivities();
+  const activities = activitiesQuery.data ?? [];
   const children = useAppSelector(selectChildren);
   const selectedChild = useAppSelector(selectSelectedChild);
 
   const [activeFilter, setActiveFilter] = useState(ALL_FILTER);
   const [refreshing, setRefreshing] = useState(false);
-  const [feedLoading, setFeedLoading] = useState(true);
 
   const child = selectedChild || children[0] || null;
+  const postsQuery = useChildPosts(child?._id);
+  const posts = postsQuery.data ?? [];
+  const feedLoading = Boolean(child?._id) && postsQuery.isPending && !posts.length;
 
   useEffect(() => {
     dispatch(asyncGetAllMyChildren());
-    dispatch(asyncGetAllActivities({page: 1, limit: 100}));
   }, [dispatch]);
 
   useEffect(() => {
@@ -125,29 +119,17 @@ export default function ActivityScreen() {
   }, [children, selectedChild, dispatch]);
 
   useEffect(() => {
-    if (!child?._id) {
-      setFeedLoading(false);
-      return;
-    }
-
-    let cancelled = false;
     setActiveFilter(ALL_FILTER);
-    setFeedLoading(true);
+  }, [child?._id]);
 
-    (async () => {
-      try {
-        await dispatch(asyncGetAllChildPosts({childId: child._id}));
-      } finally {
-        if (!cancelled) {
-          setFeedLoading(false);
-        }
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [dispatch, child?._id]);
+  const {refetch: refetchPosts} = postsQuery;
+  useFocusEffect(
+    useCallback(() => {
+      if (!child?._id) return undefined;
+      refetchPosts();
+      return undefined;
+    }, [child?._id, refetchPosts]),
+  );
 
   const onRefresh = useCallback(async () => {
     if (!child?._id) {
@@ -155,11 +137,11 @@ export default function ActivityScreen() {
     }
     setRefreshing(true);
     try {
-      await dispatch(asyncGetAllChildPosts({childId: child._id}));
+      await Promise.all([postsQuery.refetch(), activitiesQuery.refetch()]);
     } finally {
       setRefreshing(false);
     }
-  }, [dispatch, child?._id]);
+  }, [activitiesQuery, child?._id, postsQuery]);
 
   const activityCircles = useMemo(
     () => [
@@ -265,12 +247,7 @@ export default function ActivityScreen() {
         <ChildSwitcher
           childList={children}
           selected={child}
-          onSelect={next => {
-            if (next?._id && next._id !== child?._id) {
-              setFeedLoading(true);
-            }
-            dispatch(setSelectedChild(next));
-          }}
+          onSelect={next => dispatch(setSelectedChild(next))}
           onAdd={() => navigation.navigate(routes.screens.addChild)}
         />
       </View>

@@ -13,6 +13,53 @@ export function schoolDayKey(value, timeZone = DEFAULT_SCHOOL_TIME_ZONE) {
   }).format(date);
 }
 
+export function schoolHourNow(timeZone = DEFAULT_SCHOOL_TIME_ZONE) {
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone,
+    hour: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(new Date());
+  const hour = Number(parts.find(part => part.type === 'hour')?.value ?? '0');
+  return hour === 24 ? 0 : hour;
+}
+
+/** Morning before noon, afternoon until 5pm, evening after that. */
+export function schoolGreeting(timeZone = DEFAULT_SCHOOL_TIME_ZONE) {
+  const hour = schoolHourNow(timeZone);
+  if (hour < 12) {
+    return 'Good morning';
+  }
+  if (hour < 17) {
+    return 'Good afternoon';
+  }
+  return 'Good evening';
+}
+
+export function isOpenDayKey(key, days) {
+  return (days || []).some(item => {
+    const start = item?.startKey || '';
+    const end = item?.endKey || start;
+    return Boolean(start) && start <= key && key <= end;
+  });
+}
+
+export function isLeaveDay(value, openDays, timeZone = DEFAULT_SCHOOL_TIME_ZONE) {
+  const date = value ? new Date(value) : new Date();
+  if (Number.isNaN(date.getTime())) {
+    return false;
+  }
+  return isSchoolWeekday(date, timeZone) || isOpenDayKey(schoolDayKey(date, timeZone), openDays);
+}
+
+export function isSchoolWeekday(value, timeZone = DEFAULT_SCHOOL_TIME_ZONE) {
+  const date = value ? new Date(value) : new Date();
+  if (Number.isNaN(date.getTime())) {
+    return false;
+  }
+  const name = new Intl.DateTimeFormat('en-US', {timeZone, weekday: 'short'}).format(date);
+  return name !== 'Sat' && name !== 'Sun';
+}
+
 export function isCurrentSchoolDay(value, timeZone = DEFAULT_SCHOOL_TIME_ZONE) {
   const key = schoolDayKey(value, timeZone);
   return Boolean(key) && key === schoolDayKey(new Date(), timeZone);

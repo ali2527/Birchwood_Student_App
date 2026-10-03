@@ -128,7 +128,10 @@ const MainStack = () => {
           <Stack.Screen
             name={routes.screens.teacherChatThread}
             component={TeacherChatThread}
-            options={{contentStyle: {backgroundColor: '#F2F5FA'}}}
+            options={{
+              animation: 'fade_from_bottom',
+              contentStyle: {backgroundColor: '#F2F5FA'},
+            }}
           />
           <Stack.Screen name={routes.screens.checkIn} component={CheckIn} />
           <Stack.Screen

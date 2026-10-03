@@ -131,9 +131,23 @@ export const asyncGetMessagesByChatRoomId = createAsyncThunk(
   }
 );
 
+export const asyncMarkChatRead = createAsyncThunk(
+  'markChatRead',
+  async (chatId: string) => {
+    if (!chatId) {
+      return null;
+    }
+    return callApi({
+      method: 'POST',
+      path: allApiPaths.getPath('markChatRead'),
+      body: { chatId },
+    });
+  },
+);
+
 export const asyncGetUnreadChatCount = createAsyncThunk(
   'getUnreadChatCount',
-  async (_, { dispatch }) => {
+  async (_, { dispatch, getState }) => {
     try {
       const res = await callApi<any>({
         path: allApiPaths.getPath('getMyChats'),
@@ -141,7 +155,11 @@ export const asyncGetUnreadChatCount = createAsyncThunk(
       });
       const docs = res?.data?.docs || res?.data || [];
       const list = Array.isArray(docs) ? docs : [];
+      const readingId = (getState() as { class: { readingChatId?: string | null } }).class?.readingChatId;
       const total = list.reduce((sum: number, chat: any) => {
+        if (readingId && String(chat?._id) === String(readingId)) {
+          return sum;
+        }
         const n = Number(chat?.parentUnread ?? chat?.unreadMessage ?? 0);
         return sum + (Number.isFinite(n) ? n : 0);
       }, 0);

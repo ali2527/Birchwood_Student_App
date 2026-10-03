@@ -48,6 +48,8 @@ export function attendanceStatusLabel(child) {
       return 'Not marked';
     case 'WEEKEND':
       return 'Weekend';
+    case 'HOLIDAY':
+      return 'School closed';
     default:
       return child?.checkIn ? 'Checked in' : 'Not marked';
   }

@@ -1,7 +1,10 @@
 package com.birchwoodstudent;
 
 import android.media.AudioAttributes;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
 import android.media.SoundPool;
+import android.net.Uri;
 import androidx.annotation.NonNull;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
@@ -44,6 +47,22 @@ public class SplashSystemUiModule extends ReactContextBaseJavaModule {
   @ReactMethod
   public void endSplashImmersive() {
     MainActivity.endSplashImmersive();
+  }
+
+  @ReactMethod
+  public void playNoticeSound() {
+    try {
+      ReactApplicationContext context = getReactApplicationContext();
+      Uri uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+      if (uri == null) {
+        return;
+      }
+      Ringtone ringtone = RingtoneManager.getRingtone(context, uri);
+      if (ringtone != null) {
+        ringtone.play();
+      }
+    } catch (Throwable ignored) {
+    }
   }
 
   @ReactMethod

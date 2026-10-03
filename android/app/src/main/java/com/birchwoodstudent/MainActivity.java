@@ -140,7 +140,27 @@ public class MainActivity extends ReactActivity {
 
   private static void prepareSplashWindow(Window window) {
     applySplashBarColors(window);
+    setStatusBarIconsWhite(window);
     hideNavigationBar(window);
+  }
+
+  private static void setStatusBarIconsWhite(Window window) {
+    if (window == null) {
+      return;
+    }
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+      WindowInsetsController controller = window.getInsetsController();
+      if (controller != null) {
+        controller.setSystemBarsAppearance(0, WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS);
+      }
+      return;
+    }
+    if (window.peekDecorView() == null) {
+      return;
+    }
+    View decor = window.getDecorView();
+    decor.setSystemUiVisibility(
+        decor.getSystemUiVisibility() & ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
   }
 
   private static void hideNavigationBar(Window window) {
@@ -160,8 +180,7 @@ public class MainActivity extends ReactActivity {
           View.SYSTEM_UI_FLAG_LAYOUT_STABLE
               | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
               | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-              | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-              | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+              | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
     }
   }
 
@@ -178,6 +197,9 @@ public class MainActivity extends ReactActivity {
       WindowInsetsController controller = window.getInsetsController();
       if (controller != null) {
         controller.show(WindowInsets.Type.navigationBars());
+        controller.setSystemBarsAppearance(
+            WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS,
+            WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS);
       }
     } else {
       View decor = window.getDecorView();

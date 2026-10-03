@@ -207,4 +207,5 @@ export interface ParentLeaveSubmitInput {
   reason?: string;
   startDate: string | Date;
   endDate?: string | Date | null;
+  openDays?: {startKey?: string; endKey?: string}[];
 }

@@ -37,6 +37,10 @@
 	</dict>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Allow Birchwood to add optional father and mother photos to your profile.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Birchwood uses the camera to send a photo in chat.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Birchwood uses the microphone to send a voice message.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string></string>
 	<key>UIAppFonts</key>

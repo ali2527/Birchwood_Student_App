@@ -26,13 +26,8 @@ import profile_icon from '../../Assets/images/profile_bg.png';
 import routes from '../../Navigation/routes';
 import {getImagePath} from '../../Service/axios';
 import AppVideoPlayer from '../AppVideoPlayer';
-import {
-  asyncCreatePostComment,
-  asyncGetCommentsByPostId,
-  asyncLikePost,
-} from '../../Stores/actions/post.action';
-import {useAppDispatch, useAppSelector} from '../../Stores/hooks';
-import {selectPostComments} from '../../Stores/slices/post.slice';
+import {createPostComment, likePost, usePostComments} from '../../Query/posts';
+import {useAppSelector} from '../../Stores/hooks';
 import {selectUserProfile} from '../../Stores/slices/user.slice';
 
 const {width: SCREEN_W, height: SCREEN_H} = Dimensions.get('window');
@@ -438,34 +433,18 @@ function CommentRow({comment}) {
 
 function CommentSheet({visible, onClose, postId, onSent}) {
   const insets = useSafeAreaInsets();
-  const dispatch = useAppDispatch();
-  const selectComments = useMemo(
-    () => selectPostComments(postId || ''),
-    [postId],
-  );
-  const comments = useAppSelector(selectComments);
+  const commentsQuery = usePostComments(postId, visible);
+  const comments = commentsQuery.data ?? [];
+  const loading = Boolean(visible && postId) && commentsQuery.isFetching && !comments.length;
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!visible || !postId) {
       setText('');
       setSending(false);
-      return undefined;
     }
-    let alive = true;
-    setLoading(true);
-    dispatch(asyncGetCommentsByPostId({postId}))
-      .finally(() => {
-        if (alive) {
-          setLoading(false);
-        }
-      });
-    return () => {
-      alive = false;
-    };
-  }, [visible, postId, dispatch]);
+  }, [visible, postId]);
 
   const send = async (value = text) => {
     const content = String(value || '').trim();
@@ -479,9 +458,7 @@ function CommentSheet({visible, onClose, postId, onSent}) {
     }
     setSending(true);
     try {
-      await dispatch(
-        asyncCreatePostComment({postId, comment: {content}}),
-      ).unwrap();
+      await createPostComment(postId, content, 'parent');
       setText('');
       onSent?.(content);
     } catch {
@@ -647,7 +624,6 @@ function CommentSheet({visible, onClose, postId, onSent}) {
 
 const PostItem = ({item}) => {
   const navigation = useNavigation();
-  const dispatch = useAppDispatch();
   const profile = useAppSelector(selectUserProfile);
   const media = useMemo(() => collectMedia(item), [item]);
   const videoPoster = useMemo(() => {
@@ -759,11 +735,7 @@ const PostItem = ({item}) => {
     bounceLike();
     playReactionSound('select');
     try {
-      const res = await dispatch(asyncLikePost({postId: item._id}));
-      const payload = res?.payload;
-      if (payload && payload.status === false) {
-        throw new Error(payload?.message || 'Failed');
-      }
+      await likePost(item._id, 'parent');
     } catch (error) {
       console.log('toggleLike error', error);
       setLiked(!next);
@@ -891,7 +863,6 @@ const PostItem = ({item}) => {
         visible={commentOpen}
         onClose={() => setCommentOpen(false)}
         postId={item?._id}
-        onSent={() => setCommentCount(count => count + 1)}
       />
     </View>
   );

@@ -325,7 +325,7 @@ export default function DailyAttendance() {
       return `Pickup is open from ${sample?.pickupOpensLabel || '1:00 PM'}. Earlier than that needs a reason.`;
     }
     if (children.some(child => child.checkInLate && child.todayPrompt === 'CHECKIN')) {
-      return `After ${sample?.onTimeUntilLabel || '8:00 AM'}, check-in is marked late. Leave is still available.`;
+      return `After ${sample?.onTimeUntilLabel || '8:00 AM'} this day is absent. You can still check in, and that check-in is marked late.`;
     }
     if (children.some(child => child.todayPrompt === 'CHECKIN')) {
       return `On-time check-in is ${sample?.checkInOpensLabel || '6:00 AM'} to ${sample?.onTimeUntilLabel || '8:00 AM'}. School starts at ${sample?.schoolStartLabel || '7:00 AM'}.`;
@@ -492,9 +492,7 @@ export default function DailyAttendance() {
                         ) : (
                           <>
                             <Ionicons name="checkmark-circle" size={16} color="#15803D" />
-                            <Text style={styles.presentText}>
-                              {child.checkInLate ? 'Late check-in' : 'Present'}
-                            </Text>
+                            <Text style={styles.presentText}>Check in</Text>
                           </>
                         )}
                       </TouchableOpacity>

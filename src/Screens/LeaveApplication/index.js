@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -18,6 +18,9 @@ import {useDispatch} from 'react-redux';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
 import moment from 'moment';
+import {callApi} from '../../Service/api';
+import {allApiPaths} from '../../Service/apiPaths';
+import {isLeaveDay} from '../../Utils/schoolTime';
 import ChildSwitcher from '../../Components/ChildSwitcher';
 import routes from '../../Navigation/routes';
 import CalendarPickerComponent from '../../Components/TemplateComponents/CalendarPickerComponent';
@@ -111,6 +114,19 @@ export default function LeaveApplication() {
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [openDays, setOpenDays] = useState([]);
+
+  useEffect(() => {
+    let alive = true;
+    callApi({path: allApiPaths.getPath('openDays')}).then(res => {
+      if (alive && res?.status) {
+        setOpenDays(res.data?.days || []);
+      }
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -141,8 +157,16 @@ export default function LeaveApplication() {
     if (!from.isValid() || !to.isValid()) {
       return 0;
     }
-    return Math.abs(to.diff(from, 'days')) + 1;
-  }, [endDate, startDate]);
+    let count = 0;
+    const cursor = from.clone();
+    while (cursor.isSameOrBefore(to, 'day')) {
+      if (isLeaveDay(cursor.toDate(), openDays)) {
+        count += 1;
+      }
+      cursor.add(1, 'day');
+    }
+    return count;
+  }, [endDate, openDays, startDate]);
 
   const onDateChange = (date, type) => {
     if (type === 'END_DATE') {
@@ -170,6 +194,10 @@ export default function LeaveApplication() {
       Alert.alert('Leave', 'Choose a valid date range.');
       return;
     }
+    if (!daysAway) {
+      Alert.alert('Leave', 'Leave is only for school days. Saturday and Sunday are off.');
+      return;
+    }
 
     dispatch(
       asyncUserLeave({
@@ -178,6 +206,7 @@ export default function LeaveApplication() {
         reason: note,
         startDate: startM.format('YYYY-MM-DD'),
         endDate: endM.format('YYYY-MM-DD'),
+        openDays,
       }),
     ).then(res => {
       if (res?.payload?.status) {
@@ -260,6 +289,7 @@ export default function LeaveApplication() {
                   allowRangeSelection
                   width={CALENDAR_WIDTH}
                   minDate={new Date()}
+                  disabledDates={date => !isLeaveDay(date?.toDate?.() || date, openDays)}
                   onDateChange={onDateChange}
                   selectedStartDate={startDate || undefined}
                   selectedEndDate={endDate || undefined}

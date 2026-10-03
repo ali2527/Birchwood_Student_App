@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   ScrollView,
   StatusBar,
@@ -12,6 +12,8 @@ import {useNavigation} from '@react-navigation/native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import fonts from '../../Assets/fonts';
+import {callApi} from '../../Service/api';
+import {allApiPaths} from '../../Service/apiPaths';
 import routes from '../../Navigation/routes';
 import {useAppSelector} from '../../Stores/hooks';
 import {selectUnreadNotificationCount} from '../../Stores/slices/notification.slice';
@@ -27,6 +29,20 @@ export default function Settings() {
   const insets = useSafeAreaInsets();
   const unreadNotifications = useAppSelector(selectUnreadNotificationCount);
   const [notificationsOn, setNotificationsOn] = useState(true);
+  const [about, setAbout] = useState(null);
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      const res = await callApi({path: allApiPaths.getPath('getAppInfo')});
+      if (alive && res?.status) {
+        setAbout(res.data?.appInfo || {});
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   return (
     <View style={styles.screen}>
@@ -117,21 +133,20 @@ export default function Settings() {
           <View style={styles.row}>
             <Ionicons name="information-circle-outline" size={18} color={NAVY} />
             <Text style={styles.rowTitleFlex}>App Version</Text>
-            <Text style={styles.rowSub}>0.0.1</Text>
+            <Text style={styles.rowSub}>{about?.parentVersion || 'Not set'}</Text>
           </View>
           <View style={styles.divider} />
           <View style={styles.staticBlock}>
             <Text style={styles.rowTitle}>Privacy Policy</Text>
             <Text style={styles.staticCopy}>
-              Birchwood collects only what is needed to run the parent app and
-              keep your child’s school records up to date.
+              {about?.privacyPolicy || 'The school has not added a privacy policy yet.'}
             </Text>
           </View>
           <View style={styles.divider} />
           <View style={styles.staticBlock}>
             <Text style={styles.rowTitle}>Terms of Use</Text>
             <Text style={styles.staticCopy}>
-              Use of this app is subject to Birchwood Academy school policies.
+              {about?.termsOfUse || 'The school has not added terms of use yet.'}
             </Text>
           </View>
         </View>

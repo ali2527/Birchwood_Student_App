@@ -559,9 +559,22 @@ export const asyncUserLeave = createAsyncThunk(
         dispatch(asyncShowError(err.message));
         return err;
       }
-      const dayKeys = enumerateYmdInclusive(startYmd, endYmd);
+      const openDays = Array.isArray(data.openDays) ? data.openDays : [];
+      const dayKeys = enumerateYmdInclusive(startYmd, endYmd).filter(ymd => {
+        const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ymd);
+        if (!match) {
+          return false;
+        }
+        const covered = openDays.some(item => {
+          const start = item?.startKey || '';
+          const end = item?.endKey || start;
+          return Boolean(start) && start <= ymd && ymd <= end;
+        });
+        const weekday = new Date(Date.UTC(+match[1], +match[2] - 1, +match[3], 12)).getUTCDay();
+        return covered || (weekday !== 0 && weekday !== 6);
+      });
       if (dayKeys.length === 0) {
-        const err = { status: false as const, message: 'Invalid date range.' };
+        const err = { status: false as const, message: 'Leave is only for school days.' };
         dispatch(asyncShowError(err.message));
         return err;
       }
