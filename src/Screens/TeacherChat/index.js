@@ -314,11 +314,19 @@ export default function TeacherChat() {
       <Modal
         visible={startOpen}
         transparent
-        animationType="slide"
+        animationType="fade"
+        statusBarTranslucent
         onRequestClose={() => setStartOpen(false)}>
         <View style={styles.sheetRoot}>
-          <Pressable style={styles.sheetDim} onPress={() => setStartOpen(false)} />
-          <View style={[styles.sheet, {paddingBottom: Math.max(insets.bottom, 16)}]}>
+          <Pressable
+            style={styles.sheetDim}
+            onPress={() => setStartOpen(false)}
+          />
+          <View
+            style={[
+              styles.sheet,
+              {paddingBottom: Math.max(insets.bottom, 16)},
+            ]}>
             <Text style={styles.sheetTitle}>Start chat</Text>
             {starters.length ? (
               starters.map(child => {
@@ -425,7 +433,10 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   sheetRoot: {flex: 1, justifyContent: 'flex-end'},
-  sheetDim: {...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(15, 31, 75, 0.35)'},
+  sheetDim: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(15, 31, 75, 0.4)',
+  },
   sheet: {
     backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 22,

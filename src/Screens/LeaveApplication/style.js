@@ -4,6 +4,7 @@ import fonts from '../../Assets/fonts';
 const NAVY = '#0F1F4B';
 const MUTED = '#8B93A7';
 const PAGE = '#F4F5F8';
+const PAGE_PAD = 16;
 
 export const styles = StyleSheet.create({
   screen: {
@@ -50,7 +51,7 @@ export const styles = StyleSheet.create({
   tabs: {
     flexDirection: 'row',
     gap: 8,
-    marginHorizontal: 18,
+    marginHorizontal: PAGE_PAD,
     marginBottom: 12,
   },
   tab: {
@@ -73,14 +74,28 @@ export const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   scroll: {
-    paddingHorizontal: 18,
+    flexGrow: 1,
+    paddingHorizontal: PAGE_PAD,
     paddingTop: 2,
     paddingBottom: 36,
   },
-  hero: {
-    borderRadius: 22,
-    paddingHorizontal: 18,
-    paddingVertical: 18,
+  heroWrap: {
+    alignSelf: 'stretch',
+    borderRadius: 16,
+    overflow: 'hidden',
+    marginBottom: 12,
+  },
+  heroCopy: {
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+  },
+  card: {
+    alignSelf: 'stretch',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingTop: 14,
+    paddingBottom: 8,
     marginBottom: 12,
   },
   heroKicker: {
@@ -100,14 +115,6 @@ export const styles = StyleSheet.create({
     fontFamily: fonts.euclidCircularA.medium,
     fontSize: 14,
     color: '#FFFFFF',
-  },
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 22,
-    paddingHorizontal: 12,
-    paddingTop: 14,
-    paddingBottom: 8,
-    marginBottom: 12,
   },
   kicker: {
     paddingHorizontal: 6,

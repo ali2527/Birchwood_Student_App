@@ -5,6 +5,7 @@ import {
   Dimensions,
   FlatList,
   Image,
+  InteractionManager,
   Keyboard,
   Linking,
   Modal,
@@ -33,9 +34,10 @@ import {getImagePath} from '../../Service/axios';
 import {useAppDispatch, useAppSelector} from '../../Stores/hooks';
 import {selectUserProfile, selectUserToken} from '../../Stores/slices/user.slice';
 import {asyncMarkChatRead} from '../../Stores/actions/class.action';
+import {asyncShowError} from '../../Stores/actions/common.action';
 import {setReadingChatId} from '../../Stores/slices/class.slice';
 import {connectAppSocket, getAppSocket} from '../../Service/socket';
-import {uploadChatFile} from '../../Utils/chunkUpload';
+import {normalizeFileUri, uploadChatFile} from '../../Utils/chunkUpload';
 import {
   applyIncomingChatMessage,
   chatKeys,
@@ -47,8 +49,9 @@ import {
 } from '../../Query/chats';
 import {queryClient} from '../../Query/client';
 import {startVoice, stopVoice, takeVoiceWave, voiceUpload} from '../../Utils/voiceNote';
-import {errorCodes, isErrorWithCode, pick, types} from '@react-native-documents/picker';
+import {errorCodes, isErrorWithCode, keepLocalCopy, pick, types} from '@react-native-documents/picker';
 import {useChatDownloads} from '../../Utils/chatDownloads';
+import {ensureCameraPermission, ensureGalleryPermission} from '../../Utils/mediaPermissions';
 import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
 
 const NAVY = '#0F1F4B';
@@ -204,6 +207,46 @@ function TypingDots() {
   );
 }
 
+const THREAD_SKELETON = [
+  {mine: false, width: '62%'},
+  {mine: true, width: '48%'},
+  {mine: false, width: '74%'},
+  {mine: true, width: '56%'},
+  {mine: false, width: '40%'},
+  {mine: true, width: '68%'},
+  {mine: false, width: '52%'},
+];
+
+function ThreadMessagesSkeleton() {
+  const pulse = useRef(new Animated.Value(0.45)).current;
+
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, {toValue: 1, duration: 700, useNativeDriver: true}),
+        Animated.timing(pulse, {toValue: 0.45, duration: 700, useNativeDriver: true}),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [pulse]);
+
+  return (
+    <View style={styles.threadSkeleton}>
+      {THREAD_SKELETON.map((row, index) => (
+        <Animated.View
+          key={index}
+          style={[
+            styles.threadBone,
+            row.mine ? styles.threadBoneMine : styles.threadBoneTheirs,
+            {width: row.width, opacity: pulse},
+          ]}
+        />
+      ))}
+    </View>
+  );
+}
+
 export default function TeacherChatThread() {
   const navigation = useNavigation();
   const route = useRoute();
@@ -309,10 +352,16 @@ export default function TeacherChatThread() {
   const [menuAnchor, setMenuAnchor] = useState(null);
   const [threadReady, setThreadReady] = useState(false);
   const threadReadyRef = useRef(false);
+  const sawMessageLoad = useRef(false);
   const {downloading, downloadFile, finishDownload, forgetDownload, isSaved} = useChatDownloads();
   const [activeChat, setActiveChat] = useState(initialChatId);
   const messagesQuery = useChatMessages(activeChat);
   const messages = Array.isArray(messagesQuery.data) ? messagesQuery.data : [];
+  const messagesLoader =
+    Boolean(activeChat) &&
+    (messagesQuery.isPending ||
+      (messagesQuery.isFetching && messagesQuery.data === undefined));
+  const awaitingMessages = loading || messagesLoader;
   const shown = useMemo(() => [...messages, ...outgoing], [messages, outgoing]);
   const threadData = useMemo(() => [...shown].reverse(), [shown]);
   const setMessages = useCallback(
@@ -324,7 +373,6 @@ export default function TeacherChatThread() {
     },
     [activeChat],
   );
-  const [error, setError] = useState('');
   const [peerTyping, setPeerTyping] = useState('');
   const [keyboardHeight, setKeyboardHeight] = useState(0);
 
@@ -354,11 +402,11 @@ export default function TeacherChatThread() {
     const teacherId = teacher?._id || teacher;
     const parentId = userProfile?._id || child?.parent?._id || child?.parent;
     if (!teacherId) {
-      setError('No class teacher assigned yet.');
+      dispatch(asyncShowError('No class teacher assigned yet.'));
       return null;
     }
     if (!parentId) {
-      setError('Could not identify parent account.');
+      dispatch(asyncShowError('Could not identify parent account.'));
       return null;
     }
     const res = await callApi({
@@ -372,7 +420,7 @@ export default function TeacherChatThread() {
     });
     const id = res?.data?._id || res?.data?.chat?._id;
     if (!id) {
-      setError(res?.message || 'Could not start chat');
+      dispatch(asyncShowError(res?.message || 'Could not start chat'));
       return null;
     }
     return id;
@@ -380,14 +428,23 @@ export default function TeacherChatThread() {
 
   useEffect(() => {
     threadReadyRef.current = false;
+    sawMessageLoad.current = false;
     setThreadReady(false);
   }, [activeChat]);
 
   useEffect(() => {
-    if (loading || messages.length) return;
+    if (messagesLoader) {
+      sawMessageLoad.current = true;
+    }
+  }, [messagesLoader]);
+
+  useEffect(() => {
+    if (loading || messagesLoader || messages.length) return;
+    // Wait until messages have actually been requested before showing empty state.
+    if (activeChat && !sawMessageLoad.current) return;
     threadReadyRef.current = true;
     setThreadReady(true);
-  }, [loading, messages.length]);
+  }, [loading, messagesLoader, messages.length, activeChat]);
 
   useEffect(() => {
     if (!activeChat) return undefined;
@@ -407,7 +464,6 @@ export default function TeacherChatThread() {
     let alive = true;
     (async () => {
       setLoading(true);
-      setError('');
       try {
         const id = await openOrCreate();
         if (!alive) return;
@@ -529,7 +585,6 @@ export default function TeacherChatThread() {
   const runDelete = async () => {
     if (!confirmDelete || deleting) return;
     setDeleting(true);
-    setError('');
     try {
       if (confirmDelete === 'chat') {
         if (!activeChat) return;
@@ -543,7 +598,7 @@ export default function TeacherChatThread() {
           setConfirmDelete(null);
           navigation.goBack();
         } else {
-          setError(res?.message || 'Could not delete chat');
+          dispatch(asyncShowError(res?.message || 'Could not delete chat'));
         }
         return;
       }
@@ -554,7 +609,7 @@ export default function TeacherChatThread() {
         body: {messageId: menuMessage._id, scope: confirmDelete},
       });
       if (!res?.status) {
-        setError(res?.message || 'Could not delete message');
+        dispatch(asyncShowError(res?.message || 'Could not delete message'));
         return;
       }
       if (confirmDelete === 'me') {
@@ -589,7 +644,7 @@ export default function TeacherChatThread() {
         body: {messageId, scope},
       });
       if (!res?.status) {
-        setError(res?.message || 'Could not delete');
+        dispatch(asyncShowError(res?.message || 'Could not delete'));
         return false;
       }
     }
@@ -606,31 +661,86 @@ export default function TeacherChatThread() {
     return true;
   };
 
+  const openPhotoPicker = fromCamera => {
+    setPhotoAsk(false);
+    // Wait for SmallDialog's Modal to finish dismissing before presenting camera/library.
+    const run = () => {
+      sendPhoto(fromCamera);
+    };
+    InteractionManager.runAfterInteractions(() => {
+      setTimeout(run, Platform.OS === 'ios' ? 400 : 250);
+    });
+  };
+
+  const denyMedia = (fromCamera, forever) => {
+    dispatch(
+      asyncShowError(
+        fromCamera
+          ? forever
+            ? 'Camera access is off. Enable it in Settings to take a photo.'
+            : 'Allow camera access to take a photo.'
+          : forever
+            ? 'Photo access is off. Enable it in Settings to choose a photo.'
+            : 'Allow photo access to choose an image.',
+      ),
+    );
+    if (forever) {
+      Linking.openSettings().catch(() => {});
+    }
+  };
+
   const sendPhoto = async (fromCamera = false) => {
     if (!activeChat || sendingPhoto || recordingRef.current) return;
+    if (fromCamera) {
+      const camera = await ensureCameraPermission();
+      if (!camera.ok) {
+        denyMedia(true, camera.forever);
+        return;
+      }
+    } else {
+      const gallery = await ensureGalleryPermission();
+      if (!gallery.ok) {
+        denyMedia(false, gallery.forever);
+        return;
+      }
+    }
     let picked;
     try {
+      const shared = {
+        mediaType: 'photo',
+        quality: 1,
+        presentationStyle: 'fullScreen',
+      };
       picked = fromCamera
         ? await launchCamera({
-            mediaType: 'photo',
-            quality: 0.6,
-            maxWidth: 1280,
-            maxHeight: 1280,
+            ...shared,
             saveToPhotos: false,
+            cameraType: 'back',
           })
         : await launchImageLibrary({
-            mediaType: 'photo',
+            ...shared,
             selectionLimit: 1,
-            quality: 0.6,
-            maxWidth: 1280,
-            maxHeight: 1280,
           });
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Could not open the camera');
+      dispatch(asyncShowError(error instanceof Error ? error.message : 'Could not open the camera'));
+      return;
+    }
+    if (picked?.didCancel) return;
+    if (picked?.errorCode) {
+      if (picked.errorCode === 'permission') {
+        denyMedia(fromCamera, true);
+        return;
+      }
+      if (picked.errorCode === 'camera_unavailable') {
+        dispatch(asyncShowError('Camera is not available on this device.'));
+        return;
+      }
+      dispatch(asyncShowError(picked.errorMessage || 'Could not open the camera'));
       return;
     }
     const asset = picked?.assets?.[0];
-    if (!asset?.uri || picked?.didCancel) return;
+    const photoUri = normalizeFileUri(asset?.uri || asset?.originalPath);
+    if (!photoUri) return;
     queueOutgoing({
       _id: `local-${Date.now()}`,
       local: true,
@@ -638,7 +748,7 @@ export default function TeacherChatThread() {
       senderType: 'parent',
       createdAt: new Date().toISOString(),
       attachment: {
-        file: asset.uri,
+        file: photoUri,
         name: asset.fileName || 'photo.jpg',
         mime: asset.type || 'image/jpeg',
         duration: 0,
@@ -665,7 +775,7 @@ export default function TeacherChatThread() {
       })
       .catch(error => {
         setOutgoing(prev => prev.map(row => (row._id === item._id ? {...row, status: 'failed'} : row)));
-        setError(error instanceof Error ? error.message : 'Could not send');
+        dispatch(asyncShowError(error instanceof Error ? error.message : 'Could not send'));
       });
   };
 
@@ -684,7 +794,7 @@ export default function TeacherChatThread() {
       }
       await Linking.openURL(getImagePath(file));
     } catch (error) {
-      setError('Could not open the document');
+      dispatch(asyncShowError('Could not open the document'));
     }
   };
 
@@ -696,10 +806,31 @@ export default function TeacherChatThread() {
         type: [types.pdf, types.doc, types.docx, types.plainText, types.xls, types.xlsx, types.ppt, types.pptx],
       });
       if (!file?.uri) return;
+      // v12 picker returns content:// on Android — copy into app cache before upload.
+      const [local] = await keepLocalCopy({
+        files: [
+          {
+            uri: file.uri,
+            fileName: file.name || 'document.bin',
+            convertVirtualFileToType: file.isVirtual
+              ? file.convertibleToMimeTypes?.[0]?.mimeType || file.type || undefined
+              : undefined,
+          },
+        ],
+        destination: 'cachesDirectory',
+      });
+      if (local?.status !== 'success' || !local.localUri) {
+        dispatch(asyncShowError(local?.copyError || 'Could not read the file'));
+        return;
+      }
+      const uri = normalizeFileUri(local.localUri);
+      if (!uri) {
+        dispatch(asyncShowError('Could not read the file'));
+        return;
+      }
       setSendingPhoto(true);
-      setError('');
       const saved = await uploadChatFile(String(activeChat), {
-        uri: file.uri,
+        uri,
         name: file.name || undefined,
         type: file.type || undefined,
       });
@@ -710,10 +841,12 @@ export default function TeacherChatThread() {
           senderType: saved.senderType || 'parent',
         });
         scrollToLatest();
+      } else {
+        dispatch(asyncShowError('Could not send the document'));
       }
     } catch (error) {
       if (isErrorWithCode(error) && error.code === errorCodes.OPERATION_CANCELED) return;
-      setError(error instanceof Error ? error.message : 'Could not send the document');
+      dispatch(asyncShowError(error instanceof Error ? error.message : 'Could not send the document'));
     } finally {
       setSendingPhoto(false);
     }
@@ -746,7 +879,6 @@ export default function TeacherChatThread() {
     if (!activeChat || sendingPhoto || recordingRef.current) return;
     const ticket = (voiceTicket.current += 1);
     voiceGate.current = {action: ''};
-    setError('');
     setEmojiOpen(false);
     try {
       await startVoice();
@@ -775,7 +907,7 @@ export default function TeacherChatThread() {
       recordingRef.current = false;
       setRecording(false);
       resetVoiceHold();
-      setError(error instanceof Error ? error.message : 'Could not record');
+      dispatch(asyncShowError(error instanceof Error ? error.message : 'Could not record'));
     }
   };
 
@@ -802,7 +934,6 @@ export default function TeacherChatThread() {
     recordingRef.current = false;
     resetVoiceHold();
     setRecording(false);
-    setError('');
     try {
       const file = voiceUpload(await stopVoice());
       if (!file) return;
@@ -822,7 +953,7 @@ export default function TeacherChatThread() {
         },
       });
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Could not send the voice message');
+      dispatch(asyncShowError(error instanceof Error ? error.message : 'Could not send the voice message'));
     }
   };
 
@@ -848,7 +979,6 @@ export default function TeacherChatThread() {
     setDraft('');
     scrollToLatest();
     setSending(true);
-    setError('');
     try {
       const res = await callApi({
         method: 'POST',
@@ -863,13 +993,13 @@ export default function TeacherChatThread() {
         setMessages(prev => prev.filter(item => item?._id !== tempId));
         draftRef.current = body;
         setDraft(body);
-        setError(res?.message || 'Could not send');
+        dispatch(asyncShowError(res?.message || 'Could not send'));
       }
     } catch (error) {
       setMessages(prev => prev.filter(item => item?._id !== tempId));
       draftRef.current = body;
       setDraft(body);
-      setError(error instanceof Error ? error.message : 'Could not send');
+      dispatch(asyncShowError(error instanceof Error ? error.message : 'Could not send'));
     } finally {
       setSending(false);
     }
@@ -924,7 +1054,6 @@ export default function TeacherChatThread() {
       </View>
 
       <View style={[styles.body, keyboardHeight > 0 && {paddingBottom: keyboardHeight}]}>
-          {error ? <Text style={styles.error}>{error}</Text> : null}
           <FlatList
             ref={listRef}
             data={peerTyping ? [{_id: 'typing-bubble', typing: true}, ...threadData] : threadData}
@@ -1067,19 +1196,23 @@ export default function TeacherChatThread() {
               );
             }}
             ListEmptyComponent={
-              <View style={styles.threadEmpty}>
-                <View style={styles.emptyIcon}>
-                  <Ionicons
-                    name="chatbubbles-outline"
-                    size={24}
-                    color={BLUE}
-                  />
+              awaitingMessages ? (
+                <ThreadMessagesSkeleton />
+              ) : (
+                <View style={styles.threadEmpty}>
+                  <View style={styles.emptyIcon}>
+                    <Ionicons
+                      name="chatbubbles-outline"
+                      size={24}
+                      color={BLUE}
+                    />
+                  </View>
+                  <Text style={styles.emptyTitle}>No messages yet</Text>
+                  <Text style={styles.emptyBody}>
+                    Say hello to {teacherLabel}. Hold a message to delete it for you, or for everyone.
+                  </Text>
                 </View>
-                <Text style={styles.emptyTitle}>No messages yet</Text>
-                <Text style={styles.emptyBody}>
-                  Say hello to {teacherLabel}. Hold a message to delete it for you, or for everyone.
-                </Text>
-              </View>
+              )
             }
           />
           {emojiOpen && !recording ? (
@@ -1274,17 +1407,11 @@ export default function TeacherChatThread() {
         actions={[
           {
             label: 'Take a photo',
-            onPress: () => {
-              setPhotoAsk(false);
-              sendPhoto(true);
-            },
+            onPress: () => openPhotoPicker(true),
           },
           {
             label: 'Choose a photo',
-            onPress: () => {
-              setPhotoAsk(false);
-              sendPhoto(false);
-            },
+            onPress: () => openPhotoPicker(false),
           },
           {label: 'Cancel', onPress: () => setPhotoAsk(false)},
         ]}
@@ -1419,13 +1546,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: BLUE,
   },
-  error: {
-    color: '#E11D48',
-    paddingHorizontal: 16,
-    paddingTop: 10,
-    fontFamily: fonts.euclidCircularA.regular,
-    fontSize: 13,
-  },
   messageList: {flex: 1},
   threadHidden: {opacity: 0},
   messageListContent: {
@@ -1504,6 +1624,27 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 28,
     paddingVertical: 40,
+  },
+  threadSkeleton: {
+    flexGrow: 1,
+    justifyContent: 'flex-end',
+    paddingTop: 12,
+    paddingBottom: 8,
+    gap: 10,
+  },
+  threadBone: {
+    height: 42,
+    borderRadius: 16,
+    backgroundColor: '#E6EAF1',
+  },
+  threadBoneTheirs: {
+    alignSelf: 'flex-start',
+    borderBottomLeftRadius: 6,
+  },
+  threadBoneMine: {
+    alignSelf: 'flex-end',
+    backgroundColor: '#D7E6F6',
+    borderBottomRightRadius: 6,
   },
   emptyIcon: {
     width: 56,

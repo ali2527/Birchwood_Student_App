@@ -29,8 +29,9 @@ public class MainActivity extends ReactActivity {
     splashImmersive = true;
     // Colors/flags only — DecorView does not exist until super.onCreate().
     applySplashBarColors(getWindow());
-    showNativeSplash();
     super.onCreate(savedInstanceState);
+    // Splash + insets need DecorView; must run after super.onCreate().
+    showNativeSplash();
     prepareSplashWindow(getWindow());
     disableAutofillHighlight();
   }
@@ -145,7 +146,8 @@ public class MainActivity extends ReactActivity {
   }
 
   private static void setStatusBarIconsWhite(Window window) {
-    if (window == null) {
+    // getInsetsController() NPEs when DecorView is not installed yet.
+    if (window == null || window.peekDecorView() == null) {
       return;
     }
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -153,9 +155,6 @@ public class MainActivity extends ReactActivity {
       if (controller != null) {
         controller.setSystemBarsAppearance(0, WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS);
       }
-      return;
-    }
-    if (window.peekDecorView() == null) {
       return;
     }
     View decor = window.getDecorView();
@@ -201,10 +200,10 @@ public class MainActivity extends ReactActivity {
             WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS,
             WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS);
       }
-    } else {
-      View decor = window.getDecorView();
-      decor.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+      return;
     }
+    View decor = window.getDecorView();
+    decor.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
   }
 
   @Override

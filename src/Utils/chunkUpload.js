@@ -1,18 +1,146 @@
+import ImageResizer from '@bam.tech/react-native-image-resizer';
 import {BASE_URL} from '../Service/axios';
 import {store} from '../Stores';
 
-const IMAGE_MAX = 800 * 1024;
 const DOCUMENT_MAX = 2 * 1024 * 1024;
+const AUDIO_MAX = 2 * 1024 * 1024;
 
-function readBlob(uri) {
+function isImage(mime, name) {
+  const label = `${mime || ''} ${name || ''}`.toLowerCase();
+  return label.includes('image/') || /\.(jpe?g|png|webp|gif|heic|heif)\b/.test(label);
+}
+
+/** Make camera / picker / document paths readable by fetch & XHR. */
+export function normalizeFileUri(uri) {
+  if (!uri || typeof uri !== 'string') return '';
+  let trimmed = uri.trim();
+  if (!trimmed) return '';
+  // Some native modules return file:/path instead of file:///path
+  if (trimmed.startsWith('file:/') && !trimmed.startsWith('file://')) {
+    trimmed = `file://${trimmed.slice('file:'.length)}`;
+  }
+  if (
+    trimmed.startsWith('file://') ||
+    trimmed.startsWith('content://') ||
+    trimmed.startsWith('ph://') ||
+    trimmed.startsWith('assets-library://') ||
+    trimmed.startsWith('http://') ||
+    trimmed.startsWith('https://') ||
+    trimmed.startsWith('data:')
+  ) {
+    return trimmed;
+  }
+  // Absolute device paths from document picker / native camera
+  if (trimmed.startsWith('/')) {
+    return `file://${trimmed}`;
+  }
+  return trimmed;
+}
+
+function readCandidates(uri) {
+  const source = normalizeFileUri(uri);
+  if (!source) return [];
+  const list = [source];
+  if (source.startsWith('file://')) {
+    try {
+      const decoded = decodeURI(source);
+      if (decoded !== source) list.push(decoded);
+    } catch {
+      // keep original
+    }
+  }
+  return list;
+}
+
+function xhrBlob(uri) {
   return new Promise((resolve, reject) => {
     const request = new XMLHttpRequest();
-    request.onload = () => resolve(request.response);
+    request.onload = () => {
+      if (request.status !== 0 && (request.status < 200 || request.status >= 300)) {
+        reject(new Error('Could not read the file'));
+        return;
+      }
+      resolve(request.response);
+    };
     request.onerror = () => reject(new Error('Could not read the file'));
+    request.ontimeout = () => reject(new Error('Could not read the file'));
     request.responseType = 'blob';
     request.open('GET', uri, true);
     request.send();
   });
+}
+
+async function blobFromUri(uri) {
+  try {
+    const response = await fetch(uri);
+    if (!response.ok && response.status !== 0) {
+      throw new Error('fetch failed');
+    }
+    return await response.blob();
+  } catch {
+    return xhrBlob(uri);
+  }
+}
+
+async function materializeImage(uri) {
+  const out = await ImageResizer.createResizedImage(
+    uri,
+    4096,
+    4096,
+    'JPEG',
+    95,
+    0,
+    undefined,
+    true,
+    {mode: 'contain', onlyScaleDown: true},
+  );
+  return normalizeFileUri(out?.uri || out?.path);
+}
+
+async function finalizeBlob(blob) {
+  if (!blob) return null;
+  // Some Android content:// reads return a Blob with size 0 until arrayBuffer is touched.
+  if (!blob.size && typeof blob.arrayBuffer === 'function') {
+    try {
+      const buffer = await blob.arrayBuffer();
+      if (buffer?.byteLength) {
+        return new Blob([buffer], {type: blob.type || 'application/octet-stream'});
+      }
+    } catch {
+      // keep original blob
+    }
+  }
+  return blob.size ? blob : null;
+}
+
+async function readBlob(uri, {asImage} = {}) {
+  const candidates = readCandidates(uri);
+  if (!candidates.length) {
+    throw new Error('Could not read the file');
+  }
+
+  for (const source of candidates) {
+    try {
+      const blob = await finalizeBlob(await blobFromUri(source));
+      if (blob) return blob;
+    } catch {
+      // try next candidate / fallback
+    }
+  }
+
+  if (asImage) {
+    try {
+      const local = await materializeImage(candidates[0]);
+      if (local) {
+        const blob = await finalizeBlob(await blobFromUri(local));
+        if (blob) return blob;
+      }
+    } catch {
+      // fall through
+    }
+  }
+
+  throw new Error('Could not read the file');
 }
 
 async function authed(path, init) {
@@ -27,26 +155,18 @@ async function authed(path, init) {
   return response.json();
 }
 
-function maxBytes(mime, name) {
-  const label = `${mime} ${name || ''}`.toLowerCase();
-  if (label.includes('image/') || /\.(jpe?g|png|webp)\b/.test(label)) {
-    return IMAGE_MAX;
-  }
-  return DOCUMENT_MAX;
-}
-
-/** Sends a photo or document in pieces. The server appends each piece into one file. */
+/** Sends a photo or document in pieces. Images have no size cap — they stream in chunks. */
 export async function uploadChatFile(chatId, file, onProgress) {
-  const blob = await readBlob(file.uri);
-  if (!blob?.size) {
-    throw new Error('Could not read the file');
-  }
-  const mime = file.type || blob.type || 'application/octet-stream';
-  const limit = maxBytes(mime, file.name);
-  if (blob.size > limit) {
-    if (limit === IMAGE_MAX) throw new Error('Keep the photo under 800 KB');
-    if (String(mime).startsWith('audio/')) throw new Error('Keep the voice message under 2 MB');
-    throw new Error('Keep the document under 2 MB');
+  const asImage = isImage(file.type, file.name);
+  const blob = await readBlob(file.uri, {asImage});
+  const mime = file.type || blob.type || (asImage ? 'image/jpeg' : 'application/octet-stream');
+  if (!isImage(mime, file.name)) {
+    if (String(mime).startsWith('audio/') && blob.size > AUDIO_MAX) {
+      throw new Error('Keep the voice message under 2 MB');
+    }
+    if (!String(mime).startsWith('audio/') && blob.size > DOCUMENT_MAX) {
+      throw new Error('Keep the document under 2 MB');
+    }
   }
   const started = await authed('message/startAttachment', {
     method: 'POST',

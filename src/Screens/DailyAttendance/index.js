@@ -196,15 +196,25 @@ export default function DailyAttendance() {
   const dim = useRef(new Animated.Value(0)).current;
 
   childrenRef.current = children;
-  const pending = children.filter(child => child.todayPrompt);
+  const checkInPending = children.filter(child => child.todayPrompt === 'CHECKIN');
+  const pickupPending = children.filter(child => child.todayPrompt === 'PICKUP');
+  const sessionKind = useRef(
+    checkInPending.length ? 'checkin' : pickupPending.length ? 'pickup' : 'optional',
+  );
+  if (sessionKind.current !== 'pickup' && checkInPending.length) {
+    sessionKind.current = 'checkin';
+  }
+  const showPickup = sessionKind.current === 'pickup';
   const sample = children.find(child => child.schoolStartLabel) || children[0];
-  const required = pending.length > 0;
+  const sessionPending =
+    sessionKind.current === 'pickup' ? pickupPending : checkInPending;
+  const pending = sessionPending;
+  const required = sessionKind.current === 'checkin' && checkInPending.length > 0;
   const sheetH = Math.min(SHEET_MAX, bodyH + HILL_H);
   const ordered = [...children].sort((a, b) => {
-    if (!!a.todayPrompt === !!b.todayPrompt) {
-      return 0;
-    }
-    return a.todayPrompt ? -1 : 1;
+    const rank = child =>
+      child.todayPrompt === 'CHECKIN' ? 0 : child.todayPrompt === 'PICKUP' && showPickup ? 1 : 2;
+    return rank(a) - rank(b);
   });
 
   useEffect(() => {
@@ -229,7 +239,12 @@ export default function DailyAttendance() {
   };
 
   useEffect(() => {
-    if (!children.length || pending.length > 0 || optionalHold.current || holdClose) {
+    if (
+      !children.length ||
+      pending.length > 0 ||
+      optionalHold.current ||
+      holdClose
+    ) {
       return undefined;
     }
     const close = Animated.parallel([
@@ -282,9 +297,15 @@ export default function DailyAttendance() {
         optionalHold.current = false;
         setCelebrate({id: childId, kind, tick: Date.now()});
         holdTimer.current = setTimeout(() => {
-          const others = childrenRef.current.some(
-            child => child.todayPrompt && child._id !== childId,
-          );
+          const others = childrenRef.current.some(child => {
+            if (child._id === childId) {
+              return false;
+            }
+            if (sessionKind.current === 'pickup') {
+              return child.todayPrompt === 'PICKUP';
+            }
+            return child.todayPrompt === 'CHECKIN';
+          });
           if (others) {
             easeLayout();
             setMarking(null);
@@ -321,7 +342,7 @@ export default function DailyAttendance() {
   };
 
   const hint = (() => {
-    if (children.some(child => child.todayPrompt === 'PICKUP')) {
+    if (showPickup && children.some(child => child.todayPrompt === 'PICKUP')) {
       return `Pickup is open from ${sample?.pickupOpensLabel || '1:00 PM'}. Earlier than that needs a reason.`;
     }
     if (children.some(child => child.checkInLate && child.todayPrompt === 'CHECKIN')) {
@@ -333,7 +354,7 @@ export default function DailyAttendance() {
     if (children.some(child => child.canLeave)) {
       return `Check-in opens at ${sample?.checkInOpensLabel || '6:00 AM'}. You can mark leave now.`;
     }
-    if (children.some(child => child.earlyPickup)) {
+    if (showPickup && children.some(child => child.earlyPickup)) {
       return `Early pickup needs a reason until ${sample?.pickupOpensLabel || '1:00 PM'}.`;
     }
     return 'Everyone is marked for today.';
@@ -393,7 +414,7 @@ export default function DailyAttendance() {
             <Text style={styles.countText}>
               {pending.length > 0
                 ? `${pending.length} left`
-                : children.some(child => child.canLeave || child.earlyPickup)
+                : children.some(child => child.canLeave || (showPickup && child.earlyPickup))
                   ? 'Open'
                   : 'Done'}
             </Text>
@@ -411,8 +432,9 @@ export default function DailyAttendance() {
             const klass = classLabel(child.classroom);
             const held = marking?.id === child._id ? marking : null;
             const needsCheckIn = child.todayPrompt === 'CHECKIN' && !held;
-            const needsPickup = child.todayPrompt === 'PICKUP' && !held;
+            const needsPickup = showPickup && child.todayPrompt === 'PICKUP' && !held;
             const showLeave = (needsCheckIn || !!child.canLeave) && !held;
+            const showEarlyPickup = showPickup && child.earlyPickup && !held;
             return (
               <MarkCard
                 key={child._id}
@@ -555,7 +577,7 @@ export default function DailyAttendance() {
                     </TouchableOpacity>
                   </LeavePanel>
                 ) : null}
-                {child.earlyPickup && !held ? (
+                {showEarlyPickup ? (
                   <TouchableOpacity
                     style={[styles.pickup, pickupFor === child._id && styles.leaveOn]}
                     disabled={!!busyId}
@@ -565,7 +587,7 @@ export default function DailyAttendance() {
                     <Text style={styles.pickupText}>Early pickup</Text>
                   </TouchableOpacity>
                 ) : null}
-                {child.earlyPickup && pickupFor === child._id ? (
+                {showEarlyPickup && pickupFor === child._id ? (
                   <LeavePanel>
                     <Text style={styles.reasonLabel}>Reason for early pickup</Text>
                     <View style={styles.reasonChips}>

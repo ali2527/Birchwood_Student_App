@@ -28,5 +28,60 @@ target 'BirchwoodStudent' do
       config[:reactNativePath],
       :mac_catalyst_enabled => false
     )
+
+    # RN 0.82 RCT-Folly omits coro headers; disable them for all pod targets.
+    installer.pods_project.targets.each do |target|
+      target.build_configurations.each do |cfg|
+        flags = cfg.build_settings['OTHER_CPLUSPLUSFLAGS']
+        flags = ['$(inherited)'] if flags.nil?
+        flags = [flags] unless flags.is_a?(Array)
+        unless flags.any? { |f| f.to_s.include?('FOLLY_CFG_NO_COROUTINES') }
+          flags << '-DFOLLY_CFG_NO_COROUTINES=1'
+        end
+        cfg.build_settings['OTHER_CPLUSPLUSFLAGS'] = flags
+
+        # NitroModules + modular glog headers break the build
+        # ("import of module 'glog.glog.log_severity' appears within namespace 'google'").
+        if target.name == 'glog'
+          cfg.build_settings['DEFINES_MODULE'] = 'NO'
+          cfg.build_settings['MODULEMAP_FILE'] = ''
+        end
+        cfg.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
+      end
+    end
+
+    # NitroModules (Swift) pulls glog in as a Clang module; glog headers include
+    # each other inside `namespace google`, which Clang rejects. Keep a stub
+    # modulemap on disk (so paths resolve) but strip every -fmodule-map-file for glog.
+    Dir.glob(File.join(installer.sandbox.root, 'Target Support Files/glog/*.xcconfig')).each do |path|
+      File.write(path, File.read(path).gsub(/DEFINES_MODULE\s*=\s*YES/, 'DEFINES_MODULE = NO'))
+    end
+    stub = "module glog { }\n"
+    [
+      File.join(installer.sandbox.root, 'Target Support Files/glog/glog.modulemap'),
+      File.join(installer.sandbox.root, 'Headers/Public/glog/glog.modulemap'),
+    ].each do |map|
+      FileUtils.mkdir_p(File.dirname(map))
+      File.write(map, stub)
+    end
+    glog_flag = %r{(?:\s*-Xcc)?\s*-fmodule-map-file="[^"]*glog\.modulemap"}
+    Dir.glob(File.join(installer.sandbox.root, 'Target Support Files/**/*.xcconfig')).each do |path|
+      text = File.read(path)
+      next unless text.include?('glog.modulemap')
+      File.write(path, text.gsub(glog_flag, ''))
+    end
+    installer.pods_project.targets.each do |target|
+      target.build_configurations.each do |cfg|
+        %w[OTHER_CFLAGS OTHER_CPLUSPLUSFLAGS OTHER_SWIFT_FLAGS].each do |key|
+          val = cfg.build_settings[key]
+          next if val.nil?
+          if val.is_a?(Array)
+            cfg.build_settings[key] = val.reject { |f| f.to_s.include?('glog.modulemap') }
+          elsif val.to_s.include?('glog.modulemap')
+            cfg.build_settings[key] = val.to_s.gsub(glog_flag, '')
+          end
+        end
+      end
+    end
   end
 end

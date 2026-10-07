@@ -1,8 +1,7 @@
 #import "AppDelegate.h"
 
 #import <React/RCTBundleURLProvider.h>
-
-#import "RNSplashScreen.h"  // here
+#import <ReactAppDependencyProvider/RCTAppDependencyProvider.h>
 
 @implementation AppDelegate
 
@@ -12,20 +11,20 @@
   // You can add your custom initial props in the dictionary below.
   // They will be passed down to the ViewController used by React Native.
   self.initialProps = @{};
+  self.dependencyProvider = [RCTAppDependencyProvider new];
 
-  BOOL ret = [super application:application didFinishLaunchingWithOptions:launchOptions];
-  
-  // Show splash screen after React Native is initialized
-  [RNSplashScreen show];
-  
-  return ret;
+  return [super application:application didFinishLaunchingWithOptions:launchOptions];
 }
 
 - (NSURL *)sourceURLForBridge:(RCTBridge *)bridge
 {
+  return [self bundleURL];
+}
+
+- (NSURL *)bundleURL
+{
 #if DEBUG
-  // Enable faster refresh and better debugging
-  [RCTBundleURLProvider sharedSettings].jsLocation = nil;
+  [RCTBundleURLProvider sharedSettings].jsLocation = @"localhost:8082";
   return [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index"];
 #else
   return [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];

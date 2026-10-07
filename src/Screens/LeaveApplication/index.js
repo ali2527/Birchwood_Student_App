@@ -2,11 +2,11 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {
   ActivityIndicator,
   Alert,
-  Dimensions,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   StatusBar,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
@@ -39,8 +39,6 @@ const PAGE_BG = '#F4F5F8';
 const BLUE = '#035392';
 
 const REASONS = ['Sick', 'Family', 'Appointment', 'Travel', 'Religious', 'Others'];
-
-const CALENDAR_WIDTH = Dimensions.get('window').width - 60;
 
 function reasonParts(value) {
   const text = String(value || '').trim();
@@ -115,6 +113,7 @@ export default function LeaveApplication() {
   const [endDate, setEndDate] = useState(null);
   const [loading, setLoading] = useState(false);
   const [openDays, setOpenDays] = useState([]);
+  const [calendarWidth, setCalendarWidth] = useState(0);
 
   useEffect(() => {
     let alive = true;
@@ -271,23 +270,34 @@ export default function LeaveApplication() {
           contentContainerStyle={styles.scroll}>
           {tab === 'request' ? (
             <>
-              <LinearGradient
-                colors={['#0E4F9C', '#1B6FCB']}
-                start={{x: 0, y: 0}}
-                end={{x: 1, y: 1}}
-                style={styles.hero}>
-                <Text style={styles.heroKicker}>Away from school</Text>
-                <Text style={styles.heroTitle}>{rangeLabel(startDate, endDate)}</Text>
-                <Text style={styles.heroMeta}>
-                  {daysAway ? `${daysAway} day${daysAway === 1 ? '' : 's'} · ${reason}` : reason}
-                </Text>
-              </LinearGradient>
+              <View style={styles.heroWrap}>
+                <LinearGradient
+                  colors={['#0E4F9C', '#1B6FCB']}
+                  start={{x: 0, y: 0}}
+                  end={{x: 1, y: 1}}
+                  style={StyleSheet.absoluteFillObject}
+                />
+                <View style={styles.heroCopy}>
+                  <Text style={styles.heroKicker}>Away from school</Text>
+                  <Text style={styles.heroTitle}>{rangeLabel(startDate, endDate)}</Text>
+                  <Text style={styles.heroMeta}>
+                    {daysAway ? `${daysAway} day${daysAway === 1 ? '' : 's'} · ${reason}` : reason}
+                  </Text>
+                </View>
+              </View>
 
-              <View style={styles.card}>
+              <View
+                style={styles.card}
+                onLayout={event => {
+                  const next = Math.round(event.nativeEvent.layout.width - 24);
+                  if (next > 0 && next !== calendarWidth) {
+                    setCalendarWidth(next);
+                  }
+                }}>
                 <Text style={styles.kicker}>Days</Text>
                 <CalendarPickerComponent
                   allowRangeSelection
-                  width={CALENDAR_WIDTH}
+                  width={calendarWidth || undefined}
                   minDate={new Date()}
                   disabledDates={date => !isLeaveDay(date?.toDate?.() || date, openDays)}
                   onDateChange={onDateChange}

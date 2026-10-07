@@ -165,6 +165,9 @@ function attendanceCardCopy(child) {
   if (!child) {
     return {title: 'Today', detail: ''};
   }
+  if (child.todayStatus === 'LATE') {
+    return {title: 'Late', detail: ''};
+  }
   const full = attendanceStatusLabel(child);
   const [title, detail] = full.split(' · ');
   return {title, detail: detail || ''};
@@ -201,7 +204,7 @@ export default function HomeScreen() {
   );
 
   useEffect(() => {
-    if (!children.some(item => item.todayPrompt)) {
+    if (!children.some(item => item.todayPrompt === 'CHECKIN')) {
       return;
     }
     navigation.navigate(routes.screens.dailyAttendance);
@@ -236,7 +239,7 @@ export default function HomeScreen() {
           {paddingTop: Math.max(insets.top, 10) + 6},
         ]}>
         <View style={styles.helloWrap}>
-          <Text style={styles.hello} numberOfLines={1}>
+          <Text style={styles.hello} numberOfLines={2}>
             {greeting}, Mr & Mrs {parentFirst}
           </Text>
           <Text style={styles.helloSub} numberOfLines={1}>
@@ -257,81 +260,129 @@ export default function HomeScreen() {
         contentContainerStyle={{
           paddingBottom: BAR_H + insets.bottom + 12,
         }}>
-        <LinearGradient
-            colors={['#0E4F9C', '#1B6FCB']}
-            start={{x: 0, y: 0.5}}
-            end={{x: 1, y: 0.5}}
+        <View style={styles.blueCardShadow}>
+          <LinearGradient
+            colors={['#0A3F84', '#1565C0', '#1E88E5']}
+            locations={[0, 0.55, 1]}
+            start={{x: 0, y: 0}}
+            end={{x: 1, y: 1}}
             style={styles.blueCard}>
-            <TouchableOpacity
-              style={styles.studentMain}
-              onPress={() => {
-                if (!hasChildren) {
-                  go(routes.screens.addChild);
-                  return;
-                }
-                go(routes.screens.children);
-              }}
-              activeOpacity={0.9}>
-              <View style={styles.photoWrap}>
-                <Image source={childPhoto} style={styles.studentPhoto} />
-                <View
-                  style={[
-                    styles.onlineDot,
-                    {backgroundColor: attendanceDotColor(child)},
-                  ]}
-                />
-              </View>
-              <View style={styles.studentCopy}>
-                <View style={styles.nameRow}>
-                  <Text style={styles.studentName} numberOfLines={1}>
+            <View style={styles.blueCardInner}>
+              <TouchableOpacity
+                style={styles.studentMain}
+                onPress={() => {
+                  if (!hasChildren) {
+                    go(routes.screens.addChild);
+                    return;
+                  }
+                  go(routes.screens.children);
+                }}
+                activeOpacity={0.9}>
+                <View style={styles.photoWrap}>
+                  <Image source={childPhoto} style={styles.studentPhoto} />
+                  <View
+                    style={[
+                      styles.onlineDot,
+                      {backgroundColor: attendanceDotColor(child)},
+                    ]}
+                  />
+                </View>
+                <View style={styles.studentCopy}>
+                  <Text style={styles.cardKicker}>
+                    {hasChildren ? 'Student' : 'Get started'}
+                  </Text>
+                  <Text
+                    style={styles.studentName}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.8}>
                     {hasChildren ? childFullName : 'No child linked'}
                   </Text>
+                  {hasChildren && (classMeta || grade) ? (
+                    <View style={styles.classPill}>
+                      <Ionicons
+                        name="school-outline"
+                        size={11}
+                        color="#BFDBFE"
+                      />
+                      <Text style={styles.classPillText} numberOfLines={1}>
+                        {classMeta &&
+                        grade &&
+                        !classMeta
+                          .toLowerCase()
+                          .includes(String(grade).toLowerCase())
+                          ? `${classMeta} · ${grade}`
+                          : classMeta || grade}
+                      </Text>
+                    </View>
+                  ) : null}
+                  {!hasChildren ? (
+                    <Text style={styles.metaText} numberOfLines={2}>
+                      Tap to link a child
+                    </Text>
+                  ) : null}
                 </View>
-                {hasChildren && classMeta ? (
-                  <View style={styles.classPill}>
-                    <Ionicons name="checkmark-circle" size={12} color="#7DD3FC" />
-                    <Text style={styles.classPillText}>{classMeta}</Text>
-                  </View>
-                ) : null}
-                <Text style={styles.metaText} numberOfLines={1}>
-                  {hasChildren
-                    ? grade || 'Grade not assigned'
-                    : 'Link a child to get started'}
-                </Text>
-              </View>
-            </TouchableOpacity>
+                <Ionicons
+                  name="chevron-forward"
+                  size={16}
+                  color="rgba(255,255,255,0.55)"
+                  style={styles.studentChevron}
+                />
+              </TouchableOpacity>
 
-            <View style={styles.yearDivider} />
-            <TouchableOpacity
-              style={styles.yearCol}
-              activeOpacity={0.85}
-              onPress={() => {
-                if (!hasChildren) {
-                  go(routes.screens.addChild);
-                  return;
-                }
-                if (child?.todayPrompt || child?.canLeave || child?.earlyPickup) {
-                  navigation.navigate(routes.screens.dailyAttendance, {
-                    optional: !child.todayPrompt,
-                  });
-                  return;
-                }
-                go(routes.screens.attendanceLog);
-              }}>
-              <View style={styles.yearIcon}>
-                <Ionicons name="time-outline" size={16} color="#FFFFFF" />
-              </View>
-              <Text style={styles.yearLabel}>Today</Text>
-              <Text style={styles.yearValue} numberOfLines={2}>
-                {attendance.title}
-              </Text>
-              {attendance.detail ? (
-                <Text style={styles.yearTime} numberOfLines={1}>
-                  {attendance.detail}
+              <TouchableOpacity
+                style={styles.todayPanel}
+                activeOpacity={0.85}
+                onPress={() => {
+                  if (!hasChildren) {
+                    go(routes.screens.addChild);
+                    return;
+                  }
+                  if (
+                    child?.todayPrompt ||
+                    child?.canLeave ||
+                    child?.earlyPickup
+                  ) {
+                    navigation.navigate(routes.screens.dailyAttendance, {
+                      optional: !child.todayPrompt,
+                    });
+                    return;
+                  }
+                  go(routes.screens.attendanceLog);
+                }}>
+                <View style={styles.todayTop}>
+                  <View
+                    style={[
+                      styles.todayDot,
+                      {backgroundColor: attendanceDotColor(child)},
+                    ]}
+                  />
+                  <Text style={styles.yearLabel}>Today</Text>
+                </View>
+                <Text
+                  style={styles.yearValue}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.72}>
+                  {attendance.title}
                 </Text>
-              ) : null}
-            </TouchableOpacity>
+                {attendance.detail ? (
+                  <Text
+                    style={styles.yearTime}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.72}>
+                    {attendance.detail}
+                  </Text>
+                ) : (
+                  <Text style={styles.yearHint} numberOfLines={1}>
+                    Attendance
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </View>
           </LinearGradient>
+        </View>
 
           {modules.ads !== false ? <AdSlider /> : null}
 
@@ -393,38 +444,52 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: GRID_PAD,
-    marginBottom: 14,
+    marginBottom: 16,
   },
   helloWrap: {
     flex: 1,
     marginRight: 12,
+    justifyContent: 'center',
   },
   hello: {
     fontFamily: fonts.euclidCircularA.semiBold,
-    fontSize: 15,
+    fontSize: 17,
+    lineHeight: 22,
+    letterSpacing: -0.3,
     color: NAVY,
   },
   helloSub: {
-    marginTop: 2,
+    marginTop: 3,
     fontFamily: fonts.euclidCircularA.regular,
-    fontSize: 12,
+    fontSize: 13,
+    lineHeight: 17,
     color: MUTED,
   },
-  blueCard: {
+  blueCardShadow: {
     marginHorizontal: GRID_PAD,
-    borderRadius: 22,
-    padding: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
+    borderRadius: 20,
     ...Platform.select({
       ios: {
         shadowColor: '#035392',
-        shadowOffset: {width: 0, height: 10},
-        shadowOpacity: 0.22,
-        shadowRadius: 16,
+        shadowOffset: {width: 0, height: 12},
+        shadowOpacity: 0.28,
+        shadowRadius: 20,
       },
-      android: {elevation: 6},
+      android: {elevation: 8},
     }),
+  },
+  blueCard: {
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
+  blueCardInner: {
+    minHeight: 104,
+    paddingLeft: 14,
+    paddingRight: 12,
+    paddingVertical: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
   },
   studentMain: {
     flex: 1,
@@ -433,26 +498,27 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   photoWrap: {
-    width: 62,
-    height: 62,
+    width: 60,
+    height: 60,
   },
   studentPhoto: {
-    width: 62,
-    height: 62,
-    borderRadius: 31,
-    borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.85)',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    borderWidth: 2.5,
+    borderColor: 'rgba(255,255,255,0.9)',
+    backgroundColor: 'rgba(255,255,255,0.12)',
   },
   onlineDot: {
     position: 'absolute',
-    right: 2,
-    bottom: 2,
-    width: 12,
-    height: 12,
-    borderRadius: 6,
+    right: 1,
+    bottom: 1,
+    width: 13,
+    height: 13,
+    borderRadius: 7,
     backgroundColor: '#22C55E',
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
+    borderWidth: 2.5,
+    borderColor: '#0A3F84',
   },
   onlineDotOff: {
     backgroundColor: '#94A3B8',
@@ -461,77 +527,106 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: 12,
     minWidth: 0,
+    justifyContent: 'center',
   },
-  nameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
+  cardKicker: {
+    fontFamily: fonts.euclidCircularA.medium,
+    fontSize: 11,
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+    color: 'rgba(255,255,255,0.68)',
+    marginBottom: 2,
   },
   studentName: {
-    flexShrink: 1,
     fontFamily: fonts.euclidCircularA.semiBold,
-    fontSize: 17,
+    fontSize: 18,
+    lineHeight: 22,
+    letterSpacing: -0.3,
     color: '#FFFFFF',
+  },
+  studentChevron: {
+    marginLeft: 2,
   },
   classPill: {
     alignSelf: 'flex-start',
+    maxWidth: '100%',
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
     marginTop: 6,
-    backgroundColor: 'rgba(125, 211, 252, 0.22)',
+    backgroundColor: 'rgba(255,255,255,0.14)',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(255,255,255,0.22)',
     borderRadius: 20,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    paddingHorizontal: 9,
+    paddingVertical: 4,
   },
   classPillText: {
+    flexShrink: 1,
     fontFamily: fonts.euclidCircularA.medium,
     fontSize: 11,
-    color: '#E0F2FE',
+    color: '#E8F2FF',
   },
   metaText: {
-    marginTop: 6,
+    marginTop: 5,
     fontFamily: fonts.euclidCircularA.regular,
     fontSize: 12,
-    color: 'rgba(255,255,255,0.82)',
+    color: 'rgba(255,255,255,0.8)',
   },
-  yearDivider: {
-    width: 1,
-    height: 62,
-    backgroundColor: 'rgba(255,255,255,0.22)',
-    marginHorizontal: 12,
-  },
-  yearCol: {
-    width: 92,
-    alignItems: 'center',
-  },
-  yearIcon: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: 'rgba(255,255,255,0.16)',
+  todayPanel: {
+    flexShrink: 0,
+    width: Platform.OS === 'ios' ? 98 : 92,
+    minHeight: 84,
+    borderRadius: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 6,
+    backgroundColor: 'rgba(255,255,255,0.14)',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(255,255,255,0.24)',
+  },
+  todayTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginBottom: 4,
+  },
+  todayDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: '#94A3B8',
   },
   yearLabel: {
-    fontFamily: fonts.euclidCircularA.regular,
-    fontSize: 10,
-    color: 'rgba(255,255,255,0.75)',
+    fontFamily: fonts.euclidCircularA.medium,
+    fontSize: 11,
+    letterSpacing: 0.2,
+    color: 'rgba(255,255,255,0.78)',
     textAlign: 'center',
   },
   yearValue: {
-    marginTop: 2,
     fontFamily: fonts.euclidCircularA.semiBold,
-    fontSize: 13,
+    fontSize: 15,
+    lineHeight: 18,
+    letterSpacing: -0.2,
     color: '#FFFFFF',
     textAlign: 'center',
+    width: '100%',
   },
   yearTime: {
-    marginTop: 1,
+    marginTop: 2,
     fontFamily: fonts.euclidCircularA.medium,
     fontSize: 11,
-    color: 'rgba(255,255,255,0.85)',
+    color: 'rgba(255,255,255,0.88)',
+    textAlign: 'center',
+    width: '100%',
+  },
+  yearHint: {
+    marginTop: 2,
+    fontFamily: fonts.euclidCircularA.regular,
+    fontSize: 10,
+    color: 'rgba(255,255,255,0.55)',
     textAlign: 'center',
   },
   gridWrap: {
