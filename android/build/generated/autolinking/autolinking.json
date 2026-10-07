@@ -1,26 +1,26 @@
 {
-  "root": "D:\\Projects\\birchwood-student",
-  "reactNativePath": "D:\\Projects\\birchwood-student\\node_modules\\react-native",
+  "root": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App",
+  "reactNativePath": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native",
   "reactNativeVersion": "0.82",
   "dependencies": {
     "@bam.tech/react-native-image-resizer": {
-      "root": "D:\\Projects\\birchwood-student\\node_modules\\@bam.tech\\react-native-image-resizer",
+      "root": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/@bam.tech/react-native-image-resizer",
       "name": "@bam.tech/react-native-image-resizer",
       "platforms": {
         "ios": {
-          "podspecPath": "D:\\Projects\\birchwood-student\\node_modules\\@bam.tech\\react-native-image-resizer\\react-native-image-resizer.podspec",
+          "podspecPath": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/@bam.tech/react-native-image-resizer/react-native-image-resizer.podspec",
           "version": "3.0.11",
           "configurations": [],
           "scriptPhases": []
         },
         "android": {
-          "sourceDir": "D:\\Projects\\birchwood-student\\node_modules\\@bam.tech\\react-native-image-resizer\\android",
+          "sourceDir": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/@bam.tech/react-native-image-resizer/android",
           "packageImportPath": "import com.reactnativeimageresizer.ImageResizerPackage;",
           "packageInstance": "new ImageResizerPackage()",
           "buildTypes": [],
           "libraryName": "RNImageResizerSpec",
           "componentDescriptors": [],
-          "cmakeListsPath": "D:/Projects/birchwood-student/node_modules/@bam.tech/react-native-image-resizer/android/build/generated/source/codegen/jni/CMakeLists.txt",
+          "cmakeListsPath": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/@bam.tech/react-native-image-resizer/android/build/generated/source/codegen/jni/CMakeLists.txt",
           "cxxModuleCMakeListsModuleName": null,
           "cxxModuleCMakeListsPath": null,
           "cxxModuleHeaderName": null,
@@ -29,23 +29,23 @@
       }
     },
     "@react-native-async-storage/async-storage": {
-      "root": "D:\\Projects\\birchwood-student\\node_modules\\@react-native-async-storage\\async-storage",
+      "root": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/@react-native-async-storage/async-storage",
       "name": "@react-native-async-storage/async-storage",
       "platforms": {
         "ios": {
-          "podspecPath": "D:\\Projects\\birchwood-student\\node_modules\\@react-native-async-storage\\async-storage\\RNCAsyncStorage.podspec",
+          "podspecPath": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/@react-native-async-storage/async-storage/RNCAsyncStorage.podspec",
           "version": "2.2.0",
           "configurations": [],
           "scriptPhases": []
         },
         "android": {
-          "sourceDir": "D:\\Projects\\birchwood-student\\node_modules\\@react-native-async-storage\\async-storage\\android",
+          "sourceDir": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/@react-native-async-storage/async-storage/android",
           "packageImportPath": "import com.reactnativecommunity.asyncstorage.AsyncStoragePackage;",
           "packageInstance": "new AsyncStoragePackage()",
           "buildTypes": [],
           "libraryName": "rnasyncstorage",
           "componentDescriptors": [],
-          "cmakeListsPath": "D:/Projects/birchwood-student/node_modules/@react-native-async-storage/async-storage/android/build/generated/source/codegen/jni/CMakeLists.txt",
+          "cmakeListsPath": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/@react-native-async-storage/async-storage/android/build/generated/source/codegen/jni/CMakeLists.txt",
           "cxxModuleCMakeListsModuleName": null,
           "cxxModuleCMakeListsPath": null,
           "cxxModuleHeaderName": null,
@@ -54,23 +54,23 @@
       }
     },
     "@react-native-documents/picker": {
-      "root": "D:\\Projects\\birchwood-student\\node_modules\\@react-native-documents\\picker",
+      "root": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/@react-native-documents/picker",
       "name": "@react-native-documents/picker",
       "platforms": {
         "ios": {
-          "podspecPath": "D:\\Projects\\birchwood-student\\node_modules\\@react-native-documents\\picker\\react-native-document-picker.podspec",
+          "podspecPath": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/@react-native-documents/picker/react-native-document-picker.podspec",
           "version": "12.0.2",
           "configurations": [],
           "scriptPhases": []
         },
         "android": {
-          "sourceDir": "D:\\Projects\\birchwood-student\\node_modules\\@react-native-documents\\picker\\android",
+          "sourceDir": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/@react-native-documents/picker/android",
           "packageImportPath": "import com.reactnativedocumentpicker.RNDocumentPickerPackage;",
           "packageInstance": "new RNDocumentPickerPackage()",
           "buildTypes": [],
           "libraryName": "rndocumentpickerCGen",
           "componentDescriptors": [],
-          "cmakeListsPath": "D:/Projects/birchwood-student/node_modules/@react-native-documents/picker/android/build/generated/source/codegen/jni/CMakeLists.txt",
+          "cmakeListsPath": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/@react-native-documents/picker/android/build/generated/source/codegen/jni/CMakeLists.txt",
           "cxxModuleCMakeListsModuleName": null,
           "cxxModuleCMakeListsPath": null,
           "cxxModuleHeaderName": null,
@@ -79,23 +79,23 @@
       }
     },
     "react-native-image-picker": {
-      "root": "D:\\Projects\\birchwood-student\\node_modules\\react-native-image-picker",
+      "root": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-image-picker",
       "name": "react-native-image-picker",
       "platforms": {
         "ios": {
-          "podspecPath": "D:\\Projects\\birchwood-student\\node_modules\\react-native-image-picker\\react-native-image-picker.podspec",
+          "podspecPath": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-image-picker/react-native-image-picker.podspec",
           "version": "7.1.2",
           "configurations": [],
           "scriptPhases": []
         },
         "android": {
-          "sourceDir": "D:\\Projects\\birchwood-student\\node_modules\\react-native-image-picker\\android",
+          "sourceDir": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-image-picker/android",
           "packageImportPath": "import com.imagepicker.ImagePickerPackage;",
           "packageInstance": "new ImagePickerPackage()",
           "buildTypes": [],
           "libraryName": "RNImagePickerSpec",
           "componentDescriptors": [],
-          "cmakeListsPath": "D:/Projects/birchwood-student/node_modules/react-native-image-picker/android/build/generated/source/codegen/jni/CMakeLists.txt",
+          "cmakeListsPath": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-image-picker/android/build/generated/source/codegen/jni/CMakeLists.txt",
           "cxxModuleCMakeListsModuleName": null,
           "cxxModuleCMakeListsPath": null,
           "cxxModuleHeaderName": null,
@@ -104,22 +104,22 @@
       }
     },
     "react-native-linear-gradient": {
-      "root": "D:\\Projects\\birchwood-student\\node_modules\\react-native-linear-gradient",
+      "root": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-linear-gradient",
       "name": "react-native-linear-gradient",
       "platforms": {
         "ios": {
-          "podspecPath": "D:\\Projects\\birchwood-student\\node_modules\\react-native-linear-gradient\\BVLinearGradient.podspec",
+          "podspecPath": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-linear-gradient/BVLinearGradient.podspec",
           "version": "2.8.3",
           "configurations": [],
           "scriptPhases": []
         },
         "android": {
-          "sourceDir": "D:\\Projects\\birchwood-student\\node_modules\\react-native-linear-gradient\\android",
+          "sourceDir": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-linear-gradient/android",
           "packageImportPath": "import com.BV.LinearGradient.LinearGradientPackage;",
           "packageInstance": "new LinearGradientPackage()",
           "buildTypes": [],
           "componentDescriptors": [],
-          "cmakeListsPath": "D:/Projects/birchwood-student/node_modules/react-native-linear-gradient/android/build/generated/source/codegen/jni/CMakeLists.txt",
+          "cmakeListsPath": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-linear-gradient/android/build/generated/source/codegen/jni/CMakeLists.txt",
           "cxxModuleCMakeListsModuleName": null,
           "cxxModuleCMakeListsPath": null,
           "cxxModuleHeaderName": null,
@@ -128,23 +128,23 @@
       }
     },
     "react-native-nitro-modules": {
-      "root": "D:\\Projects\\birchwood-student\\node_modules\\react-native-nitro-modules",
+      "root": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-nitro-modules",
       "name": "react-native-nitro-modules",
       "platforms": {
         "ios": {
-          "podspecPath": "D:\\Projects\\birchwood-student\\node_modules\\react-native-nitro-modules\\NitroModules.podspec",
+          "podspecPath": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-nitro-modules/NitroModules.podspec",
           "version": "0.37.1",
           "configurations": [],
           "scriptPhases": []
         },
         "android": {
-          "sourceDir": "D:\\Projects\\birchwood-student\\node_modules\\react-native-nitro-modules\\android",
+          "sourceDir": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-nitro-modules/android",
           "packageImportPath": "import com.margelo.nitro.NitroModulesPackage;",
           "packageInstance": "new NitroModulesPackage()",
           "buildTypes": [],
           "libraryName": "NitroModulesSpec",
           "componentDescriptors": [],
-          "cmakeListsPath": "D:/Projects/birchwood-student/node_modules/react-native-nitro-modules/android/build/generated/source/codegen/jni/CMakeLists.txt",
+          "cmakeListsPath": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-nitro-modules/android/build/generated/source/codegen/jni/CMakeLists.txt",
           "cxxModuleCMakeListsModuleName": null,
           "cxxModuleCMakeListsPath": null,
           "cxxModuleHeaderName": null,
@@ -153,22 +153,22 @@
       }
     },
     "react-native-nitro-sound": {
-      "root": "D:\\Projects\\birchwood-student\\node_modules\\react-native-nitro-sound",
+      "root": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-nitro-sound",
       "name": "react-native-nitro-sound",
       "platforms": {
         "ios": {
-          "podspecPath": "D:\\Projects\\birchwood-student\\node_modules\\react-native-nitro-sound\\NitroSound.podspec",
+          "podspecPath": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-nitro-sound/NitroSound.podspec",
           "version": "0.2.20",
           "configurations": [],
           "scriptPhases": []
         },
         "android": {
-          "sourceDir": "D:\\Projects\\birchwood-student\\node_modules\\react-native-nitro-sound\\android",
+          "sourceDir": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-nitro-sound/android",
           "packageImportPath": "import com.margelo.nitro.sound.SoundPackage;",
           "packageInstance": "new SoundPackage()",
           "buildTypes": [],
           "componentDescriptors": [],
-          "cmakeListsPath": "D:/Projects/birchwood-student/node_modules/react-native-nitro-sound/android/build/generated/source/codegen/jni/CMakeLists.txt",
+          "cmakeListsPath": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-nitro-sound/android/build/generated/source/codegen/jni/CMakeLists.txt",
           "cxxModuleCMakeListsModuleName": null,
           "cxxModuleCMakeListsPath": null,
           "cxxModuleHeaderName": null,
@@ -177,11 +177,11 @@
       }
     },
     "react-native-render-html": {
-      "root": "D:\\Projects\\birchwood-student\\node_modules\\react-native-render-html",
+      "root": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-render-html",
       "name": "react-native-render-html",
       "platforms": {
         "ios": {
-          "podspecPath": "D:\\Projects\\birchwood-student\\node_modules\\react-native-render-html\\react-native-render-html.podspec",
+          "podspecPath": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-render-html/react-native-render-html.podspec",
           "version": "6.3.4",
           "configurations": [],
           "scriptPhases": []
@@ -190,17 +190,17 @@
       }
     },
     "react-native-safe-area-context": {
-      "root": "D:\\Projects\\birchwood-student\\node_modules\\react-native-safe-area-context",
+      "root": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-safe-area-context",
       "name": "react-native-safe-area-context",
       "platforms": {
         "ios": {
-          "podspecPath": "D:\\Projects\\birchwood-student\\node_modules\\react-native-safe-area-context\\react-native-safe-area-context.podspec",
+          "podspecPath": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-safe-area-context/react-native-safe-area-context.podspec",
           "version": "5.10.1",
           "configurations": [],
           "scriptPhases": []
         },
         "android": {
-          "sourceDir": "D:\\Projects\\birchwood-student\\node_modules\\react-native-safe-area-context\\android",
+          "sourceDir": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-safe-area-context/android",
           "packageImportPath": "import com.th3rdwave.safeareacontext.SafeAreaContextPackage;",
           "packageInstance": "new SafeAreaContextPackage()",
           "buildTypes": [],
@@ -209,7 +209,7 @@
             "RNCSafeAreaProviderComponentDescriptor",
             "RNCSafeAreaViewComponentDescriptor"
           ],
-          "cmakeListsPath": "D:/Projects/birchwood-student/node_modules/react-native-safe-area-context/android/src/main/jni/CMakeLists.txt",
+          "cmakeListsPath": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-safe-area-context/android/src/main/jni/CMakeLists.txt",
           "cxxModuleCMakeListsModuleName": null,
           "cxxModuleCMakeListsPath": null,
           "cxxModuleHeaderName": null,
@@ -218,17 +218,17 @@
       }
     },
     "react-native-screens": {
-      "root": "D:\\Projects\\birchwood-student\\node_modules\\react-native-screens",
+      "root": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-screens",
       "name": "react-native-screens",
       "platforms": {
         "ios": {
-          "podspecPath": "D:\\Projects\\birchwood-student\\node_modules\\react-native-screens\\RNScreens.podspec",
+          "podspecPath": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-screens/RNScreens.podspec",
           "version": "4.23.0",
           "configurations": [],
           "scriptPhases": []
         },
         "android": {
-          "sourceDir": "D:\\Projects\\birchwood-student\\node_modules\\react-native-screens\\android",
+          "sourceDir": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-screens/android",
           "packageImportPath": "import com.swmansion.rnscreens.RNScreensPackage;",
           "packageInstance": "new RNScreensPackage()",
           "buildTypes": [],
@@ -248,7 +248,7 @@
             "RNSBottomTabsComponentDescriptor",
             "RNSSafeAreaViewComponentDescriptor"
           ],
-          "cmakeListsPath": "D:/Projects/birchwood-student/node_modules/react-native-screens/android/src/main/jni/CMakeLists.txt",
+          "cmakeListsPath": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-screens/android/src/main/jni/CMakeLists.txt",
           "cxxModuleCMakeListsModuleName": null,
           "cxxModuleCMakeListsPath": null,
           "cxxModuleHeaderName": null,
@@ -257,22 +257,22 @@
       }
     },
     "react-native-splash-screen": {
-      "root": "D:\\Projects\\birchwood-student\\node_modules\\react-native-splash-screen",
+      "root": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-splash-screen",
       "name": "react-native-splash-screen",
       "platforms": {
         "ios": {
-          "podspecPath": "D:\\Projects\\birchwood-student\\node_modules\\react-native-splash-screen\\react-native-splash-screen.podspec",
+          "podspecPath": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-splash-screen/react-native-splash-screen.podspec",
           "version": "3.3.0",
           "configurations": [],
           "scriptPhases": []
         },
         "android": {
-          "sourceDir": "D:\\Projects\\birchwood-student\\node_modules\\react-native-splash-screen\\android",
+          "sourceDir": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-splash-screen/android",
           "packageImportPath": "import org.devio.rn.splashscreen.SplashScreenReactPackage;",
           "packageInstance": "new SplashScreenReactPackage()",
           "buildTypes": [],
           "componentDescriptors": [],
-          "cmakeListsPath": "D:/Projects/birchwood-student/node_modules/react-native-splash-screen/android/build/generated/source/codegen/jni/CMakeLists.txt",
+          "cmakeListsPath": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-splash-screen/android/build/generated/source/codegen/jni/CMakeLists.txt",
           "cxxModuleCMakeListsModuleName": null,
           "cxxModuleCMakeListsPath": null,
           "cxxModuleHeaderName": null,
@@ -281,17 +281,17 @@
       }
     },
     "react-native-svg": {
-      "root": "D:\\Projects\\birchwood-student\\node_modules\\react-native-svg",
+      "root": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-svg",
       "name": "react-native-svg",
       "platforms": {
         "ios": {
-          "podspecPath": "D:\\Projects\\birchwood-student\\node_modules\\react-native-svg\\RNSVG.podspec",
+          "podspecPath": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-svg/RNSVG.podspec",
           "version": "15.15.5",
           "configurations": [],
           "scriptPhases": []
         },
         "android": {
-          "sourceDir": "D:\\Projects\\birchwood-student\\node_modules\\react-native-svg\\android",
+          "sourceDir": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-svg/android",
           "packageImportPath": "import com.horcrux.svg.SvgPackage;",
           "packageInstance": "new SvgPackage()",
           "buildTypes": [],
@@ -327,7 +327,7 @@
             "RNSVGTSpanComponentDescriptor",
             "RNSVGUseComponentDescriptor"
           ],
-          "cmakeListsPath": "D:/Projects/birchwood-student/node_modules/react-native-svg/android/src/main/jni/CMakeLists.txt",
+          "cmakeListsPath": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-svg/android/src/main/jni/CMakeLists.txt",
           "cxxModuleCMakeListsModuleName": null,
           "cxxModuleCMakeListsPath": null,
           "cxxModuleHeaderName": null,
@@ -336,23 +336,23 @@
       }
     },
     "react-native-vector-icons": {
-      "root": "D:\\Projects\\birchwood-student\\node_modules\\react-native-vector-icons",
+      "root": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-vector-icons",
       "name": "react-native-vector-icons",
       "platforms": {
         "ios": {
-          "podspecPath": "D:\\Projects\\birchwood-student\\node_modules\\react-native-vector-icons\\RNVectorIcons.podspec",
+          "podspecPath": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-vector-icons/RNVectorIcons.podspec",
           "version": "10.3.0",
           "configurations": [],
           "scriptPhases": []
         },
         "android": {
-          "sourceDir": "D:\\Projects\\birchwood-student\\node_modules\\react-native-vector-icons\\android",
+          "sourceDir": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-vector-icons/android",
           "packageImportPath": "import com.oblador.vectoricons.VectorIconsPackage;",
           "packageInstance": "new VectorIconsPackage()",
           "buildTypes": [],
           "libraryName": "RNVectorIconsSpec",
           "componentDescriptors": [],
-          "cmakeListsPath": "D:/Projects/birchwood-student/node_modules/react-native-vector-icons/android/build/generated/source/codegen/jni/CMakeLists.txt",
+          "cmakeListsPath": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-vector-icons/android/build/generated/source/codegen/jni/CMakeLists.txt",
           "cxxModuleCMakeListsModuleName": null,
           "cxxModuleCMakeListsPath": null,
           "cxxModuleHeaderName": null,
@@ -361,22 +361,22 @@
       }
     },
     "react-native-video": {
-      "root": "D:\\Projects\\birchwood-student\\node_modules\\react-native-video",
+      "root": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-video",
       "name": "react-native-video",
       "platforms": {
         "ios": {
-          "podspecPath": "D:\\Projects\\birchwood-student\\node_modules\\react-native-video\\react-native-video.podspec",
+          "podspecPath": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-video/react-native-video.podspec",
           "version": "6.19.3",
           "configurations": [],
           "scriptPhases": []
         },
         "android": {
-          "sourceDir": "D:\\Projects\\birchwood-student\\node_modules\\react-native-video\\android",
+          "sourceDir": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-video/android",
           "packageImportPath": "import com.brentvatne.react.ReactVideoPackage;",
           "packageInstance": "new ReactVideoPackage()",
           "buildTypes": [],
           "componentDescriptors": [],
-          "cmakeListsPath": "D:/Projects/birchwood-student/node_modules/react-native-video/android/build/generated/source/codegen/jni/CMakeLists.txt",
+          "cmakeListsPath": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-video/android/build/generated/source/codegen/jni/CMakeLists.txt",
           "cxxModuleCMakeListsModuleName": null,
           "cxxModuleCMakeListsPath": null,
           "cxxModuleHeaderName": null,
@@ -547,7 +547,7 @@
         {
           "name": "--path <path>",
           "description": "Path to the React Native project root.",
-          "default": "D:\\Projects\\birchwood-student"
+          "default": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App"
         },
         {
           "name": "--platform <string>",
@@ -603,8 +603,7 @@
         },
         {
           "name": "--terminal <string>",
-          "description": "Launches the Metro Bundler in a new window using the specified terminal path.",
-          "default": "cmd.exe"
+          "description": "Launches the Metro Bundler in a new window using the specified terminal path."
         },
         {
           "name": "--binary-path <string>",
@@ -771,8 +770,7 @@
         },
         {
           "name": "--terminal <string>",
-          "description": "Launches the Metro Bundler in a new window using the specified terminal path.",
-          "default": "cmd.exe"
+          "description": "Launches the Metro Bundler in a new window using the specified terminal path."
         },
         {
           "name": "--appId <string>",
@@ -849,7 +847,7 @@
   ],
   "project": {
     "ios": {
-      "sourceDir": "D:\\Projects\\birchwood-student\\ios",
+      "sourceDir": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/ios",
       "xcodeProject": {
         "name": "BirchwoodStudent.xcworkspace",
         "path": ".",
@@ -858,7 +856,7 @@
       "assets": []
     },
     "android": {
-      "sourceDir": "D:\\Projects\\birchwood-student\\android",
+      "sourceDir": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/android",
       "appName": "app",
       "packageName": "com.birchwoodstudent",
       "applicationId": "com.birchwoodstudent",

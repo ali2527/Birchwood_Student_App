@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "RNImageResizerSpec_autolinked_build",
+		"source" : "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/@bam.tech/react-native-image-resizer/android/build/generated/source/codegen/jni"
+	}
+}

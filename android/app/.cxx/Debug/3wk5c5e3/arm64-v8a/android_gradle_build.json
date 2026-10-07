@@ -1,0 +1,114 @@
+{
+  "buildFiles": [
+    "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/@bam.tech/react-native-image-resizer/android/build/generated/source/codegen/jni/CMakeLists.txt",
+    "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/@react-native-async-storage/async-storage/android/build/generated/source/codegen/jni/CMakeLists.txt",
+    "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/@react-native-documents/picker/android/build/generated/source/codegen/jni/CMakeLists.txt",
+    "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-image-picker/android/build/generated/source/codegen/jni/CMakeLists.txt",
+    "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-nitro-modules/android/build/generated/source/codegen/jni/CMakeLists.txt",
+    "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-safe-area-context/android/src/main/jni/CMakeLists.txt",
+    "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-screens/android/src/main/jni/CMakeLists.txt",
+    "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-svg/android/src/main/jni/CMakeLists.txt",
+    "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-vector-icons/android/build/generated/source/codegen/jni/CMakeLists.txt",
+    "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native/ReactAndroid/cmake-utils/default-app-setup/CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "/Users/abdullahansari/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+      "-C",
+      "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/android/app/.cxx/Debug/3wk5c5e3/arm64-v8a",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "/Users/abdullahansari/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+    "-C",
+    "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/android/app/.cxx/Debug/3wk5c5e3/arm64-v8a",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {
+    "appmodules::@6890427a1f51a3e7e1df": {
+      "toolchain": "toolchain",
+      "abi": "arm64-v8a",
+      "artifactName": "appmodules",
+      "output": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/android/app/build/intermediates/cxx/Debug/3wk5c5e3/obj/arm64-v8a/libappmodules.so",
+      "runtimeFiles": [
+        "/private/var/folders/2k/bnpt_2cj0hdbrqc8xj_v5thr0000gn/T/cursor-sandbox-cache/3e6fa238a72aea1f9afd21aa0bdd80de/gradle/caches/9.0.0/transforms/97c16419c1089f82511cc6150d259292/transformed/jetified-fbjni-0.7.0/prefab/modules/fbjni/libs/android.arm64-v8a/libfbjni.so",
+        "/private/var/folders/2k/bnpt_2cj0hdbrqc8xj_v5thr0000gn/T/cursor-sandbox-cache/3e6fa238a72aea1f9afd21aa0bdd80de/gradle/caches/9.0.0/transforms/cb90c71b3625d5ce3e718628a90b576a/transformed/jetified-react-android-0.82.1-debug/prefab/modules/jsi/libs/android.arm64-v8a/libjsi.so",
+        "/private/var/folders/2k/bnpt_2cj0hdbrqc8xj_v5thr0000gn/T/cursor-sandbox-cache/3e6fa238a72aea1f9afd21aa0bdd80de/gradle/caches/9.0.0/transforms/cb90c71b3625d5ce3e718628a90b576a/transformed/jetified-react-android-0.82.1-debug/prefab/modules/reactnative/libs/android.arm64-v8a/libreactnative.so"
+      ]
+    },
+    "react_codegen_NitroModulesSpec::@472a82f9c57d3d3b8644": {
+      "toolchain": "toolchain",
+      "abi": "arm64-v8a",
+      "artifactName": "react_codegen_NitroModulesSpec"
+    },
+    "react_codegen_RNImagePickerSpec::@f66ee9a2efecfb28bee4": {
+      "toolchain": "toolchain",
+      "abi": "arm64-v8a",
+      "artifactName": "react_codegen_RNImagePickerSpec"
+    },
+    "react_codegen_RNImageResizerSpec::@781b039b46879c00d842": {
+      "toolchain": "toolchain",
+      "abi": "arm64-v8a",
+      "artifactName": "react_codegen_RNImageResizerSpec"
+    },
+    "react_codegen_RNVectorIconsSpec::@479809fae146501fd34d": {
+      "toolchain": "toolchain",
+      "abi": "arm64-v8a",
+      "artifactName": "react_codegen_RNVectorIconsSpec"
+    },
+    "react_codegen_rnasyncstorage::@1596841e19ec5b9eeffe": {
+      "toolchain": "toolchain",
+      "abi": "arm64-v8a",
+      "artifactName": "react_codegen_rnasyncstorage"
+    },
+    "react_codegen_rndocumentpickerCGen::@aac1846a245ca418eb66": {
+      "toolchain": "toolchain",
+      "abi": "arm64-v8a",
+      "artifactName": "react_codegen_rndocumentpickerCGen"
+    },
+    "react_codegen_rnscreens::@25bcbd507e98d3a854ad": {
+      "toolchain": "toolchain",
+      "abi": "arm64-v8a",
+      "artifactName": "react_codegen_rnscreens",
+      "output": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/android/app/build/intermediates/cxx/Debug/3wk5c5e3/obj/arm64-v8a/libreact_codegen_rnscreens.so",
+      "runtimeFiles": [
+        "/private/var/folders/2k/bnpt_2cj0hdbrqc8xj_v5thr0000gn/T/cursor-sandbox-cache/3e6fa238a72aea1f9afd21aa0bdd80de/gradle/caches/9.0.0/transforms/cb90c71b3625d5ce3e718628a90b576a/transformed/jetified-react-android-0.82.1-debug/prefab/modules/reactnative/libs/android.arm64-v8a/libreactnative.so",
+        "/private/var/folders/2k/bnpt_2cj0hdbrqc8xj_v5thr0000gn/T/cursor-sandbox-cache/3e6fa238a72aea1f9afd21aa0bdd80de/gradle/caches/9.0.0/transforms/cb90c71b3625d5ce3e718628a90b576a/transformed/jetified-react-android-0.82.1-debug/prefab/modules/jsi/libs/android.arm64-v8a/libjsi.so",
+        "/private/var/folders/2k/bnpt_2cj0hdbrqc8xj_v5thr0000gn/T/cursor-sandbox-cache/3e6fa238a72aea1f9afd21aa0bdd80de/gradle/caches/9.0.0/transforms/97c16419c1089f82511cc6150d259292/transformed/jetified-fbjni-0.7.0/prefab/modules/fbjni/libs/android.arm64-v8a/libfbjni.so"
+      ]
+    },
+    "react_codegen_rnsvg::@4f40eb209d0c0b4a3b65": {
+      "toolchain": "toolchain",
+      "abi": "arm64-v8a",
+      "artifactName": "react_codegen_rnsvg",
+      "output": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/android/app/build/intermediates/cxx/Debug/3wk5c5e3/obj/arm64-v8a/libreact_codegen_rnsvg.so",
+      "runtimeFiles": [
+        "/private/var/folders/2k/bnpt_2cj0hdbrqc8xj_v5thr0000gn/T/cursor-sandbox-cache/3e6fa238a72aea1f9afd21aa0bdd80de/gradle/caches/9.0.0/transforms/cb90c71b3625d5ce3e718628a90b576a/transformed/jetified-react-android-0.82.1-debug/prefab/modules/reactnative/libs/android.arm64-v8a/libreactnative.so",
+        "/private/var/folders/2k/bnpt_2cj0hdbrqc8xj_v5thr0000gn/T/cursor-sandbox-cache/3e6fa238a72aea1f9afd21aa0bdd80de/gradle/caches/9.0.0/transforms/cb90c71b3625d5ce3e718628a90b576a/transformed/jetified-react-android-0.82.1-debug/prefab/modules/jsi/libs/android.arm64-v8a/libjsi.so",
+        "/private/var/folders/2k/bnpt_2cj0hdbrqc8xj_v5thr0000gn/T/cursor-sandbox-cache/3e6fa238a72aea1f9afd21aa0bdd80de/gradle/caches/9.0.0/transforms/97c16419c1089f82511cc6150d259292/transformed/jetified-fbjni-0.7.0/prefab/modules/fbjni/libs/android.arm64-v8a/libfbjni.so"
+      ]
+    },
+    "react_codegen_safeareacontext::@7984cd80db47aa7b952a": {
+      "toolchain": "toolchain",
+      "abi": "arm64-v8a",
+      "artifactName": "react_codegen_safeareacontext",
+      "output": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/android/app/build/intermediates/cxx/Debug/3wk5c5e3/obj/arm64-v8a/libreact_codegen_safeareacontext.so",
+      "runtimeFiles": [
+        "/private/var/folders/2k/bnpt_2cj0hdbrqc8xj_v5thr0000gn/T/cursor-sandbox-cache/3e6fa238a72aea1f9afd21aa0bdd80de/gradle/caches/9.0.0/transforms/97c16419c1089f82511cc6150d259292/transformed/jetified-fbjni-0.7.0/prefab/modules/fbjni/libs/android.arm64-v8a/libfbjni.so",
+        "/private/var/folders/2k/bnpt_2cj0hdbrqc8xj_v5thr0000gn/T/cursor-sandbox-cache/3e6fa238a72aea1f9afd21aa0bdd80de/gradle/caches/9.0.0/transforms/cb90c71b3625d5ce3e718628a90b576a/transformed/jetified-react-android-0.82.1-debug/prefab/modules/jsi/libs/android.arm64-v8a/libjsi.so",
+        "/private/var/folders/2k/bnpt_2cj0hdbrqc8xj_v5thr0000gn/T/cursor-sandbox-cache/3e6fa238a72aea1f9afd21aa0bdd80de/gradle/caches/9.0.0/transforms/cb90c71b3625d5ce3e718628a90b576a/transformed/jetified-react-android-0.82.1-debug/prefab/modules/reactnative/libs/android.arm64-v8a/libreactnative.so"
+      ]
+    }
+  },
+  "toolchains": {
+    "toolchain": {
+      "cCompilerExecutable": "/Users/abdullahansari/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang.lld",
+      "cppCompilerExecutable": "/Users/abdullahansari/Library/Android/sdk/ndk/27.1.12297006/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++.lld"
+    }
+  },
+  "cFileExtensions": [],
+  "cppFileExtensions": [
+    "cpp"
+  ]
+}

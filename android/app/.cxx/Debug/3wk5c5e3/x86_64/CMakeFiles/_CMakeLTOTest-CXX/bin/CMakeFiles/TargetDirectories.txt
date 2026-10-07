@@ -1,0 +1,4 @@
+/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/android/app/.cxx/Debug/3wk5c5e3/x86_64/CMakeFiles/_CMakeLTOTest-CXX/bin/CMakeFiles/foo.dir
+/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/android/app/.cxx/Debug/3wk5c5e3/x86_64/CMakeFiles/_CMakeLTOTest-CXX/bin/CMakeFiles/boo.dir
+/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/android/app/.cxx/Debug/3wk5c5e3/x86_64/CMakeFiles/_CMakeLTOTest-CXX/bin/CMakeFiles/edit_cache.dir
+/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/android/app/.cxx/Debug/3wk5c5e3/x86_64/CMakeFiles/_CMakeLTOTest-CXX/bin/CMakeFiles/rebuild_cache.dir
