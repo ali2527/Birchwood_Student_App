@@ -1,6 +1,5 @@
 import React, {useEffect} from 'react';
 import {
-  Image,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -12,9 +11,8 @@ import {useNavigation} from '@react-navigation/native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import fonts from '../../Assets/fonts';
-import profile_icon from '../../Assets/images/profile_bg.png';
+import Portrait from '../../Components/Portrait';
 import routes from '../../Navigation/routes';
-import {getImagePath} from '../../Service/axios';
 import {asyncGetUserProfile} from '../../Stores/actions/user.action';
 import {useAppDispatch, useAppSelector} from '../../Stores/hooks';
 import {selectUserProfile} from '../../Stores/slices/user.slice';
@@ -24,15 +22,6 @@ const NAVY = '#0F1F4B';
 const MUTED = '#8B93A7';
 const PAGE_BG = '#F4F5F8';
 const PRIMARY = colors.theme.primary;
-
-function photoSource(filename) {
-  try {
-    const uri = getImagePath(filename);
-    return uri ? {uri} : profile_icon;
-  } catch {
-    return profile_icon;
-  }
-}
 
 function fullName(first, last) {
   return `${first || ''} ${last || ''}`.trim() || '—';
@@ -65,8 +54,6 @@ export default function Profile() {
     dispatch(asyncGetUserProfile());
   }, [dispatch]);
 
-  const fatherPhoto = photoSource(profile?.fatherImage || profile?.image);
-  const motherPhoto = photoSource(profile?.motherImage);
   const address = [profile?.address, profile?.city, profile?.state]
     .filter(Boolean)
     .join(', ');
@@ -97,11 +84,14 @@ export default function Profile() {
         <View style={styles.hero}>
           <View style={styles.photos}>
             <View style={styles.photoCol}>
-              <Image source={fatherPhoto} style={styles.avatar} />
+              <Portrait
+                file={profile?.fatherImage || profile?.image}
+                style={styles.avatar}
+              />
               <Text style={styles.photoLabel}>Father</Text>
             </View>
             <View style={styles.photoCol}>
-              <Image source={motherPhoto} style={styles.avatar} />
+              <Portrait file={profile?.motherImage} style={styles.avatar} />
               <Text style={styles.photoLabel}>Mother</Text>
             </View>
           </View>

@@ -196,10 +196,17 @@ const RULES = [
     description: 'Use a JPG, PNG, or WEBP image.',
   },
   {
-    test: /file too large|file size/i,
+    // Keep the original limit text (e.g. "Keep the document under 2 MB.") as the title.
+    test: /keep (the )?(photo|document|file|voice).+under|under \d+(\.\d+)?\s*(kb|mb)|file too large|800\s*k|too big for chat|still too large|keep this file under/i,
     type: 'warning',
-    title: 'Photo too large',
-    description: 'Choose a smaller image and try again.',
+    title: null,
+    useMessageAsTitle: true,
+  },
+  {
+    test: /couldn'?t open that photo|couldn'?t open that document|could not read the file|could not load the file/i,
+    type: 'warning',
+    title: "Couldn't open the file",
+    description: 'Try taking or picking it again.',
   },
 ];
 
@@ -255,6 +262,14 @@ export function formatAlert(raw, fallbackType = 'info') {
 
   const rule = RULES.find(item => item.test.test(text));
   if (rule) {
+    if (rule.useMessageAsTitle) {
+      return {
+        skip: false,
+        type: rule.type,
+        title: text.replace(/\.$/, ''),
+        description: undefined,
+      };
+    }
     return {
       skip: false,
       type: rule.type,

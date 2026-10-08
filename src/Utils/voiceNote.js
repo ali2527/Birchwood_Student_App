@@ -1,5 +1,13 @@
-import {PermissionsAndroid, Platform} from 'react-native';
-import Sound from 'react-native-nitro-sound';
+import {PermissionsAndroid, Platform, TurboModuleRegistry} from 'react-native';
+
+function loadSound() {
+  if (!TurboModuleRegistry.get('NitroModules')) return null;
+  try {
+    return require('react-native-nitro-sound').default;
+  } catch {
+    return null;
+  }
+}
 
 const WAVE_BARS = 28;
 let voiceSamples = [];
@@ -40,6 +48,8 @@ export async function startVoice(onLevel) {
       throw new Error('Allow the microphone to send a voice message');
     }
   }
+  const Sound = loadSound();
+  if (!Sound) return null;
   try {
     await Sound.stopPlayer();
   } catch {
@@ -66,6 +76,8 @@ export async function startVoice(onLevel) {
 }
 
 export async function stopVoice() {
+  const Sound = loadSound();
+  if (!Sound) return '';
   const path = await Sound.stopRecorder();
   try {
     Sound.removeRecordBackListener();

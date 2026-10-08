@@ -11,12 +11,12 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
+  TurboModuleRegistry,
   useWindowDimensions,
   View,
 } from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import Sound from 'react-native-nitro-sound';
 import fonts from '../../Assets/fonts';
 import {getImagePath} from '../../Service/axios';
 
@@ -27,11 +27,19 @@ const LINK_RE = /(?:https?:\/\/|www\.)[^\s]+/gi;
 const DELETE_FOR_EVERYONE_MS = 48 * 60 * 60 * 1000;
 
 export function isChatImage(attachment) {
-  if (!attachment?.file) return false;
+  if (!attachment) return false;
   const mime = String(attachment.mime || '').toLowerCase();
+  const name = String(attachment.name || attachment.file || '');
+  if (/\.pdf($|\?)/i.test(name) || mime === 'application/pdf' || mime === 'image/pdf') return false;
   if (mime.startsWith('image/')) return true;
   if (mime && !mime.startsWith('image/')) return false;
-  return /\.(jpe?g|png|webp|gif)$/i.test(attachment.file);
+  if (!attachment.file && !attachment.expired) return false;
+  return /\.(jpe?g|png|webp|gif)$/i.test(name);
+}
+
+export function isAttachmentGone(attachment) {
+  if (!attachment) return false;
+  return Boolean(attachment.expired || (!attachment.file && (attachment.name || attachment.mime)));
 }
 
 export function isChatAudio(attachment) {
@@ -41,6 +49,23 @@ export function isChatAudio(attachment) {
   return /\.(m4a|aac|mp3|wav|caf)$/i.test(`${attachment.file} ${attachment.name || ''}`);
 }
 
+let soundModule;
+function getSound() {
+  if (soundModule !== undefined) {
+    return soundModule;
+  }
+  if (!TurboModuleRegistry.get('NitroModules')) {
+    soundModule = null;
+    return null;
+  }
+  try {
+    soundModule = require('react-native-nitro-sound').default;
+  } catch {
+    soundModule = null;
+  }
+  return soundModule;
+}
+
 const voiceListeners = new Set();
 const WAVE_BARS = 28;
 let waveOwner = null;
@@ -48,13 +73,15 @@ let waveOwner = null;
 function releaseWave(owner) {
   if (waveOwner !== owner) return;
   waveOwner = null;
+  const sound = getSound();
+  if (!sound) return;
   try {
-    Sound.removePlayBackListener();
+    sound.removePlayBackListener();
   } catch {
     // no playback listener was attached
   }
   try {
-    Sound.removePlaybackEndListener();
+    sound.removePlaybackEndListener();
   } catch {
     // no end listener was attached
   }
@@ -174,19 +201,72 @@ function canDeleteForEveryone(item, userId) {
   );
 }
 
-export function ChatDocument({name, saved, busy, light, onPress, onLongPress}) {
-  const color = light ? '#FFFFFF' : NAVY;
+function documentTypeLabel(name, mime) {
+  const file = String(name || '');
+  const ext = file.match(/\.([a-z0-9]{2,5})$/i);
+  if (ext) return ext[1].toUpperCase();
+  const type = String(mime || '').toLowerCase();
+  if (type.includes('pdf')) return 'PDF';
+  if (type.includes('wordprocessingml')) return 'DOCX';
+  if (type.includes('msword')) return 'DOC';
+  if (type.includes('spreadsheetml')) return 'XLSX';
+  if (type.includes('ms-excel')) return 'XLS';
+  if (type.includes('presentationml')) return 'PPTX';
+  if (type.includes('ms-powerpoint')) return 'PPT';
+  if (type.startsWith('text/')) return 'TXT';
+  return 'FILE';
+}
+
+const DOC_COLORS = {
+  PDF: '#E11D48',
+  DOC: '#2563EB',
+  DOCX: '#2563EB',
+  XLS: '#059669',
+  XLSX: '#059669',
+  CSV: '#059669',
+  PPT: '#EA580C',
+  PPTX: '#EA580C',
+  TXT: '#475569',
+  FILE: '#035392',
+};
+
+export function ChatDocument({name, mime, saved, busy, sending, light, unavailable, onPress, onLongPress}) {
+  const kind = documentTypeLabel(name, mime);
+  const accent = unavailable ? '#8B93A7' : DOC_COLORS[kind] || DOC_COLORS.FILE;
+  const title = unavailable
+    ? 'No longer available'
+    : sending
+      ? name || 'Document'
+      : busy
+        ? 'Downloading'
+        : saved
+          ? name || 'Document'
+          : 'Download';
   return (
     <TouchableOpacity
-      style={styles.doc}
-      onPress={onPress}
+      style={[styles.docCard, light && styles.docCardLight]}
+      onPress={sending || unavailable || busy ? undefined : onPress}
       onLongPress={onLongPress}
       delayLongPress={280}
+      disabled={(unavailable || sending || busy) && !onLongPress}
       accessibilityRole="button"
-      accessibilityLabel={saved ? name || 'Document' : 'Download document'}>
-      <Text style={[styles.docLabel, {color}]} numberOfLines={2}>
-        {busy ? 'Downloading' : saved ? name || 'Document' : 'Download'}
+      accessibilityLabel={sending ? `Sending ${kind}` : `${kind} ${title}`}>
+      <View style={[styles.docBadge, {backgroundColor: accent}]}>
+        {busy && !sending ? (
+          <ActivityIndicator size="small" color="#FFFFFF" />
+        ) : (
+          <Ionicons name="document-text" size={26} color="#FFFFFF" />
+        )}
+        <Text style={styles.docKind}>{kind}</Text>
+      </View>
+      <Text style={[styles.docName, light && styles.docNameLight]} numberOfLines={2}>
+        {title}
       </Text>
+      {sending ? (
+        <View style={styles.sendDot} pointerEvents="none">
+          <ActivityIndicator size="small" color="#FFFFFF" />
+        </View>
+      ) : null}
     </TouchableOpacity>
   );
 }
@@ -221,7 +301,7 @@ export function ChatVoice({file, saved, light, seconds, stamp, waveform, sending
       if (playingRef.current) {
         playingRef.current = false;
         releaseWave(id.current);
-        Sound.stopPlayer().catch(() => {});
+        getSound()?.stopPlayer().catch(() => {});
       }
     };
   }, []);
@@ -231,7 +311,7 @@ export function ChatVoice({file, saved, light, seconds, stamp, waveform, sending
     setPlaying(false);
     setProgress(0);
     releaseWave(id.current);
-    await Sound.stopPlayer().catch(() => {});
+    await getSound()?.stopPlayer().catch(() => {});
   };
 
   const toggle = async () => {
@@ -250,17 +330,23 @@ export function ChatVoice({file, saved, light, seconds, stamp, waveform, sending
     setPlaying(true);
     setProgress(0);
     try {
-      Sound.setSubscriptionDuration(0.1);
-      await Sound.startPlayer(photoUri(file, false));
+      const sound = getSound();
+      if (!sound) {
+        playingRef.current = false;
+        setPlaying(false);
+        return;
+      }
+      sound.setSubscriptionDuration(0.1);
+      await sound.startPlayer(photoUri(file, false));
       if (waveOwner !== id.current) return;
-      Sound.addPlayBackListener(meta => {
+      sound.addPlayBackListener(meta => {
         if (waveOwner !== id.current) return;
         const heard = secondsFrom(meta);
         if (!known && heard > 0 && heard < 600) setLength(heard);
         const ratio = playRatio(meta);
         setProgress(ratio >= 0.98 ? 1 : ratio);
       });
-      Sound.addPlaybackEndListener(() => {
+      sound.addPlaybackEndListener(() => {
         if (waveOwner !== id.current) return;
         playingRef.current = false;
         setPlaying(false);
@@ -305,41 +391,152 @@ function photoUri(file, local) {
   return getImagePath(value);
 }
 
-export function ChatPhoto({file, saved, busy, sending, local, onDownload, onPress, onLongPress, onLoad, onError, style}) {
-  if (!saved && !local && !sending) {
+export function ChatLightbox({uri, onClose}) {
+  const insets = useSafeAreaInsets();
+  return (
+    <Modal
+      visible={Boolean(uri)}
+      transparent
+      animationType="fade"
+      statusBarTranslucent
+      onRequestClose={onClose}>
+      <View style={styles.lightbox}>
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Close photo" />
+        {uri ? (
+          <Image
+            source={{uri}}
+            style={styles.lightboxImage}
+            resizeMode="contain"
+            pointerEvents="none"
+          />
+        ) : null}
+        <TouchableOpacity
+          style={[styles.lightboxClose, {top: Math.max(insets.top, 12) + 8}]}
+          onPress={onClose}
+          accessibilityRole="button"
+          accessibilityLabel="Close photo">
+          <Ionicons name="close" size={22} color="#FFFFFF" />
+        </TouchableOpacity>
+      </View>
+    </Modal>
+  );
+}
+
+export function ChatPhoto({
+  file,
+  saved,
+  busy,
+  sending,
+  local,
+  missing,
+  restoring,
+  localSource,
+  onDownload,
+  onPress,
+  onLongPress,
+  onLoad,
+  onError,
+  style,
+}) {
+  const [failed, setFailed] = useState(false);
+  const [fellBack, setFellBack] = useState(false);
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    setFailed(false);
+    setFellBack(false);
+  }, [file, localSource]);
+  const gone = Boolean(missing || /\.pdf($|\?)/i.test(String(file || '')));
+  // Prefer an on-device copy. Remote URLs are only used while the server still has the file.
+  const hasLocal = Boolean(!failed && (local || localSource || (saved && file && !gone)));
+
+  if (gone && !hasLocal && !sending) {
+    return (
+      <View style={[styles.photo, styles.pending, styles.missing, style]}>
+        <Ionicons name="image-outline" size={30} color="#FFFFFF" />
+        <Text style={styles.pendingLabel}>No longer available</Text>
+      </View>
+    );
+  }
+
+  if (restoring && !sending) {
+    return (
+      <View style={[styles.photo, styles.pending, style]}>
+        <ActivityIndicator size="small" color="#FFFFFF" />
+      </View>
+    );
+  }
+
+  if (!hasLocal && !sending) {
     return (
       <TouchableOpacity
         style={[styles.photo, styles.pending, style]}
-        onPress={() => (onPress ? onPress() : onDownload?.(file))}
+        disabled={busy}
+        onPress={() => {
+          if (busy) return;
+          if (onPress) onPress();
+          else onDownload?.(file);
+        }}
         onLongPress={onLongPress}
         delayLongPress={280}
         accessibilityRole="button"
-        accessibilityLabel="Download photo">
-        <Ionicons name="arrow-down-circle" size={34} color="#FFFFFF" />
-        <Text style={styles.pendingLabel}>Download</Text>
+        accessibilityLabel={busy ? 'Downloading photo' : 'Download photo'}>
+        {busy ? (
+          <ActivityIndicator size="small" color="#FFFFFF" />
+        ) : (
+          <Ionicons name="arrow-down-circle" size={34} color="#FFFFFF" />
+        )}
+        <Text style={styles.pendingLabel}>{busy ? 'Downloading' : 'Download'}</Text>
       </TouchableOpacity>
     );
   }
+
+  const uri = !fellBack && localSource ? localSource : photoUri(file, local);
   return (
-    <TouchableOpacity activeOpacity={0.9} onPress={sending ? undefined : onPress} onLongPress={onLongPress} delayLongPress={280}>
-      <Image
-        source={{uri: photoUri(file, local)}}
-        style={[styles.photo, style]}
-        onLoad={() => onLoad?.(file)}
-        onError={() => onError?.(file)}
-      />
-      {sending ? (
-        <View style={styles.sendDot} pointerEvents="none">
-          <ActivityIndicator size="small" color="#FFFFFF" />
-        </View>
-      ) : null}
-      {busy && !sending ? (
-        <View style={[styles.pending, styles.busy, style]}>
-          <Ionicons name="hourglass-outline" size={28} color="#FFFFFF" />
-          <Text style={styles.pendingLabel}>Downloading</Text>
-        </View>
-      ) : null}
-    </TouchableOpacity>
+    <>
+      <TouchableOpacity
+        activeOpacity={0.9}
+        onPress={
+          sending
+            ? undefined
+            : () => {
+                if (onPress) onPress();
+                else setOpen(true);
+              }
+        }
+        onLongPress={onLongPress}
+        delayLongPress={280}
+        accessibilityRole="button"
+        accessibilityLabel="View photo">
+        <Image
+          source={{uri}}
+          style={[styles.photo, style]}
+          onLoad={() => {
+            setFailed(false);
+            onLoad?.(file);
+          }}
+          onError={() => {
+            if (localSource && !fellBack) {
+              setFellBack(true);
+              onError?.(file);
+              return;
+            }
+            setFailed(true);
+          }}
+        />
+        {sending ? (
+          <View style={styles.sendDot} pointerEvents="none">
+            <ActivityIndicator size="small" color="#FFFFFF" />
+          </View>
+        ) : null}
+        {busy && !sending ? (
+          <View style={[styles.pending, styles.busy, style]}>
+            <ActivityIndicator size="small" color="#FFFFFF" />
+            <Text style={styles.pendingLabel}>Downloading</Text>
+          </View>
+        ) : null}
+      </TouchableOpacity>
+      <ChatLightbox uri={open ? uri : ''} onClose={() => setOpen(false)} />
+    </>
   );
 }
 
@@ -349,6 +546,7 @@ export default function ChatLibrary({
   records,
   isSaved,
   downloading,
+  restoring,
   onDownload,
   onLoad,
   onError,
@@ -366,17 +564,23 @@ export default function ChatLibrary({
   const [deleting, setDeleting] = useState(false);
   const rows = records || [];
   const media = useMemo(
-    () => rows.filter(item => item.attachment?.file && !item.deletedForEveryone && isChatImage(item.attachment)),
+    () =>
+      rows.filter(
+        item =>
+          !item.deletedForEveryone &&
+          isChatImage(item.attachment) &&
+          (item.attachment?.file || isAttachmentGone(item.attachment)),
+      ),
     [rows],
   );
   const docs = useMemo(
     () =>
       rows.filter(
         item =>
-          item.attachment?.file &&
           !item.deletedForEveryone &&
           !isChatImage(item.attachment) &&
-          !isChatAudio(item.attachment),
+          !isChatAudio(item.attachment) &&
+          (item.attachment?.file || isAttachmentGone(item.attachment)),
       ),
     [rows],
   );
@@ -509,8 +713,10 @@ export default function ChatLibrary({
                 <View style={[styles.tileWrap, {width: tile, height: tile}]}>
                   <ChatPhoto
                     file={item.attachment.file}
-                    saved={isSaved(item.attachment.file, item.mine)}
+                    saved={isSaved(item.attachment.file, item.mine, item.attachment)}
                     busy={downloading === item.attachment.file}
+                    restoring={restoring}
+                    missing={isAttachmentGone(item.attachment)}
                     onDownload={onDownload}
                     onLoad={onLoad}
                     onError={onError}
@@ -545,6 +751,8 @@ export default function ChatLibrary({
             ListEmptyComponent={<Empty label="No documents in this chat yet" />}
             renderItem={({item}) => {
               const on = Boolean(selected[String(item.id)]);
+              const gone = isAttachmentGone(item.attachment);
+              const saved = isSaved(item.attachment.file, item.mine, item.attachment);
               return (
                 <TouchableOpacity
                   style={[styles.row, on && styles.rowOn]}
@@ -553,14 +761,28 @@ export default function ChatLibrary({
                       toggle(item);
                       return;
                     }
+                    if (gone && !saved) return;
                     const file = item.attachment.file;
-                    if (!isSaved(file, item.mine)) onDownload?.(file);
+                    if (downloading === file) return;
+                    if (!saved) {
+                      Promise.resolve(onDownload?.(file)).catch(() => {});
+                      return;
+                    }
                     Linking.openURL(getImagePath(file)).catch(() => {});
                   }}
                   onLongPress={() => beginSelect(item)}>
                   {selecting ? <Check on={on} inline /> : null}
+                  {downloading === item.attachment.file ? (
+                    <ActivityIndicator size="small" color={NAVY} />
+                  ) : null}
                   <Text style={styles.rowText} numberOfLines={2}>
-                    {isSaved(item.attachment.file, item.mine) ? item.attachment.name || 'Document' : 'Download document'}
+                    {downloading === item.attachment.file
+                      ? 'Downloading'
+                      : gone && !saved
+                        ? 'No longer available'
+                        : saved
+                          ? item.attachment.name || 'Document'
+                          : 'Download document'}
                   </Text>
                 </TouchableOpacity>
               );
@@ -801,12 +1023,30 @@ const styles = StyleSheet.create({
   dialogCancel: {fontFamily: fonts.euclidCircularA.medium, fontSize: 15, color: NAVY},
   photo: {width: 180, height: 140, borderRadius: 12, backgroundColor: '#D5DEEA'},
   pending: {alignItems: 'center', justifyContent: 'center', backgroundColor: '#1B2433'},
+  missing: {backgroundColor: '#3F4654'},
   busy: {...StyleSheet.absoluteFillObject, borderRadius: 12},
-  doc: {
-    flexDirection: 'row',
+  docCard: {
+    width: 180,
+    borderRadius: 12,
+    overflow: 'hidden',
+    backgroundColor: '#F4F7FB',
+    marginBottom: 4,
+    position: 'relative',
+  },
+  docCardLight: {
+    backgroundColor: 'rgba(255,255,255,0.16)',
+  },
+  docBadge: {
+    height: 88,
     alignItems: 'center',
-    gap: 8,
-    maxWidth: 220,
+    justifyContent: 'center',
+    gap: 4,
+  },
+  docKind: {
+    fontFamily: fonts.euclidCircularA.semiBold,
+    fontSize: 12,
+    letterSpacing: 0.8,
+    color: '#FFFFFF',
   },
   voice: {
     width: 220,
@@ -838,10 +1078,16 @@ const styles = StyleSheet.create({
     fontSize: 11,
     lineHeight: 14,
   },
-  docLabel: {
-    flex: 1,
+  docName: {
+    paddingHorizontal: 10,
+    paddingVertical: 8,
     fontFamily: fonts.euclidCircularA.medium,
-    fontSize: 14,
+    fontSize: 13,
+    lineHeight: 17,
+    color: NAVY,
+  },
+  docNameLight: {
+    color: '#FFFFFF',
   },
   sendDot: {
     position: 'absolute',
@@ -859,5 +1105,25 @@ const styles = StyleSheet.create({
     fontFamily: fonts.euclidCircularA.medium,
     fontSize: 12,
     color: '#FFF',
+  },
+  lightbox: {
+    flex: 1,
+    backgroundColor: 'rgba(8, 12, 24, 0.96)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  lightboxImage: {
+    width: '100%',
+    height: '100%',
+  },
+  lightboxClose: {
+    position: 'absolute',
+    right: 16,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.16)',
   },
 });

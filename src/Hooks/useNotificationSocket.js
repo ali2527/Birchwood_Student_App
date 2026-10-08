@@ -1,4 +1,4 @@
-import {useEffect} from 'react';
+import {useEffect, useRef} from 'react';
 import {AppState, NativeModules} from 'react-native';
 import {showAppAlert} from '../Components/AppAlert/host';
 import {
@@ -9,8 +9,6 @@ import {
 import {
   asyncGetUnreadUserNotifications,
   asyncGetUnreadUserNotices,
-  asyncGetUserNotifications,
-  asyncGetUserNotices,
 } from '../Stores/actions/notification.action';
 import {useAppDispatch, useAppSelector} from '../Stores/hooks';
 import {
@@ -26,10 +24,15 @@ import {selectUserToken} from '../Stores/slices/user.slice';
  * Keeps a Socket.IO connection alive while the parent is signed in and
  * mirrors notification:new / notification:read into Redux.
  * School notices only bump the Notices tile badge — no toast alert.
+ *
+ * Only unread badge endpoints are polled here. Full notification/notice lists
+ * load when those screens open — avoids spam on reconnect / debugger focus.
  */
 export function useNotificationSocket() {
   const dispatch = useAppDispatch();
   const token = useAppSelector(selectUserToken);
+  const appStateRef = useRef(AppState.currentState);
+  const lastBadgeAt = useRef(0);
 
   useEffect(() => {
     if (!token) {
@@ -43,20 +46,22 @@ export function useNotificationSocket() {
       return undefined;
     }
 
-    dispatch(asyncGetUserNotifications());
-    dispatch(asyncGetUserNotices());
-    dispatch(asyncGetUnreadUserNotifications());
-    dispatch(asyncGetUnreadUserNotices());
-
-    const refreshNotices = () => {
-      dispatch(asyncGetUserNotices());
+    const refreshBadges = (force = false) => {
+      const now = Date.now();
+      if (!force && now - lastBadgeAt.current < 8000) {
+        return;
+      }
+      lastBadgeAt.current = now;
+      dispatch(asyncGetUnreadUserNotifications());
       dispatch(asyncGetUnreadUserNotices());
     };
 
+    refreshBadges(true);
+
     const onConnected = () => {
       dispatch(setSocketConnected(true));
-      refreshNotices();
-      dispatch(asyncGetUnreadUserNotifications());
+      // Socket reconnects often in debug — only refresh unread badges, not full lists.
+      refreshBadges();
     };
 
     const onDisconnect = () => {
@@ -77,7 +82,7 @@ export function useNotificationSocket() {
         } catch (error) {
           // The notice still arrives if the phone cannot play a sound.
         }
-        refreshNotices();
+        refreshBadges(true);
         return;
       }
       showAppAlert({
@@ -85,6 +90,7 @@ export function useNotificationSocket() {
         description: notification.content || '',
         type: 'info',
       });
+      refreshBadges(true);
     };
 
     const onNotificationRead = payload => {
@@ -121,8 +127,11 @@ export function useNotificationSocket() {
     }
 
     const appStateSub = AppState.addEventListener('change', next => {
-      if (next === 'active') {
-        refreshNotices();
+      const prev = appStateRef.current;
+      appStateRef.current = next;
+      // Ignore inactive↔active (alerts / debugger). Only refresh after a real background.
+      if (prev === 'background' && next === 'active') {
+        refreshBadges();
       }
     });
 

@@ -154,3 +154,31 @@ export const asyncDeleteUserNotification = createAsyncThunk(
     return res;
   },
 );
+
+export const asyncBulkUserNotifications = createAsyncThunk(
+  'notification/bulkUserNotifications',
+  async (
+    {ids, action}: {ids: string[]; action: 'read' | 'unread' | 'delete'},
+    {dispatch},
+  ) => {
+    const path = allApiPaths.getPath('bulkUserNotifications') as ApiPaths;
+    const res = await callApi<{ids?: string[]; action?: string}>({
+      path,
+      method: 'POST',
+      body: {ids, action},
+    });
+    if (res?.status) {
+      const applied =
+        Array.isArray(res.data?.ids) && res.data.ids.length ? res.data.ids : ids;
+      if (action === 'delete') {
+        applied.forEach(id => dispatch(removeNotification(String(id))));
+      } else {
+        const isRead = action === 'read';
+        applied.forEach(id =>
+          dispatch(setNotificationReadState({id: String(id), isRead})),
+        );
+      }
+    }
+    return res;
+  },
+);

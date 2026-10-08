@@ -1,12 +1,13 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   ActivityIndicator,
   Animated,
   BackHandler,
-  Image,
   KeyboardAvoidingView,
   LayoutAnimation,
+  PanResponder,
   Platform,
+  Pressable,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -22,9 +23,8 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import Svg, {Path} from 'react-native-svg';
 import {useDispatch} from 'react-redux';
 import fonts from '../../Assets/fonts';
-import profile_icon from '../../Assets/images/profile_bg.png';
+import Portrait from '../../Components/Portrait';
 import {HILL_H, raisedBarPath} from '../../Components/AppFooter/shape';
-import {getImagePath} from '../../Service/axios';
 import {HEIGHT, WIDTH} from '../../theme/units';
 import {useAppSelector} from '../../Stores/hooks';
 import {selectChildren} from '../../Stores/slices/class.slice';
@@ -33,7 +33,13 @@ import {
   asyncMarkChildPickup,
   asyncMarkChildPresent,
 } from '../../Stores/actions/user.action';
-import {attendanceDotColor, attendanceStatusLabel} from './status';
+import {
+  attendanceDotColor,
+  attendanceStatusLabel,
+  needsCheckInPrompt,
+  needsPickupPrompt,
+} from './status';
+import {snoozeAttendancePrompt} from '../../Utils/attendancePrompt';
 
 const NAVY = '#0F1F4B';
 const PRIMARY = '#035392';
@@ -47,10 +53,6 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 
 function easeLayout() {
   LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-}
-
-function photoOf(child) {
-  return child?.image ? {uri: getImagePath(child.image)} : profile_icon;
 }
 
 function classLabel(classroom) {
@@ -188,7 +190,6 @@ export default function DailyAttendance() {
   const [marking, setMarking] = useState(null);
   const childrenRef = useRef(children);
   const [holdClose, setHoldClose] = useState(false);
-  const [closeAsk, setCloseAsk] = useState(0);
   const holdTimer = useRef(null);
   const [barWidth, setBarWidth] = useState(WIDTH);
   const [bodyH, setBodyH] = useState(360);
@@ -196,33 +197,82 @@ export default function DailyAttendance() {
   const dim = useRef(new Animated.Value(0)).current;
 
   childrenRef.current = children;
-  const checkInPending = children.filter(child => child.todayPrompt === 'CHECKIN');
-  const pickupPending = children.filter(child => child.todayPrompt === 'PICKUP');
+  const checkInPending = children.filter(needsCheckInPrompt);
+  const pickupPending = children.filter(needsPickupPrompt);
   const sessionKind = useRef(
     checkInPending.length ? 'checkin' : pickupPending.length ? 'pickup' : 'optional',
   );
   if (sessionKind.current !== 'pickup' && checkInPending.length) {
     sessionKind.current = 'checkin';
+  } else if (sessionKind.current === 'optional' && pickupPending.length) {
+    sessionKind.current = 'pickup';
   }
   const showPickup = sessionKind.current === 'pickup';
   const sample = children.find(child => child.schoolStartLabel) || children[0];
-  const sessionPending =
+  const pending =
     sessionKind.current === 'pickup' ? pickupPending : checkInPending;
-  const pending = sessionPending;
+  // Check-in must be finished; pickup can be dismissed and will reopen next app open.
   const required = sessionKind.current === 'checkin' && checkInPending.length > 0;
   const sheetH = Math.min(SHEET_MAX, bodyH + HILL_H);
   const ordered = [...children].sort((a, b) => {
     const rank = child =>
-      child.todayPrompt === 'CHECKIN' ? 0 : child.todayPrompt === 'PICKUP' && showPickup ? 1 : 2;
+      needsCheckInPrompt(child)
+        ? 0
+        : needsPickupPrompt(child) && showPickup
+          ? 1
+          : 2;
     return rank(a) - rank(b);
   });
+  const closingRef = useRef(false);
+  const dragStart = useRef(0);
+  const slideRef = useRef(0);
 
-  useEffect(() => {
+  const snapOpen = useCallback(() => {
     Animated.parallel([
-      Animated.timing(dim, {toValue: 1, duration: 180, useNativeDriver: true}),
+      Animated.timing(dim, {toValue: 1, duration: 160, useNativeDriver: true}),
       Animated.spring(slide, {toValue: 0, useNativeDriver: true, bounciness: 4}),
     ]).start();
   }, [dim, slide]);
+
+  const finishDismiss = useCallback(
+    ({snooze} = {}) => {
+      if (closingRef.current) {
+        return;
+      }
+      closingRef.current = true;
+      optionalHold.current = false;
+      if (snooze) {
+        // Pickup (and optional sheets) stay closed until a real app background return.
+        snoozeAttendancePrompt();
+      }
+      Animated.parallel([
+        Animated.timing(dim, {toValue: 0, duration: 160, useNativeDriver: true}),
+        Animated.timing(slide, {
+          toValue: SHEET_MAX,
+          duration: 180,
+          useNativeDriver: true,
+        }),
+      ]).start(({finished}) => {
+        if (finished && navigation.canGoBack()) {
+          navigation.goBack();
+        } else {
+          closingRef.current = false;
+        }
+      });
+    },
+    [dim, navigation, slide],
+  );
+
+  const requestClose = useCallback(() => {
+    if (required || closingRef.current) {
+      return;
+    }
+    finishDismiss({snooze: true});
+  }, [finishDismiss, required]);
+
+  useEffect(() => {
+    snapOpen();
+  }, [snapOpen]);
 
   useEffect(() => {
     if (required) {
@@ -230,39 +280,22 @@ export default function DailyAttendance() {
     }
   }, [required]);
 
-  const requestClose = () => {
-    if (required) {
-      return;
-    }
-    optionalHold.current = false;
-    setCloseAsk(value => value + 1);
-  };
-
+  // Auto-close when this session's work is done (all checked in / all picked up or completed).
   useEffect(() => {
     if (
       !children.length ||
       pending.length > 0 ||
       optionalHold.current ||
-      holdClose
+      holdClose ||
+      closingRef.current
     ) {
       return undefined;
     }
-    const close = Animated.parallel([
-      Animated.timing(dim, {toValue: 0, duration: 160, useNativeDriver: true}),
-      Animated.timing(slide, {toValue: SHEET_MAX, duration: 180, useNativeDriver: true}),
-    ]);
     const timer = setTimeout(() => {
-      close.start(({finished}) => {
-        if (finished && navigation.canGoBack()) {
-          navigation.goBack();
-        }
-      });
+      finishDismiss();
     }, 160);
-    return () => {
-      clearTimeout(timer);
-      close.stop();
-    };
-  }, [children.length, closeAsk, dim, holdClose, navigation, pending.length, slide]);
+    return () => clearTimeout(timer);
+  }, [children.length, finishDismiss, holdClose, pending.length]);
 
   useEffect(() => {
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
@@ -273,7 +306,47 @@ export default function DailyAttendance() {
       return true;
     });
     return () => sub.remove();
-  }, [required]);
+  }, [requestClose, required]);
+
+  const dismissPan = useMemo(
+    () =>
+      PanResponder.create({
+        onStartShouldSetPanResponder: () => !required,
+        onMoveShouldSetPanResponder: (_, g) =>
+          !required && g.dy > 4 && Math.abs(g.dy) > Math.abs(g.dx) * 1.05,
+        onMoveShouldSetPanResponderCapture: (_, g) =>
+          !required && g.dy > 6 && Math.abs(g.dy) > Math.abs(g.dx) * 1.05,
+        onPanResponderTerminationRequest: () => false,
+        onShouldBlockNativeResponder: () => true,
+        onPanResponderGrant: () => {
+          slide.stopAnimation(value => {
+            dragStart.current = value;
+            slideRef.current = value;
+          });
+        },
+        onPanResponderMove: (_, g) => {
+          const next = Math.max(0, Math.min(SHEET_MAX, dragStart.current + g.dy));
+          slideRef.current = next;
+          slide.setValue(next);
+          dim.setValue(1 - next / SHEET_MAX);
+        },
+        onPanResponderRelease: (_, g) => {
+          if (slideRef.current > SHEET_MAX * 0.22 || g.vy > 0.9 || g.dy > 72) {
+            requestClose();
+          } else {
+            snapOpen();
+          }
+        },
+        onPanResponderTerminate: () => {
+          if (slideRef.current > SHEET_MAX * 0.22) {
+            requestClose();
+          } else {
+            snapOpen();
+          }
+        },
+      }),
+    [dim, requestClose, required, slide, snapOpen],
+  );
 
   const run = async (childId, action, kind) => {
     setBusyId(childId);
@@ -302,9 +375,9 @@ export default function DailyAttendance() {
               return false;
             }
             if (sessionKind.current === 'pickup') {
-              return child.todayPrompt === 'PICKUP';
+              return needsPickupPrompt(child);
             }
-            return child.todayPrompt === 'CHECKIN';
+            return needsCheckInPrompt(child);
           });
           if (others) {
             easeLayout();
@@ -342,13 +415,13 @@ export default function DailyAttendance() {
   };
 
   const hint = (() => {
-    if (showPickup && children.some(child => child.todayPrompt === 'PICKUP')) {
-      return `Pickup is open from ${sample?.pickupOpensLabel || '1:00 PM'}. Earlier than that needs a reason.`;
+    if (showPickup && pickupPending.length) {
+      return `Pickup is open from ${sample?.pickupOpensLabel || '1:00 PM'}. You can close and finish later — this comes back when you reopen the app until everyone is picked up.`;
     }
-    if (children.some(child => child.checkInLate && child.todayPrompt === 'CHECKIN')) {
+    if (children.some(child => child.checkInLate && needsCheckInPrompt(child))) {
       return `After ${sample?.onTimeUntilLabel || '8:00 AM'} this day is absent. You can still check in, and that check-in is marked late.`;
     }
-    if (children.some(child => child.todayPrompt === 'CHECKIN')) {
+    if (checkInPending.length) {
       return `On-time check-in is ${sample?.checkInOpensLabel || '6:00 AM'} to ${sample?.onTimeUntilLabel || '8:00 AM'}. School starts at ${sample?.schoolStartLabel || '7:00 AM'}.`;
     }
     if (children.some(child => child.canLeave)) {
@@ -365,7 +438,12 @@ export default function DailyAttendance() {
       style={styles.root}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
-      <Animated.View style={[styles.dim, {opacity: dim}]} />
+      <Pressable
+        style={StyleSheet.absoluteFill}
+        onPress={required ? undefined : requestClose}
+        pointerEvents={required ? 'none' : 'auto'}>
+        <Animated.View style={[styles.dim, {opacity: dim}]} pointerEvents="none" />
+      </Pressable>
       <Animated.View
         style={[styles.sheetDock, {height: sheetH, transform: [{translateY: slide}]}]}
         onLayout={event => {
@@ -382,7 +460,7 @@ export default function DailyAttendance() {
           style={styles.sheetSvg}>
           <Path d={raisedBarPath(barWidth, Math.max(sheetH - HILL_H, 1))} fill="#FFFFFF" />
         </Svg>
-        <View style={styles.humpBar}>
+        <View style={styles.humpBar} {...dismissPan.panHandlers}>
           <TouchableOpacity
             style={styles.humpHit}
             onPress={requestClose}
@@ -402,12 +480,18 @@ export default function DailyAttendance() {
               setBodyH(next);
             }
           }}>
-        <View style={styles.header}>
+        <View style={styles.header} {...dismissPan.panHandlers}>
           <View style={styles.headerIcon}>
-            <Ionicons name="checkmark-done" size={18} color={PRIMARY} />
+            <Ionicons
+              name={showPickup ? 'walk' : 'checkmark-done'}
+              size={18}
+              color={PRIMARY}
+            />
           </View>
           <View style={styles.headerCopy}>
-            <Text style={styles.title}>Today's check-in</Text>
+            <Text style={styles.title}>
+              {showPickup ? "Today's pickup" : "Today's check-in"}
+            </Text>
             <Text style={styles.subtitle}>{todayLabel()}</Text>
           </View>
           <View style={styles.countPill}>
@@ -431,8 +515,8 @@ export default function DailyAttendance() {
             const busy = busyId === child._id;
             const klass = classLabel(child.classroom);
             const held = marking?.id === child._id ? marking : null;
-            const needsCheckIn = child.todayPrompt === 'CHECKIN' && !held;
-            const needsPickup = showPickup && child.todayPrompt === 'PICKUP' && !held;
+            const needsCheckIn = needsCheckInPrompt(child) && !held;
+            const needsPickup = showPickup && needsPickupPrompt(child) && !held;
             const showLeave = (needsCheckIn || !!child.canLeave) && !held;
             const showEarlyPickup = showPickup && child.earlyPickup && !held;
             return (
@@ -441,7 +525,7 @@ export default function DailyAttendance() {
                 celebrate={celebrate?.id === child._id ? celebrate : null}>
                 <View style={styles.row}>
                   <View style={styles.photoWrap}>
-                    <Image source={photoOf(child)} style={styles.photo} />
+                    <Portrait file={child?.image} style={styles.photo} />
                     <View style={[styles.dot, {backgroundColor: attendanceDotColor(child)}]} />
                   </View>
                   <View style={styles.copy}>

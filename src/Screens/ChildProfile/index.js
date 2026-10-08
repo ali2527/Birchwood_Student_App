@@ -1,6 +1,5 @@
 import React, {useMemo} from 'react';
 import {
-  Image,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -14,8 +13,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import moment from 'moment';
 import fonts from '../../Assets/fonts';
-import profile_icon from '../../Assets/images/profile_bg.png';
-import {getImagePath} from '../../Service/axios';
+import Portrait from '../../Components/Portrait';
 import {useAppSelector} from '../../Stores/hooks';
 import {
   selectChildren,
@@ -74,9 +72,6 @@ export default function ChildProfile() {
   const name = child
     ? `${child.firstName || ''} ${child.lastName || ''}`.trim()
     : '';
-  const photo = child?.image
-    ? {uri: getImagePath(child.image)}
-    : profile_icon;
   const dob = child?.birthday
     ? moment(child.birthday).format('D MMM YYYY')
     : '';
@@ -111,7 +106,7 @@ export default function ChildProfile() {
           start={{x: 0, y: 0}}
           end={{x: 1, y: 1}}
           style={styles.hero}>
-          <Image source={photo} style={styles.photo} />
+          <Portrait file={child?.image} style={styles.photo} />
           <Text style={styles.name}>{name || 'Child'}</Text>
           {classroomLabel(child?.classroom) ? (
             <View style={styles.heroPill}>

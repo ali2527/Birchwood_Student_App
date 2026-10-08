@@ -61,6 +61,12 @@ export function parsePhone(value) {
     return {iso: DEFAULT_PHONE_COUNTRY, local: ''};
   }
 
+  // A 10-digit number has no country code. Checking dial codes first turns
+  // 5550201234 into Brazil (+55) and a broken local mask.
+  if (digits.length === 10) {
+    return {iso: DEFAULT_PHONE_COUNTRY, local: digits};
+  }
+
   const ranked = [...PHONE_COUNTRIES].sort((a, b) => {
     if (b.dial.length !== a.dial.length) {
       return b.dial.length - a.dial.length;
@@ -75,14 +81,9 @@ export function parsePhone(value) {
   });
 
   for (const country of ranked) {
-    if (
-      digits.startsWith(country.dial) &&
-      digits.length > country.dial.length
-    ) {
-      return {
-        iso: country.iso,
-        local: digits.slice(country.dial.length).slice(0, country.localLength),
-      };
+    const local = digits.slice(country.dial.length);
+    if (digits.startsWith(country.dial) && local.length === country.localLength) {
+      return {iso: country.iso, local};
     }
   }
 

@@ -118,10 +118,10 @@ export const selectChildren = createDraftSafeSelector(
   children => Object.values(children).map(child => freshChild(child) as Child)
 );
 
-export const selectSelectedChild = createDraftSafeSelector(
-  [(state: RootState) => state.class.selectedChild],
-  child => (child ? (freshChild(child) as Child) : child)
-);
+export const selectSelectedChild = (state: RootState) => {
+  const child = state.class.selectedChild;
+  return child ? (freshChild(child) as Child) : child;
+};
 
 export const selectUnreadChatCount = (state: RootState) =>
   state.class.unreadChatCount;

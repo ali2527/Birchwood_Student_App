@@ -2,9 +2,10 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Dimensions,
   FlatList,
   Image,
-  KeyboardAvoidingView,
+  Keyboard,
   Linking,
   Modal,
   Platform,
@@ -43,6 +44,16 @@ const MUTED = '#8B93A7';
 const PAGE_BG = '#F4F5F8';
 const PRIMARY = colors.theme.primary;
 
+function keyboardOverlap(event) {
+  const screenY = event?.endCoordinates?.screenY;
+  const reported = event?.endCoordinates?.height || 0;
+  if (typeof screenY !== 'number') {
+    return reported;
+  }
+  const overlap = Math.round(Dimensions.get('window').height - screenY);
+  return overlap > 0 ? overlap : 0;
+}
+
 function initials(name = '') {
   const parts = String(name).trim().split(/\s+/).filter(Boolean);
   if (!parts.length) {
@@ -55,13 +66,24 @@ function initials(name = '') {
 }
 
 function ChatAvatar({uri, label, mine = false}) {
+  const [ready, setReady] = useState(false);
+  const [failed, setFailed] = useState(false);
+  useEffect(() => {
+    setReady(false);
+    setFailed(false);
+  }, [uri]);
   return (
     <View style={[styles.avatar, mine && styles.avatarMine]}>
-      {uri ? (
-        <Image source={{uri}} style={styles.avatarImage} />
-      ) : (
-        <Text style={styles.avatarText}>{initials(label)}</Text>
-      )}
+      <Text style={styles.avatarText}>{initials(label)}</Text>
+      {uri && !failed ? (
+        <Image
+          source={{uri, cache: 'force-cache'}}
+          fadeDuration={0}
+          style={[styles.avatarImage, styles.avatarCover, ready ? null : styles.avatarPending]}
+          onLoad={() => setReady(true)}
+          onError={() => setFailed(true)}
+        />
+      ) : null}
     </View>
   );
 }
@@ -107,6 +129,7 @@ export default function TicketChat() {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
 
   const load = useCallback(async () => {
     if (!ticketId) {
@@ -122,7 +145,12 @@ export default function TicketChat() {
       }),
     ]);
     setTicket(ticketRes?.data?.ticket || null);
-    setMessages(messageRes?.data?.docs || []);
+    setMessages(prev => {
+      const docs = messageRes?.data?.docs || [];
+      const savedIds = new Set(docs.map(item => item._id));
+      const local = prev.filter(item => item.local && !savedIds.has(item._id));
+      return [...docs, ...local];
+    });
     callApi({
       method: 'POST',
       path: allApiPaths.getPath('markSupportTicketRead', {id: ticketId}),
@@ -147,6 +175,22 @@ export default function TicketChat() {
   }, [load]);
 
   useEffect(() => {
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+    const onShow = event => {
+      setKeyboardHeight(keyboardOverlap(event));
+      requestAnimationFrame(() => listRef.current?.scrollToEnd?.({animated: true}));
+    };
+    const onHide = () => setKeyboardHeight(0);
+    const showSub = Keyboard.addListener(showEvent, onShow);
+    const hideSub = Keyboard.addListener(hideEvent, onHide);
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
+
+  useEffect(() => {
     const socket = getAppSocket();
     if (!socket || !ticketId) {
       return undefined;
@@ -166,10 +210,13 @@ export default function TicketChat() {
         return;
       }
       setMessages(prev => {
-        if (prev.some(item => item._id === payload.message._id)) {
-          return prev;
+        const withoutLocal = prev.filter(
+          item => !(item.local && item.pending && item.body === payload.message.body),
+        );
+        if (withoutLocal.some(item => item._id === payload.message._id)) {
+          return withoutLocal;
         }
-        return [...prev, payload.message];
+        return [...withoutLocal, payload.message];
       });
       if (payload.ticket) {
         setTicket(payload.ticket);
@@ -202,11 +249,12 @@ export default function TicketChat() {
   const tone = statusColors(ticket?.status);
   const priorityTone = priorityColors(ticket?.priority);
 
-  const send = async () => {
-    const body = draft.trim();
-    if (!body || sending || closed) {
-      return;
-    }
+  const deliver = async (tempId, body) => {
+    setMessages(prev =>
+      prev.map(item =>
+        item._id === tempId ? {...item, pending: true, failed: false} : item,
+      ),
+    );
     setSending(true);
     setError('');
     try {
@@ -215,25 +263,58 @@ export default function TicketChat() {
         path: allApiPaths.getPath('sendSupportMessage', {id: ticketId}),
         body: {body},
       });
-      if (!res?.status) {
+      if (!res?.status || !res.data?.message) {
+        setMessages(prev =>
+          prev.map(item =>
+            item._id === tempId ? {...item, pending: false, failed: true} : item,
+          ),
+        );
         setError(res?.message || 'Could not send that message.');
         return;
       }
-      setDraft('');
-      if (res.data?.message) {
-        setMessages(prev => {
-          if (prev.some(item => item._id === res.data.message._id)) {
-            return prev;
-          }
-          return [...prev, res.data.message];
-        });
-      }
+      setMessages(prev => {
+        const without = prev.filter(item => item._id !== tempId);
+        if (without.some(item => item._id === res.data.message._id)) {
+          return without;
+        }
+        return [...without, res.data.message];
+      });
       if (res.data?.ticket) {
         setTicket(res.data.ticket);
       }
+    } catch {
+      setMessages(prev =>
+        prev.map(item =>
+          item._id === tempId ? {...item, pending: false, failed: true} : item,
+        ),
+      );
+      setError('Could not send that message.');
     } finally {
       setSending(false);
     }
+  };
+
+  const send = () => {
+    const body = draft.trim();
+    if (!body || sending || closed) {
+      return;
+    }
+    const tempId = `local-${Date.now()}`;
+    setDraft('');
+    setMessages(prev => [
+      ...prev,
+      {
+        _id: tempId,
+        body,
+        senderRole: 'PARENT',
+        senderName: myName,
+        createdAt: new Date().toISOString(),
+        pending: true,
+        local: true,
+      },
+    ]);
+    requestAnimationFrame(() => listRef.current?.scrollToEnd?.({animated: true}));
+    deliver(tempId, body);
   };
 
   const setStatus = async status => {
@@ -318,13 +399,12 @@ export default function TicketChat() {
       {loading ? (
         <ActivityIndicator style={styles.loader} color={PRIMARY} />
       ) : (
-        <KeyboardAvoidingView
-          style={styles.chat}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <View style={[styles.chat, keyboardHeight > 0 && {paddingBottom: keyboardHeight}]}>
           <FlatList
             ref={listRef}
             data={rows}
             keyExtractor={item => item.id}
+            keyboardShouldPersistTaps="handled"
             contentContainerStyle={styles.messages}
             onContentSizeChange={() =>
               listRef.current?.scrollToEnd?.({animated: false})
@@ -367,10 +447,26 @@ export default function TicketChat() {
                         style={[styles.bubbleText, mine && styles.bubbleTextMine]}>
                         {message.body}
                       </Text>
-                      <Text style={[styles.time, mine && styles.timeMine]}>
-                        {moment(message.createdAt).format('h:mm A')}
-                      </Text>
+                      <View style={styles.timeRow}>
+                        <Text style={[styles.time, mine && styles.timeMine]}>
+                          {moment(message.createdAt).format('h:mm A')}
+                        </Text>
+                        {message.pending ? (
+                          <ActivityIndicator
+                            size="small"
+                            color={mine ? '#FFFFFF' : PRIMARY}
+                            style={styles.sendDot}
+                          />
+                        ) : null}
+                      </View>
                     </View>
+                    {message.failed ? (
+                      <TouchableOpacity
+                        onPress={() => deliver(message._id, message.body)}
+                        accessibilityRole="button">
+                        <Text style={styles.failText}>Resend</Text>
+                      </TouchableOpacity>
+                    ) : null}
                   </View>
                   {mine ? (
                     <ChatAvatar uri={photo} label={myName || 'You'} mine />
@@ -397,7 +493,11 @@ export default function TicketChat() {
               </TouchableOpacity>
             </View>
           ) : (
-            <View style={[styles.composer, {paddingBottom: Math.max(insets.bottom, 10)}]}>
+            <View
+              style={[
+                styles.composer,
+                {paddingBottom: keyboardHeight > 0 ? 8 : Math.max(insets.bottom, 10)},
+              ]}>
               <TextInput
                 style={styles.input}
                 placeholder="Message the office"
@@ -418,7 +518,7 @@ export default function TicketChat() {
               </TouchableOpacity>
             </View>
           )}
-        </KeyboardAvoidingView>
+        </View>
       )}
 
       <Modal
@@ -591,6 +691,14 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
   },
+  avatarCover: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+  },
+  avatarPending: {
+    opacity: 0,
+  },
   avatarMine: {
     backgroundColor: PRIMARY,
   },
@@ -632,12 +740,27 @@ const styles = StyleSheet.create({
   bubbleTextMine: {
     color: '#FFFFFF',
   },
-  time: {
+  timeRow: {
     marginTop: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 6,
+  },
+  time: {
     fontFamily: fonts.euclidCircularA.regular,
     fontSize: 11,
     color: MUTED,
-    alignSelf: 'flex-end',
+  },
+  sendDot: {
+    transform: [{scale: 0.7}],
+  },
+  failText: {
+    marginTop: 4,
+    fontFamily: fonts.euclidCircularA.medium,
+    fontSize: 12,
+    color: '#C44548',
+    textAlign: 'right',
   },
   timeMine: {
     color: 'rgba(255,255,255,0.75)',

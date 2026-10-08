@@ -35,7 +35,10 @@ export function useChatList(role) {
     queryKey: chatKeys.list(role),
     queryFn: () => fetchChatList(role),
     enabled: Boolean(token),
-    refetchInterval: 45 * 1000,
+    staleTime: 60 * 1000,
+    // Badge polling — keep light; live updates come from the socket.
+    refetchInterval: 90 * 1000,
+    refetchOnMount: true,
   });
 }
 

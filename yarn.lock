@@ -2998,7 +2998,9 @@ __metadata:
     react: "npm:19.1.1"
     react-hook-form: "npm:^7.53.0"
     react-native: "npm:0.82.1"
+    react-native-blob-util: "npm:^0.25.1"
     react-native-calendar-picker: "npm:^8.0.1"
+    react-native-compressor: "npm:^2.0.3"
     react-native-dropdown-picker: "npm:^5.4.6"
     react-native-flash-message: "npm:^0.4.2"
     react-native-image-picker: "npm:^7.1.2"
@@ -3484,6 +3486,13 @@ __metadata:
   version: 4.0.4
   resolution: "balanced-match@npm:4.0.4"
   checksum: 10c0/07e86102a3eb2ee2a6a1a89164f29d0dbaebd28f2ca3f5ca786f36b8b23d9e417eb3be45a4acf754f837be5ac0a2317de90d3fcb7f4f4dc95720a1f36b26a17b
+  languageName: node
+  linkType: hard
+
+"base-64@npm:1.0.0":
+  version: 1.0.0
+  resolution: "base-64@npm:1.0.0"
+  checksum: 10c0/d886cb3236cee0bed9f7075675748b59b32fad623ddb8ce1793c790306aa0f76a03238cad4b3fb398abda6527ce08a5588388533a4ccade0b97e82b9da660e28
   languageName: node
   linkType: hard
 
@@ -8011,6 +8020,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-blob-util@npm:^0.25.1":
+  version: 0.25.1
+  resolution: "react-native-blob-util@npm:0.25.1"
+  dependencies:
+    base-64: "npm:1.0.0"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: 10c0/5e7591a55ee095297960d7b00359b17c587e1568884a5f598ee7d52e6939ca389925a4db0b1c60f5ae5f42848c0f5d16ccac1994623c5c41eb446c56a87f218d
+  languageName: node
+  linkType: hard
+
 "react-native-calendar-picker@npm:^8.0.1":
   version: 8.0.5
   resolution: "react-native-calendar-picker@npm:8.0.5"
@@ -8023,6 +8044,17 @@ __metadata:
     react: "*"
     react-native: "*"
   checksum: 10c0/278a2c44ab78fb488842f0cb4ccd3578106aca988fd029a1c5410552a11998f3a77286f2177ae5f67f7f74693a8a08f3d0a8421f7f181818a5fd25ab22f11dd2
+  languageName: node
+  linkType: hard
+
+"react-native-compressor@npm:^2.0.3":
+  version: 2.0.3
+  resolution: "react-native-compressor@npm:2.0.3"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+    react-native-nitro-modules: ">=0.35.0"
+  checksum: 10c0/910e9f1679aef8850298d01c17ebfaa4733f065fd195b6262ed27c7e897352fa08d3f7069d456f197a537f64cbf0ed1b02ad0a16d5629ec292b266fe74032ec3
   languageName: node
   linkType: hard
 

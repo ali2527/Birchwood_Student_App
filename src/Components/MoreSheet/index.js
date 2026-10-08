@@ -1,7 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   Animated,
-  Image,
   Modal,
   PanResponder,
   Pressable,
@@ -15,9 +14,8 @@ import {useDispatch} from 'react-redux';
 import Svg, {Path} from 'react-native-svg';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import fonts from '../../Assets/fonts';
-import profile_icon from '../../Assets/images/profile_bg.png';
+import Portrait from '../Portrait';
 import routes from '../../Navigation/routes';
-import {getImagePath} from '../../Service/axios';
 import {asyncSignOut} from '../../Stores/actions/user.action';
 import {asyncGetAppModules} from '../../Stores/actions/modules.action';
 import {useAppSelector} from '../../Stores/hooks';
@@ -64,7 +62,7 @@ const SUPPORT_ITEMS = [
 
 function MenuBody({
   parentName,
-  parentPhoto,
+  parentFile,
   schoolItems,
   renderRow,
   onLogout,
@@ -73,7 +71,7 @@ function MenuBody({
     <>
       <Text style={styles.kicker}>MORE</Text>
       <View style={styles.profileRow}>
-        <Image source={parentPhoto} style={styles.avatar} />
+        <Portrait file={parentFile} style={styles.avatar} />
         <View style={styles.profileCopy}>
           <Text style={styles.parentName} numberOfLines={1}>
             {parentName}
@@ -240,10 +238,7 @@ export default function MoreSheet({
     `${userProfile?.fatherFirstName || userProfile?.firstName || ''} ${
       userProfile?.fatherLastName || userProfile?.lastName || ''
     }`.trim() || 'Parent';
-  const parentPhoto =
-    userProfile?.fatherImage || userProfile?.image
-      ? {uri: getImagePath(userProfile.fatherImage || userProfile.image)}
-      : profile_icon;
+  const parentFile = userProfile?.fatherImage || userProfile?.image || '';
   const schoolItems = SCHOOL_ITEMS.filter(
     item => !item.module || modules[item.module] !== false,
   );
@@ -338,7 +333,7 @@ export default function MoreSheet({
 
   const menuProps = {
     parentName,
-    parentPhoto,
+    parentFile,
     schoolItems,
     renderRow,
     onLogout: () => {

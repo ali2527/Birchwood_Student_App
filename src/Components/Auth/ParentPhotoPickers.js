@@ -1,8 +1,10 @@
 import React from 'react';
-import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import ImageResizer from '@bam.tech/react-native-image-resizer';
 import {launchImageLibrary} from 'react-native-image-picker';
 import Icon from 'react-native-vector-icons/Feather';
 import fonts from '../../Assets/fonts';
+import Portrait from '../Portrait';
 
 export function pickParentPhoto() {
   return new Promise(resolve => {
@@ -12,7 +14,7 @@ export function pickParentPhoto() {
         quality: 0.8,
         selectionLimit: 1,
       },
-      response => {
+      async response => {
         if (response?.didCancel || response?.errorCode) {
           resolve(null);
           return;
@@ -22,10 +24,27 @@ export function pickParentPhoto() {
           resolve(null);
           return;
         }
+        let uri = asset.uri;
+        try {
+          const resized = await ImageResizer.createResizedImage(
+            asset.uri,
+            720,
+            720,
+            'JPEG',
+            72,
+            0,
+            undefined,
+            false,
+            {mode: 'contain', onlyScaleDown: true},
+          );
+          uri = resized?.uri || resized?.path || uri;
+        } catch {
+          // keep the original if it cannot be scaled down
+        }
         resolve({
-          uri: asset.uri,
-          name: asset.fileName || `parent-${Date.now()}.jpg`,
-          type: asset.type || 'image/jpeg',
+          uri,
+          name: `parent-${Date.now()}.jpg`,
+          type: 'image/jpeg',
         });
       },
     );
@@ -48,7 +67,7 @@ function PhotoSlot({label, uri, onPress}) {
     <TouchableOpacity style={styles.slot} onPress={onPress} activeOpacity={0.8}>
       <View style={styles.circle}>
         {uri ? (
-          <Image source={{uri}} style={styles.image} />
+          <Portrait file={uri} style={styles.image} />
         ) : (
           <Icon name="camera" size={28} color="#9AA3AF" />
         )}

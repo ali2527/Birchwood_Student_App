@@ -1,6 +1,5 @@
 import React, {useMemo, useState} from 'react';
 import {
-  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -19,7 +18,7 @@ import {
   pickParentPhoto,
 } from '../../Components/Auth/ParentPhotoPickers';
 import fonts from '../../Assets/fonts';
-import profile_icon from '../../Assets/images/profile_bg.png';
+import Portrait from '../../Components/Portrait';
 import {getImagePath} from '../../Service/axios';
 import {asyncUpdateChildHealth} from '../../Stores/actions/user.action';
 import {useAppDispatch, useAppSelector} from '../../Stores/hooks';
@@ -105,7 +104,12 @@ export default function EditChild() {
         appendParentPhoto(data, 'image', photo);
         body = data;
       }
-      const result = await dispatch(asyncUpdateChildHealth(body));
+      const result = await dispatch(
+        asyncUpdateChildHealth({
+          body,
+          previews: isLocalPhoto(photo) ? {image: photo.uri} : {},
+        }),
+      );
       if (
         result.type === 'updateChildHealth/fulfilled' &&
         result.payload?.status
@@ -145,10 +149,7 @@ export default function EditChild() {
             }}
             activeOpacity={0.85}>
             <View style={styles.photoWrap}>
-              <Image
-                source={photo?.uri ? {uri: photo.uri} : profile_icon}
-                style={styles.photo}
-              />
+              <Portrait file={photo?.uri || child?.image} style={styles.photo} />
               <View style={styles.photoBadge}>
                 <Ionicons name="camera" size={14} color="#FFFFFF" />
               </View>

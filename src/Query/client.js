@@ -19,10 +19,13 @@ function isAuthError(error) {
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 20 * 1000,
+      staleTime: 45 * 1000,
       gcTime: 10 * 60 * 1000,
       retry: (count, error) => (isAuthError(error) ? false : count < 1),
+      // RN focus flips (alerts, debugger, modals) were refetching every query.
+      refetchOnWindowFocus: false,
       refetchOnReconnect: true,
+      refetchOnMount: false,
     },
     mutations: {
       retry: false,

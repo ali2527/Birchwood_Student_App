@@ -87,6 +87,31 @@ if(NOT "${NEW_GLOB}" STREQUAL "${OLD_GLOB}")
   file(TOUCH_NOCREATE "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/android/app/.cxx/Debug/3wk5c5e3/arm64-v8a/CMakeFiles/cmake.verify_globs")
 endif()
 
+# react_codegen_SRCS at /Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-blob-util/android/build/generated/source/codegen/jni/CMakeLists.txt:9 (file)
+file(GLOB NEW_GLOB LIST_DIRECTORIES true "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-blob-util/android/build/generated/source/codegen/jni/*.cpp")
+set(OLD_GLOB
+  "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-blob-util/android/build/generated/source/codegen/jni/ReactNativeBlobUtilSpec-generated.cpp"
+  )
+if(NOT "${NEW_GLOB}" STREQUAL "${OLD_GLOB}")
+  message("-- GLOB mismatch!")
+  file(TOUCH_NOCREATE "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/android/app/.cxx/Debug/3wk5c5e3/arm64-v8a/CMakeFiles/cmake.verify_globs")
+endif()
+
+# react_codegen_SRCS at /Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-blob-util/android/build/generated/source/codegen/jni/CMakeLists.txt:9 (file)
+file(GLOB NEW_GLOB LIST_DIRECTORIES true "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-blob-util/android/build/generated/source/codegen/jni/react/renderer/components/ReactNativeBlobUtilSpec/*.cpp")
+set(OLD_GLOB
+  "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-blob-util/android/build/generated/source/codegen/jni/react/renderer/components/ReactNativeBlobUtilSpec/ComponentDescriptors.cpp"
+  "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-blob-util/android/build/generated/source/codegen/jni/react/renderer/components/ReactNativeBlobUtilSpec/EventEmitters.cpp"
+  "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-blob-util/android/build/generated/source/codegen/jni/react/renderer/components/ReactNativeBlobUtilSpec/Props.cpp"
+  "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-blob-util/android/build/generated/source/codegen/jni/react/renderer/components/ReactNativeBlobUtilSpec/ReactNativeBlobUtilSpecJSI-generated.cpp"
+  "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-blob-util/android/build/generated/source/codegen/jni/react/renderer/components/ReactNativeBlobUtilSpec/ShadowNodes.cpp"
+  "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-blob-util/android/build/generated/source/codegen/jni/react/renderer/components/ReactNativeBlobUtilSpec/States.cpp"
+  )
+if(NOT "${NEW_GLOB}" STREQUAL "${OLD_GLOB}")
+  message("-- GLOB mismatch!")
+  file(TOUCH_NOCREATE "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/android/app/.cxx/Debug/3wk5c5e3/arm64-v8a/CMakeFiles/cmake.verify_globs")
+endif()
+
 # react_codegen_SRCS at /Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-image-picker/android/build/generated/source/codegen/jni/CMakeLists.txt:9 (file)
 file(GLOB NEW_GLOB LIST_DIRECTORIES true "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-image-picker/android/build/generated/source/codegen/jni/*.cpp")
 set(OLD_GLOB

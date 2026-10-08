@@ -3,7 +3,6 @@ import {
   Animated,
   Easing,
   FlatList,
-  Image,
   Modal,
   PanResponder,
   Pressable,
@@ -15,10 +14,9 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useNavigation} from '@react-navigation/native';
 import Svg, {Circle, Path} from 'react-native-svg';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import profile_icon from '../../Assets/images/profile_bg.png';
 import {HILL_H, raisedBarPath} from '../AppFooter/shape';
+import Portrait from '../Portrait';
 import StudentSheetBody from '../StudentSheetBody';
-import {getImagePath} from '../../Service/axios';
 import {HEIGHT, WIDTH} from '../../theme/units';
 import {setDrawerOpener} from '../../Utils/openPageDrawer';
 import {attendanceDotColor} from '../../Screens/DailyAttendance/status';
@@ -28,10 +26,6 @@ const PRIMARY = '#035392';
 const SIZE = 44;
 const SHEET = '#FFFFFF';
 const SHEET_H = Math.round(HEIGHT * 0.4);
-
-function photoOf(child) {
-  return child?.image ? {uri: getImagePath(child.image)} : profile_icon;
-}
 
 function EmptyAvatar({onPress}) {
   return (
@@ -398,7 +392,7 @@ export default function ChildSwitcher({
                 style={styles.page}
                 accessibilityRole="button"
                 accessibilityLabel="Open child list">
-                <Image source={photoOf(item.child)} style={styles.avatar} />
+                <Portrait file={item.child?.image} style={styles.avatar} />
               </Pressable>
             )}
           />

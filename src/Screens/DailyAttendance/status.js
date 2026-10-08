@@ -25,6 +25,27 @@ export function attendanceDotColor(child) {
   }
 }
 
+const DONE_OR_AWAY = new Set([
+  'ABSENT',
+  'LEAVE',
+  'PICKED_UP',
+  'EARLY_PICKUP',
+  'WEEKEND',
+  'HOLIDAY',
+]);
+
+/** Absent / leave / already picked-up children are never prompted for pickup. */
+export function needsPickupPrompt(child) {
+  if (!child || child.todayPrompt !== 'PICKUP') {
+    return false;
+  }
+  return !DONE_OR_AWAY.has(child.todayStatus);
+}
+
+export function needsCheckInPrompt(child) {
+  return child?.todayPrompt === 'CHECKIN';
+}
+
 export function attendanceStatusLabel(child) {
   const time = clock(child?.todayCheckIn);
   const pickup = clock(child?.todayCheckOut);

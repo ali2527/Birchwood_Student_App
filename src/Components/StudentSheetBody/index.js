@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -10,8 +9,7 @@ import {
 import Svg, {Circle} from 'react-native-svg';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import fonts from '../../Assets/fonts';
-import profile_icon from '../../Assets/images/profile_bg.png';
-import {getImagePath} from '../../Service/axios';
+import Portrait from '../Portrait';
 import {attendanceDotColor} from '../../Screens/DailyAttendance/status';
 
 export const STUDENT_SHEET = {
@@ -39,10 +37,6 @@ function classroomLabel(classroom) {
 
 function childName(child) {
   return `${child?.firstName || ''} ${child?.lastName || ''}`.trim() || 'Child';
-}
-
-function photoSource(child) {
-  return child?.image ? {uri: getImagePath(child.image)} : profile_icon;
 }
 
 const ADD_SIZE = 36;
@@ -157,7 +151,7 @@ export default function StudentSheetBody({
                 <View
                   style={[styles.taskCard, selected && styles.taskCardSelected]}>
                   <View style={styles.avatarWrap}>
-                    <Image source={photoSource(child)} style={styles.avatar} />
+                    <Portrait file={child?.image} style={styles.avatar} />
                     <View style={[styles.avatarRing, {borderColor: accent}]} />
                     <View
                       style={[

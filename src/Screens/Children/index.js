@@ -1,7 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   Animated,
-  Image,
   PanResponder,
   ScrollView,
   StatusBar,
@@ -18,11 +17,10 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import Svg, {Path} from 'react-native-svg';
 import moment from 'moment';
 import fonts from '../../Assets/fonts';
-import profile_icon from '../../Assets/images/profile_bg.png';
 import {HILL_H, raisedBarPath} from '../../Components/AppFooter/shape';
+import Portrait from '../../Components/Portrait';
 import StudentSheetBody from '../../Components/StudentSheetBody';
 import routes from '../../Navigation/routes';
-import {getImagePath} from '../../Service/axios';
 import {asyncGetAllMyChildren} from '../../Stores/actions/user.action';
 import {attendanceDotColor, attendanceStatusLabel} from '../DailyAttendance/status';
 import {useAppSelector} from '../../Stores/hooks';
@@ -82,15 +80,6 @@ function InfoRow({label, value, last}) {
       <Text style={styles.infoValue}>{value || '—'}</Text>
     </View>
   );
-}
-
-function photoSource(child) {
-  try {
-    const uri = child?.image ? getImagePath(child.image) : '';
-    return uri ? {uri} : profile_icon;
-  } catch {
-    return profile_icon;
-  }
 }
 
 export default function Children() {
@@ -332,7 +321,7 @@ export default function Children() {
           {active ? (
             <View style={styles.hero}>
               <View style={styles.heroPhotoWrap}>
-                <Image source={photoSource(active)} style={styles.heroPhoto} />
+                <Portrait file={active?.image} style={styles.heroPhoto} />
                 <View
                   style={[
                     styles.onlineDot,

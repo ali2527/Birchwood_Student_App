@@ -19,6 +19,21 @@ export const APP_URL = USE_LOCAL_API
 export const IMG_URL = APP_URL + 'uploads/';
 export const BASE_URL = APP_URL + 'api/';
 
+// Local file the user just saved, keyed by the server filename. Shows that
+// photo immediately while the uploaded file is still a network URL.
+const localPreviewByName = new Map<string, string>();
+
+export function pinLocalPreview(remoteName?: string, localUri?: string) {
+  const remote = String(remoteName || '').trim();
+  const local = String(localUri || '').trim();
+  if (!remote || !local) {
+    return;
+  }
+  const fileName = remote.replace(/\\/g, '/').split('/').filter(Boolean).pop() || remote;
+  localPreviewByName.set(remote, local);
+  localPreviewByName.set(fileName, local);
+}
+
 export const getImagePath = (str: string) => {
   if (str == null || str === '') {
     return '';
@@ -26,6 +41,10 @@ export const getImagePath = (str: string) => {
   const value = String(str).trim();
   if (!value || value === 'undefined' || value === 'null') {
     return '';
+  }
+  const pinned = localPreviewByName.get(value);
+  if (pinned) {
+    return pinned;
   }
   if (
     /^https?:\/\//i.test(value) ||
@@ -35,6 +54,9 @@ export const getImagePath = (str: string) => {
     return value;
   }
   const name = value.replace(/\\/g, '/').split('/').filter(Boolean).pop();
+  if (name && localPreviewByName.get(name)) {
+    return localPreviewByName.get(name) as string;
+  }
   return name ? IMG_URL + name : '';
 };
 
@@ -56,12 +78,13 @@ const dump = (value: unknown) => {
 
 const attachApiLogs = (instance: ReturnType<typeof ax.create>) => {
   instance.interceptors.request.use(config => {
-    console.log(
-      '[API request]',
-      (config.method || 'GET').toUpperCase(),
-      `${config.baseURL || ''}${config.url || ''}`,
-      dump(config.data),
-    );
+    const url = `${config.baseURL || ''}${config.url || ''}`;
+    const method = (config.method || 'GET').toUpperCase();
+    if (config.data === undefined || config.data === null || config.data === '') {
+      console.log('[API request]', method, url);
+    } else {
+      console.log('[API request]', method, url, dump(config.data));
+    }
     return config;
   });
   instance.interceptors.response.use(

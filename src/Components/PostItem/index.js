@@ -26,6 +26,7 @@ import profile_icon from '../../Assets/images/profile_bg.png';
 import routes from '../../Navigation/routes';
 import {getImagePath} from '../../Service/axios';
 import AppVideoPlayer from '../AppVideoPlayer';
+import VideoFrame from '../VideoFrame';
 import {createPostComment, likePost, usePostComments} from '../../Query/posts';
 import {useAppSelector} from '../../Stores/hooks';
 import {selectUserProfile} from '../../Stores/slices/user.slice';
@@ -210,18 +211,16 @@ function MediaTile({
         <TouchableOpacity
           activeOpacity={0.92}
           onPress={onPress}
-          style={StyleSheet.absoluteFill}>
+          style={styles.tilePress}>
           {showPlay ? (
-            <View style={styles.videoTile}>
+            <View style={styles.videoTile} pointerEvents="none">
               {posterUri ? (
-                <Image
-                  source={{uri: posterUri}}
-                  style={styles.tileImage}
-                  resizeMode="cover"
-                />
-              ) : null}
+                <Image source={{uri: posterUri}} style={StyleSheet.absoluteFill} resizeMode="cover" />
+              ) : (
+                <VideoFrame uri={uri} />
+              )}
               <View style={styles.playBadge}>
-                <Ionicons name="play" size={20} color="#FFFFFF" />
+                <Ionicons name="play" size={22} color="#FFFFFF" />
               </View>
             </View>
           ) : (
@@ -1047,6 +1046,9 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     position: 'relative',
   },
+  tilePress: {
+    ...StyleSheet.absoluteFillObject,
+  },
   tileImage: {
     width: '100%',
     height: '100%',
@@ -1060,14 +1062,14 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   playBadge: {
-    position: 'absolute',
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(15,31,75,0.55)',
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: 'rgba(15,31,75,0.72)',
     alignItems: 'center',
     justifyContent: 'center',
     paddingLeft: 3,
+    zIndex: 2,
   },
   moreOverlay: {
     ...StyleSheet.absoluteFillObject,

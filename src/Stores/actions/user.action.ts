@@ -1,6 +1,8 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { callApi } from '../../Service/api';
 import { allApiPaths, ApiPaths } from '../../Service/apiPaths';
+import { pinLocalPreview } from '../../Service/axios';
+import { warmPortrait, warmPortraits } from '../../Utils/portraitCache';
 import {
   ChangePasswordPayload,
   EmailVerificationPayload,
@@ -36,6 +38,59 @@ import {
 import { asyncShowError, asyncShowSuccess } from './common.action';
 import { persistAuthSession } from '../index';
 import type { RootState } from '../index';
+
+let profileFetchGen = 0;
+let childrenFetchGen = 0;
+
+function isFormBody(data: unknown): data is FormData {
+  return (
+    typeof FormData !== 'undefined' &&
+    !!data &&
+    typeof (data as FormData).append === 'function'
+  );
+}
+
+function readUpdate(data: any): { body: any; previews: Record<string, string> } {
+  if (
+    data &&
+    typeof data === 'object' &&
+    !isFormBody(data) &&
+    'body' in data &&
+    data.previews &&
+    typeof data.previews === 'object'
+  ) {
+    return { body: data.body, previews: data.previews };
+  }
+  return { body: data, previews: {} };
+}
+
+function pinSavedPhotos(saved: Record<string, any> | undefined, previews: Record<string, string>) {
+  if (!saved) {
+    return;
+  }
+  Object.keys(previews).forEach(key => {
+    pinLocalPreview(saved[key], previews[key]);
+  });
+  if (previews.fatherImage) {
+    pinLocalPreview(saved.image, previews.fatherImage);
+  }
+}
+
+function mergeSavedChild(current: any, incoming: any) {
+  if (!incoming) {
+    return current;
+  }
+  const next = { ...(current || {}), ...incoming };
+  ['todayAttendance', 'todayStatus', 'todayCheckIn', 'todayCheckOut', 'todayPrompt', 'checkIn', 'attendanceDot', 'earlyPickup'].forEach(key => {
+    if (incoming[key] == null && current?.[key] != null) {
+      next[key] = current[key];
+    }
+  });
+  if (!(incoming.classroom && typeof incoming.classroom === 'object') && current?.classroom) {
+    next.classroom = current.classroom;
+  }
+  return next;
+}
 
 export const asyncLogin = createAsyncThunk(
   'login',
@@ -211,10 +266,16 @@ export const asyncChangePassword = createAsyncThunk(
 export const asyncGetUserProfile = createAsyncThunk(
   'profile/get',
   async (_, { dispatch }) => {
+    const gen = profileFetchGen;
     dispatch(setLoading(true));
     const res = await callApi<User>({
       path: allApiPaths.getPath('profile'),
     });
+
+    if (gen !== profileFetchGen) {
+      dispatch(setLoading(false));
+      return res;
+    }
 
     if (!res.status) {
       dispatch(asyncShowError(res.message));
@@ -228,6 +289,8 @@ export const asyncGetUserProfile = createAsyncThunk(
           lastName: teacher.fatherLastName || teacher.lastName || '',
         };
         dispatch(setUser(userData));
+        warmPortrait(userData.fatherImage || userData.image);
+        warmPortrait(userData.motherImage);
       }
     }
 
@@ -240,14 +303,24 @@ export const asyncGetAllMyChildren = createAsyncThunk(
   'profile/getAllMyChildren',
   async (options: { silent?: boolean } | undefined, { dispatch, getState }) => {
     const silent = options?.silent === true;
+    const gen = childrenFetchGen;
     if (!silent) {
       dispatch(setLoading(true));
     }
     const res = await callApi<ClassResponse | Child[] | { children?: Child[] }>({
       path: allApiPaths.getPath('getAllMyChildren'),
     });
+    if (gen !== childrenFetchGen) {
+      if (!silent) {
+        dispatch(setLoading(false));
+      }
+      return res;
+    }
     if (!res.status) {
-      dispatch(asyncShowError(res.message));
+      // Background refreshes should not toast — Home also auto-opens attendance from roster data.
+      if (!silent) {
+        dispatch(asyncShowError(res.message));
+      }
     } else {
       const payload = (res.data ?? res) as any;
       const docs: Child[] = Array.isArray(payload)
@@ -259,6 +332,7 @@ export const asyncGetAllMyChildren = createAsyncThunk(
             : [];
 
       dispatch(setChildren({ docs } as ClassResponse));
+      warmPortraits(docs.map(child => child?.image));
 
       const current = (getState() as RootState).class.selectedChild;
       const next =
@@ -277,32 +351,31 @@ export const asyncUpdateProfile = createAsyncThunk(
   'updateProfile',
   async (data: FormData | Record<string, any>, { dispatch }) => {
     dispatch(setLoading(true));
-
-    // Check if data is FormData (for image upload) or regular object (for profile update)
-    const isFormData =
-      typeof FormData !== 'undefined' &&
-      !!data &&
-      typeof (data as FormData).append === 'function';
+    const { body, previews } = readUpdate(data);
+    const isFormData = isFormBody(body);
 
     const res = await callApi<User, FormData | Record<string, any>>({
       method: 'POST',
       path: allApiPaths.getPath('updateProfile'),
       isFormData: isFormData,
-      body: data,
+      body,
     });
 
     if (!res?.status) {
       dispatch(asyncShowError(res.message));
     } else {
       if (res.data) {
-        // Map API response fields to User type
+        profileFetchGen += 1;
         const responseData = res.data as any;
+        pinSavedPhotos(responseData, previews);
         const userData = {
           ...responseData,
           firstName: responseData.fatherFirstName || responseData.firstName || '',
           lastName: responseData.fatherLastName || responseData.lastName || '',
         };
         dispatch(setUser(userData));
+        warmPortrait(userData.fatherImage || userData.image);
+        warmPortrait(userData.motherImage);
       }
       dispatch(asyncShowSuccess(res.message));
     }
@@ -831,26 +904,42 @@ export const asyncUpdateChildHealth = createAsyncThunk(
           fears?: string;
           conditions?: string;
           summary?: string;
+        }
+      | {
+          body: FormData | Record<string, any>;
+          previews?: Record<string, string>;
         },
-    { dispatch },
+    { dispatch, getState },
   ) => {
     dispatch(setLoading(true));
-    const isFormData =
-      typeof FormData !== 'undefined' &&
-      typeof (data as FormData).append === 'function';
+    const { body, previews } = readUpdate(data);
+    const isFormData = isFormBody(body);
     try {
       const res = await callApi<{ child: Child }, typeof data>({
         method: 'POST',
         path: allApiPaths.getPath('updateChildHealth'),
-        body: data,
+        body,
         isFormData,
       });
 
       if (!res?.status) {
         dispatch(asyncShowError(res.message));
       } else if (res.data?.child) {
-        dispatch(setChild(res.data.child));
-        dispatch(setSelectedChild(res.data.child));
+        childrenFetchGen += 1;
+        const incoming = res.data.child as any;
+        pinSavedPhotos(incoming, previews);
+        const state = getState() as RootState;
+        const kids = state.class.children || {};
+        const current =
+          kids['child_' + incoming._id] ||
+          Object.values(kids).find(child => child && child._id === incoming._id) ||
+          (state.class.selectedChild?._id === incoming._id ? state.class.selectedChild : null);
+        const merged = mergeSavedChild(current, incoming);
+        dispatch(setChild(merged));
+        warmPortrait(merged?.image);
+        if (!state.class.selectedChild || state.class.selectedChild._id === merged._id) {
+          dispatch(setSelectedChild(merged));
+        }
         dispatch(asyncShowSuccess(res.message || 'Student updated'));
       }
       return res;

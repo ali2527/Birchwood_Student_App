@@ -78,6 +78,55 @@
         }
       }
     },
+    "react-native-blob-util": {
+      "root": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-blob-util",
+      "name": "react-native-blob-util",
+      "platforms": {
+        "ios": {
+          "podspecPath": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-blob-util/react-native-blob-util.podspec",
+          "version": "0.25.1",
+          "configurations": [],
+          "scriptPhases": []
+        },
+        "android": {
+          "sourceDir": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-blob-util/android",
+          "packageImportPath": "import com.ReactNativeBlobUtil.ReactNativeBlobUtilPackage;",
+          "packageInstance": "new ReactNativeBlobUtilPackage()",
+          "buildTypes": [],
+          "libraryName": "ReactNativeBlobUtilSpec",
+          "componentDescriptors": [],
+          "cmakeListsPath": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-blob-util/android/build/generated/source/codegen/jni/CMakeLists.txt",
+          "cxxModuleCMakeListsModuleName": null,
+          "cxxModuleCMakeListsPath": null,
+          "cxxModuleHeaderName": null,
+          "isPureCxxDependency": false
+        }
+      }
+    },
+    "react-native-compressor": {
+      "root": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-compressor",
+      "name": "react-native-compressor",
+      "platforms": {
+        "ios": {
+          "podspecPath": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-compressor/react-native-compressor.podspec",
+          "version": "2.0.3",
+          "configurations": [],
+          "scriptPhases": []
+        },
+        "android": {
+          "sourceDir": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-compressor/android",
+          "packageImportPath": "import com.reactnativecompressor.NitroCompressorPackage;",
+          "packageInstance": "new NitroCompressorPackage()",
+          "buildTypes": [],
+          "componentDescriptors": [],
+          "cmakeListsPath": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-compressor/android/build/generated/source/codegen/jni/CMakeLists.txt",
+          "cxxModuleCMakeListsModuleName": null,
+          "cxxModuleCMakeListsPath": null,
+          "cxxModuleHeaderName": null,
+          "isPureCxxDependency": false
+        }
+      }
+    },
     "react-native-image-picker": {
       "root": "/Users/abdullahansari/Desktop/Apps/Test /Birchwood_Student_App/node_modules/react-native-image-picker",
       "name": "react-native-image-picker",

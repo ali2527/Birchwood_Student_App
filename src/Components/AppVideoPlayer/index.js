@@ -50,16 +50,18 @@ export default function AppVideoPlayer({
   const video = (
     <>
       <Video
-        source={{uri}}
+        source={{uri, type: 'mp4'}}
         style={inline ? styles.inlineVideo : styles.video}
         controls
-        resizeMode={inline ? 'contain' : resizeMode}
+        resizeMode={inline ? 'cover' : resizeMode}
         poster={poster || undefined}
-        posterResizeMode={inline ? 'contain' : 'contain'}
+        posterResizeMode={inline ? 'cover' : 'contain'}
         paused={false}
         playInBackground={false}
         playWhenInactive={false}
         ignoreSilentSwitch="ignore"
+        useTextureView
+        shutterColor="#0B1220"
         progressUpdateInterval={500}
         bufferConfig={STREAM_BUFFER}
         preferredForwardBufferDuration={4}
@@ -72,7 +74,7 @@ export default function AppVideoPlayer({
         onBuffer={({isBuffering}) => setBuffering(!!isBuffering)}
         onError={e => {
           setBuffering(false);
-          setError(e?.error?.errorString || 'Unable to play this video');
+          setError('Could not play this video. Check your connection and try again.');
         }}
         onEnd={() => {
           onEnd?.();

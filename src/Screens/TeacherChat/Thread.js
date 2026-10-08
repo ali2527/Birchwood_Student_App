@@ -26,7 +26,14 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import {EmojiKeyboard} from 'rn-emoji-keyboard';
 import moment from 'moment';
 import fonts from '../../Assets/fonts';
-import ChatLibrary, {ChatDocument, ChatPhoto, ChatVoice, isChatAudio, isChatImage} from '../../Components/ChatLibrary';
+import ChatLibrary, {
+  ChatDocument,
+  ChatPhoto,
+  ChatVoice,
+  isAttachmentGone,
+  isChatAudio,
+  isChatImage,
+} from '../../Components/ChatLibrary';
 import SmallDialog from '../../Components/SmallDialog';
 import {callApi} from '../../Service/api';
 import {allApiPaths} from '../../Service/apiPaths';
@@ -51,6 +58,7 @@ import {queryClient} from '../../Query/client';
 import {startVoice, stopVoice, takeVoiceWave, voiceUpload} from '../../Utils/voiceNote';
 import {errorCodes, isErrorWithCode, keepLocalCopy, pick, types} from '@react-native-documents/picker';
 import {useChatDownloads} from '../../Utils/chatDownloads';
+import {cachedPortrait, subscribePortraits, warmPortrait} from '../../Utils/portraitCache';
 import {ensureCameraPermission, ensureGalleryPermission} from '../../Utils/mediaPermissions';
 import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
 
@@ -152,29 +160,46 @@ export function photoUri(person) {
 }
 
 export function Avatar({uri, label, size = 48}) {
-  const initials = String(label || '?')
+  const letters = String(label || '?')
     .split(' ')
     .filter(Boolean)
     .slice(0, 2)
     .map(part => part.charAt(0).toUpperCase())
     .join('');
-  if (uri) {
-    return (
-      <Image
-        source={{uri}}
-        style={{width: size, height: size, borderRadius: size / 2}}
-      />
-    );
-  }
+  const [, setTick] = useState(0);
+  const [ready, setReady] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const thumb = cachedPortrait(uri);
+  const source = thumb || uri;
+  const box = {width: size, height: size, borderRadius: size / 2};
+
+  useEffect(() => subscribePortraits(() => setTick(tick => tick + 1)), []);
+
+  useEffect(() => {
+    warmPortrait(uri);
+  }, [uri]);
+
+  useEffect(() => {
+    setReady(false);
+    setFailed(false);
+  }, [uri]);
+
   return (
-    <View
-      style={[
-        styles.avatarFallback,
-        {width: size, height: size, borderRadius: size / 2},
-      ]}>
+    <View style={[styles.avatarFallback, box]}>
       <Text style={[styles.avatarInitials, size < 40 && {fontSize: 12}]}>
-        {initials || '?'}
+        {letters || '?'}
       </Text>
+      {source && !failed ? (
+        <Image
+          source={{uri: source, cache: 'force-cache'}}
+          fadeDuration={0}
+          style={[box, styles.avatarPhoto, ready ? null : styles.avatarPending]}
+          onLoad={() => setReady(true)}
+          onError={() => {
+            if (!thumb) setFailed(true);
+          }}
+        />
+      ) : null}
     </View>
   );
 }
@@ -353,7 +378,18 @@ export default function TeacherChatThread() {
   const [threadReady, setThreadReady] = useState(false);
   const threadReadyRef = useRef(false);
   const sawMessageLoad = useRef(false);
-  const {downloading, downloadFile, finishDownload, forgetDownload, isSaved} = useChatDownloads();
+  const {
+    downloading,
+    downloadFile,
+    finishDownload,
+    ready: downloadsReady,
+    forgetDownload,
+    releaseLocalPath,
+    markMissing,
+    isSaved,
+    isMissing,
+    localUri,
+  } = useChatDownloads();
   const [activeChat, setActiveChat] = useState(initialChatId);
   const messagesQuery = useChatMessages(activeChat);
   const messages = Array.isArray(messagesQuery.data) ? messagesQuery.data : [];
@@ -554,13 +590,17 @@ export default function TeacherChatThread() {
         return;
       }
       if (record.deletedForEveryone) {
-        setMessages(prev =>
-          prev.map(item =>
+        setMessages(prev => {
+          const existing = prev.find(item => item?._id === record._id);
+          if (existing?.attachment?.file) {
+            forgetDownload(existing.attachment.file);
+          }
+          return prev.map(item =>
             item?._id === record._id
               ? {...item, content: '', deletedForEveryone: true, attachment: undefined}
               : item,
-          ),
-        );
+          );
+        });
       }
     };
     socket.on('connect', join);
@@ -576,7 +616,7 @@ export default function TeacherChatThread() {
       socket.off('chat:typing', onTyping);
       setPeerTyping('');
     };
-  }, [activeChat, dispatch, stopTyping, token, userProfile?._id]);
+  }, [activeChat, dispatch, forgetDownload, stopTyping, token, userProfile?._id]);
 
   const canDeleteForEveryone = Boolean(
     menuMessage?._id && ownsMessage(menuMessage, userProfile?._id, 'parent'),
@@ -612,6 +652,10 @@ export default function TeacherChatThread() {
         dispatch(asyncShowError(res?.message || 'Could not delete message'));
         return;
       }
+      const attachmentFile = menuMessage?.attachment?.file;
+      if (attachmentFile) {
+        forgetDownload(attachmentFile);
+      }
       if (confirmDelete === 'me') {
         setMessages(prev => prev.filter(item => item?._id !== menuMessage._id));
       } else {
@@ -637,7 +681,9 @@ export default function TeacherChatThread() {
         : items;
     if (!allowed.length) return false;
     const ids = allowed.map(item => item._id || item.id).filter(Boolean);
-    for (const messageId of ids) {
+    for (const item of allowed) {
+      const messageId = item._id || item.id;
+      if (!messageId) continue;
       const res = await callApi({
         method: 'POST',
         path: allApiPaths.getPath('deleteChatMessage'),
@@ -646,6 +692,9 @@ export default function TeacherChatThread() {
       if (!res?.status) {
         dispatch(asyncShowError(res?.message || 'Could not delete'));
         return false;
+      }
+      if (item.attachment?.file) {
+        forgetDownload(item.attachment.file);
       }
     }
     const idSet = new Set(ids);
@@ -708,7 +757,11 @@ export default function TeacherChatThread() {
     try {
       const shared = {
         mediaType: 'photo',
-        quality: 1,
+        quality: 0.85,
+        maxWidth: 1600,
+        maxHeight: 1600,
+        // Android JS often cannot read camera/gallery file:// URIs — base64 is reliable.
+        includeBase64: Platform.OS === 'android',
         presentationStyle: 'fullScreen',
       };
       picked = fromCamera
@@ -740,7 +793,7 @@ export default function TeacherChatThread() {
     }
     const asset = picked?.assets?.[0];
     const photoUri = normalizeFileUri(asset?.uri || asset?.originalPath);
-    if (!photoUri) return;
+    if (!photoUri && !asset?.base64) return;
     queueOutgoing({
       _id: `local-${Date.now()}`,
       local: true,
@@ -748,9 +801,11 @@ export default function TeacherChatThread() {
       senderType: 'parent',
       createdAt: new Date().toISOString(),
       attachment: {
-        file: photoUri,
+        file: photoUri || 'photo.jpg',
         name: asset.fileName || 'photo.jpg',
         mime: asset.type || 'image/jpeg',
+        size: Number(asset.fileSize) || 0,
+        base64: asset.base64 || undefined,
         duration: 0,
         local: true,
       },
@@ -764,6 +819,8 @@ export default function TeacherChatThread() {
       uri: item.attachment.file,
       name: item.attachment.name,
       type: item.attachment.mime,
+      size: item.attachment.size,
+      base64: item.attachment.base64,
       duration: item.attachment.duration,
       waveform: item.attachment.waveform,
     })
@@ -787,14 +844,22 @@ export default function TeacherChatThread() {
 
   const openDocument = async (file, own) => {
     if (!file) return;
-    try {
-      if (!isSaved(file, own)) {
+    if (!isSaved(file, own)) {
+      try {
         await downloadFile(file);
-        finishDownload(file);
+      } catch (error) {
+        markMissing(file);
+        dispatch(asyncShowError('This file no longer exists on the server.'));
       }
-      await Linking.openURL(getImagePath(file));
+      return;
+    }
+    try {
+      const savedUri = localUri(file);
+      const target =
+        savedUri && /^file:/i.test(savedUri) ? savedUri : getImagePath(file);
+      await Linking.openURL(target);
     } catch (error) {
-      dispatch(asyncShowError('Could not open the document'));
+      dispatch(asyncShowError('Could not open this file.'));
     }
   };
 
@@ -806,6 +871,11 @@ export default function TeacherChatThread() {
         type: [types.pdf, types.doc, types.docx, types.plainText, types.xls, types.xlsx, types.ppt, types.pptx],
       });
       if (!file?.uri) return;
+      const knownSize = Number(file.size) || 0;
+      if (knownSize > 2 * 1024 * 1024) {
+        dispatch(asyncShowError('Keep the document under 2 MB.'));
+        return;
+      }
       // v12 picker returns content:// on Android — copy into app cache before upload.
       const [local] = await keepLocalCopy({
         files: [
@@ -820,30 +890,33 @@ export default function TeacherChatThread() {
         destination: 'cachesDirectory',
       });
       if (local?.status !== 'success' || !local.localUri) {
-        dispatch(asyncShowError(local?.copyError || 'Could not read the file'));
+        dispatch(
+          asyncShowError(
+            local?.copyError || "Couldn't open that document. Try another file.",
+          ),
+        );
         return;
       }
       const uri = normalizeFileUri(local.localUri);
       if (!uri) {
-        dispatch(asyncShowError('Could not read the file'));
+        dispatch(asyncShowError("Couldn't open that document. Try another file."));
         return;
       }
-      setSendingPhoto(true);
-      const saved = await uploadChatFile(String(activeChat), {
-        uri,
-        name: file.name || undefined,
-        type: file.type || undefined,
+      queueOutgoing({
+        _id: `local-${Date.now()}`,
+        local: true,
+        status: 'sending',
+        senderType: 'parent',
+        createdAt: new Date().toISOString(),
+        attachment: {
+          file: uri,
+          name: file.name || 'document',
+          mime: file.type || 'application/octet-stream',
+          size: knownSize || 0,
+          duration: 0,
+          local: true,
+        },
       });
-      if (saved?._id) {
-        applyIncomingChatMessage('parent', {
-          ...saved,
-          chat: String(activeChat),
-          senderType: saved.senderType || 'parent',
-        });
-        scrollToLatest();
-      } else {
-        dispatch(asyncShowError('Could not send the document'));
-      }
     } catch (error) {
       if (isErrorWithCode(error) && error.code === errorCodes.OPERATION_CANCELED) return;
       dispatch(asyncShowError(error instanceof Error ? error.message : 'Could not send the document'));
@@ -881,7 +954,8 @@ export default function TeacherChatThread() {
     voiceGate.current = {action: ''};
     setEmojiOpen(false);
     try {
-      await startVoice();
+      const started = await startVoice();
+      if (!started) return;
       if (voiceTicket.current !== ticket) {
         await stopVoice().catch(() => {});
         return;
@@ -1124,40 +1198,66 @@ export default function TeacherChatThread() {
                       mine ? styles.mine : styles.theirs,
                       item.deletedForEveryone && styles.bubbleDeleted,
                     ]}>
-                    {item.attachment?.file && !item.deletedForEveryone ? (
+                    {(item.attachment?.file || isAttachmentGone(item.attachment)) &&
+                    !item.deletedForEveryone ? (
                       isChatImage(item.attachment) ? (
                         <ChatPhoto
                           file={item.attachment.file}
-                          saved={isSaved(item.attachment.file, mine)}
+                          saved={isSaved(item.attachment.file, mine, item.attachment)}
                           busy={downloading === item.attachment.file}
                           sending={sendingNow}
                           local={local}
-                          onDownload={downloadFile}
+                          missing={isMissing(item.attachment.file, item.attachment)}
+                          restoring={!downloadsReady}
+                          localSource={localUri(item.attachment.file)}
+                          onDownload={async file => {
+                            try {
+                              await downloadFile(file);
+                            } catch {
+                              dispatch(asyncShowError('This photo no longer exists.'));
+                            }
+                          }}
                           onLoad={finishDownload}
-                          onError={forgetDownload}
+                          onError={file => {
+                            releaseLocalPath(file);
+                          }}
                           onLongPress={() => setMenuMessage(item)}
                           style={styles.attachImage}
                         />
                       ) : isChatAudio(item.attachment) ? (
                         <ChatVoice
                           file={item.attachment.file}
-                          saved={local || isSaved(item.attachment.file, mine)}
+                          saved={local || isSaved(item.attachment.file, mine, item.attachment)}
                           light={mine}
                           seconds={item.attachment.duration}
                           waveform={item.attachment.waveform}
                           stamp={item.createdAt ? moment(item.createdAt).format('h:mm A') : ''}
                           sending={sendingNow}
                           onDownload={async file => {
-                            await downloadFile(file);
-                            finishDownload(file);
+                            try {
+                              await downloadFile(file);
+                              finishDownload(file);
+                            } catch {
+                              dispatch(asyncShowError('This file no longer exists.'));
+                            }
                           }}
+                          onLongPress={() => setMenuMessage(item)}
+                        />
+                      ) : isAttachmentGone(item.attachment) ? (
+                        <ChatDocument
+                          name={item.attachment.name}
+                          mime={item.attachment.mime}
+                          unavailable
+                          light={mine}
                           onLongPress={() => setMenuMessage(item)}
                         />
                       ) : (
                         <ChatDocument
                           name={item.attachment.name}
-                          saved={isSaved(item.attachment.file, mine)}
+                          mime={item.attachment.mime}
+                          saved={isSaved(item.attachment.file, mine, item.attachment)}
                           busy={downloading === item.attachment.file}
+                          sending={sendingNow}
                           light={mine}
                           onPress={() => openDocument(item.attachment.file, mine)}
                           onLongPress={() => setMenuMessage(item)}
@@ -1426,9 +1526,18 @@ export default function TeacherChatThread() {
         }))}
         isSaved={isSaved}
         downloading={downloading}
-        onDownload={downloadFile}
+        restoring={!downloadsReady}
+        onDownload={async file => {
+          try {
+            await downloadFile(file);
+          } catch {
+            dispatch(asyncShowError('This photo no longer exists.'));
+          }
+        }}
         onLoad={finishDownload}
-        onError={forgetDownload}
+        onError={file => {
+          releaseLocalPath(file);
+        }}
         onDelete={deleteLibraryItems}
         onClose={() => setLibraryOpen(false)}
         userId={userProfile?._id}
@@ -1540,6 +1649,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: BLUE_SOFT,
+    overflow: 'hidden',
+  },
+  avatarPhoto: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+  },
+  avatarPending: {
+    opacity: 0,
   },
   avatarInitials: {
     fontFamily: fonts.euclidCircularA.semiBold,

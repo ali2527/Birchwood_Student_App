@@ -29,6 +29,7 @@ export enum ProfileApiPaths {
   getUnreadUserNotifications = 'notification/getUnreadUserNotifications',
   markNotificationAsRead = 'notification/markAsRead/:id',
   deleteUserNotification = 'notification/deleteUserNotification/:id',
+  bulkUserNotifications = 'notification/bulkUserNotifications',
   getActiveAdvertisements = 'advertisement/getActiveAdvertisements',
 }
 

@@ -136,7 +136,15 @@ export default function ProfileForm() {
 
     setSubmitting(true);
     try {
-      const result = await dispatch(asyncUpdateProfile(body));
+      const result = await dispatch(
+        asyncUpdateProfile({
+          body,
+          previews: {
+            ...(fatherPicked ? {fatherImage: fatherPhoto.uri} : null),
+            ...(motherPicked ? {motherImage: motherPhoto.uri} : null),
+          },
+        }),
+      );
       if (result.type === 'updateProfile/fulfilled' && result.payload?.status) {
         navigation.goBack();
         return;

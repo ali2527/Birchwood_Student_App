@@ -1,6 +1,6 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
-  Image,
+  AppState,
   Platform,
   ScrollView,
   StatusBar,
@@ -13,12 +13,12 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Feather from 'react-native-vector-icons/Feather';
-import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
 import {useDispatch} from 'react-redux';
 import {WIDTH} from '../../theme/units';
 import fonts from '../../Assets/fonts';
 import routes from '../../Navigation/routes';
-import {getImagePath} from '../../Service/axios';
+import Portrait from '../../Components/Portrait';
 import {
   asyncGetAllMyChildren,
   asyncGetUserProfile,
@@ -33,12 +33,20 @@ import {
   setSelectedChild,
 } from '../../Stores/slices/class.slice';
 import {selectUnreadNoticeCount} from '../../Stores/slices/notification.slice';
-import profile_icon from '../../Assets/images/profile_bg.png';
 import ChildSwitcher from '../../Components/ChildSwitcher';
 import AdSlider from '../../Components/AdSlider';
 import {BAR_H} from '../../Components/AppFooter/shape';
-import {attendanceDotColor, attendanceStatusLabel} from '../DailyAttendance/status';
+import {
+  attendanceDotColor,
+  attendanceStatusLabel,
+  needsCheckInPrompt,
+  needsPickupPrompt,
+} from '../DailyAttendance/status';
 import {schoolGreeting} from '../../Utils/schoolTime';
+import {
+  clearAttendancePromptSnooze,
+  isAttendancePromptSnoozed,
+} from '../../Utils/attendancePrompt';
 
 const NAVY = '#0F1F4B';
 const MUTED = '#8B93A7';
@@ -175,6 +183,7 @@ function attendanceCardCopy(child) {
 
 export default function HomeScreen() {
   const navigation = useNavigation();
+  const homeFocused = useIsFocused();
   const dispatch = useDispatch();
   const insets = useSafeAreaInsets();
   const userProfile = useAppSelector(selectUserProfile);
@@ -197,22 +206,85 @@ export default function HomeScreen() {
     dispatch(asyncGetAppModules());
   }, [dispatch]);
 
+  const promptingRef = useRef(false);
+  const [rosterReady, setRosterReady] = useState(false);
+  const lastRosterAt = useRef(0);
+  const rosterInFlight = useRef(null);
+  const appStateRef = useRef(AppState.currentState);
+
+  const refreshChildren = useCallback(
+    async ({force = false} = {}) => {
+      const now = Date.now();
+      // Skip duplicate calls from focus + AppState + modal dismiss within a few seconds.
+      if (!force && now - lastRosterAt.current < 5000 && rosterInFlight.current) {
+        return rosterInFlight.current;
+      }
+      if (!force && now - lastRosterAt.current < 5000 && rosterReady) {
+        return true;
+      }
+      lastRosterAt.current = now;
+      const pending = dispatch(asyncGetAllMyChildren({silent: true})).then(result => {
+        const ok = Boolean(result?.payload?.status);
+        setRosterReady(ok);
+        return ok;
+      });
+      rosterInFlight.current = pending;
+      try {
+        return await pending;
+      } finally {
+        if (rosterInFlight.current === pending) {
+          rosterInFlight.current = null;
+        }
+      }
+    },
+    [dispatch, rosterReady],
+  );
+
   useFocusEffect(
     useCallback(() => {
-      dispatch(asyncGetAllMyChildren({ silent: true }));
-    }, [dispatch]),
+      refreshChildren();
+    }, [refreshChildren]),
   );
 
   useEffect(() => {
-    if (!children.some(item => item.todayPrompt === 'CHECKIN')) {
+    const sub = AppState.addEventListener('change', next => {
+      const prev = appStateRef.current;
+      appStateRef.current = next;
+      // Alerts / debugger flip inactive↔active; only treat a real background return.
+      if (prev === 'background' && next === 'active') {
+        promptingRef.current = false;
+        clearAttendancePromptSnooze();
+        refreshChildren({force: true});
+      }
+    });
+    return () => sub.remove();
+  }, [refreshChildren]);
+
+  useEffect(() => {
+    // Home stays mounted in the tab bar — never open the drawer from Chat/other tabs,
+    // failed roster loads, or while a dismiss snooze is active.
+    if (!homeFocused || !rosterReady || isAttendancePromptSnoozed()) {
       return;
     }
-    navigation.navigate(routes.screens.dailyAttendance);
-  }, [children, navigation]);
+    const needsCheckIn = children.some(needsCheckInPrompt);
+    const needsPickup = children.some(needsPickupPrompt);
+    if (!needsCheckIn && !needsPickup) {
+      promptingRef.current = false;
+      return;
+    }
+    const state = navigation.getState();
+    const alreadyOpen = state?.routes?.some(
+      route => route.name === routes.screens.dailyAttendance,
+    );
+    if (alreadyOpen || promptingRef.current) {
+      return;
+    }
+    promptingRef.current = true;
+    navigation.navigate(routes.screens.dailyAttendance, {
+      optional: !needsCheckIn,
+    });
+  }, [children, homeFocused, navigation, rosterReady]);
 
-  const childPhoto = child?.image
-    ? {uri: getImagePath(child.image)}
-    : profile_icon;
   const classMeta = className(child?.classroom);
   const grade = gradeLabel(child?.classroom);
   const childFullName = child
@@ -279,7 +351,7 @@ export default function HomeScreen() {
                 }}
                 activeOpacity={0.9}>
                 <View style={styles.photoWrap}>
-                  <Image source={childPhoto} style={styles.studentPhoto} />
+                  <Portrait file={child?.image} style={styles.studentPhoto} />
                   <View
                     style={[
                       styles.onlineDot,
@@ -322,12 +394,6 @@ export default function HomeScreen() {
                     </Text>
                   ) : null}
                 </View>
-                <Ionicons
-                  name="chevron-forward"
-                  size={16}
-                  color="rgba(255,255,255,0.55)"
-                  style={styles.studentChevron}
-                />
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -339,12 +405,13 @@ export default function HomeScreen() {
                     return;
                   }
                   if (
-                    child?.todayPrompt ||
+                    needsCheckInPrompt(child) ||
+                    needsPickupPrompt(child) ||
                     child?.canLeave ||
                     child?.earlyPickup
                   ) {
                     navigation.navigate(routes.screens.dailyAttendance, {
-                      optional: !child.todayPrompt,
+                      optional: !needsCheckInPrompt(child),
                     });
                     return;
                   }
@@ -452,7 +519,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   hello: {
-    fontFamily: fonts.euclidCircularA.semiBold,
+    fontFamily:
+      Platform.OS === 'ios'
+        ? fonts.euclidCircularA.bold
+        : fonts.euclidCircularA.semiBold,
+    ...(Platform.OS === 'ios' ? {fontWeight: '700'} : null),
     fontSize: 17,
     lineHeight: 22,
     letterSpacing: -0.3,
@@ -543,9 +614,6 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     letterSpacing: -0.3,
     color: '#FFFFFF',
-  },
-  studentChevron: {
-    marginLeft: 2,
   },
   classPill: {
     alignSelf: 'flex-start',
