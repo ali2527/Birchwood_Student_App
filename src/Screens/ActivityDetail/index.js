@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {
   View,
   Text,
@@ -14,6 +14,8 @@ import {vh, vw} from '../../theme/units';
 import {BackArrow} from '../../Components/BackArrow';
 import GlroyBold from '../../Components/GlroyBoldText';
 import AppVideoPlayer from '../../Components/AppVideoPlayer';
+import VideoFrame, {warmStill} from '../../Components/VideoFrame';
+import {cacheVideo} from '../../Utils/videoCache';
 import moment from 'moment';
 import VectorIcon from '../../Components/VectorIcons';
 
@@ -44,6 +46,14 @@ const ActivityDetail = ({route}) => {
 
   const poster =
     imageList[0] != null ? getImagePath(imageList[0]) : undefined;
+
+  useEffect(() => {
+    videoList.forEach(vid => {
+      const uri = getImagePath(vid);
+      cacheVideo(uri);
+      warmStill(uri);
+    });
+  }, [videoList]);
 
   if (!item) {
     return (
@@ -98,7 +108,7 @@ const ActivityDetail = ({route}) => {
             return (
               <View key={`v_${index}`} style={styles.videoCard}>
                 {isPlaying ? (
-                  <View style={styles.fullImage}>
+                  <View style={[styles.fullImage, styles.playingFrame]}>
                     <AppVideoPlayer
                       inline
                       uri={uri}
@@ -118,7 +128,9 @@ const ActivityDetail = ({route}) => {
                         resizeMode="cover"
                       />
                     ) : (
-                      <View style={[styles.fullImage, styles.videoFallback]} />
+                      <View style={styles.fullImage}>
+                        <VideoFrame uri={uri} />
+                      </View>
                     )}
                     <View style={styles.playOverlay}>
                       <View style={styles.playCircle}>
@@ -233,7 +245,9 @@ const styles = StyleSheet.create({
   },
   videoCard: {
     position: 'relative',
-    overflow: 'hidden',
+  },
+  playingFrame: {
+    overflow: 'visible',
   },
   fullImage: {
     width: vw * 100,

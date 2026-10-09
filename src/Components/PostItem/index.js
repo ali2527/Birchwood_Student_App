@@ -26,14 +26,14 @@ import profile_icon from '../../Assets/images/profile_bg.png';
 import routes from '../../Navigation/routes';
 import {getImagePath} from '../../Service/axios';
 import AppVideoPlayer from '../AppVideoPlayer';
-import VideoFrame from '../VideoFrame';
+import VideoFrame, {warmStill} from '../VideoFrame';
+import {cacheVideo} from '../../Utils/videoCache';
 import {createPostComment, likePost, usePostComments} from '../../Query/posts';
 import {useAppSelector} from '../../Stores/hooks';
 import {selectUserProfile} from '../../Stores/slices/user.slice';
 
 const {width: SCREEN_W, height: SCREEN_H} = Dimensions.get('window');
 const MEDIA_H = 210;
-const VIDEO_H = 268;
 const NAVY = '#0F1F4B';
 const MUTED = '#8B93A7';
 const PRIMARY = '#035392';
@@ -199,35 +199,35 @@ function MediaTile({
 }) {
   return (
     <View style={[styles.tile, style]}>
+      <TouchableOpacity
+        activeOpacity={0.92}
+        onPress={onPress}
+        disabled={playing}
+        style={styles.tilePress}>
+        {showPlay ? (
+          <View style={styles.videoTile} pointerEvents="none">
+            {posterUri ? (
+              <Image source={{uri: posterUri}} style={styles.videoCover} resizeMode="cover" />
+            ) : (
+              <VideoFrame uri={uri} style={styles.videoCover} />
+            )}
+            <View style={styles.playBadge}>
+              <Ionicons name="play" size={22} color="#FFFFFF" />
+            </View>
+          </View>
+        ) : (
+          <Image source={{uri}} style={styles.tileImage} resizeMode="cover" />
+        )}
+      </TouchableOpacity>
       {showPlay && playing ? (
         <AppVideoPlayer
-          inline
+          visible
           uri={uri}
           poster={posterUri || undefined}
           onEnd={onVideoEnd}
           onClose={onVideoEnd}
         />
-      ) : (
-        <TouchableOpacity
-          activeOpacity={0.92}
-          onPress={onPress}
-          style={styles.tilePress}>
-          {showPlay ? (
-            <View style={styles.videoTile} pointerEvents="none">
-              {posterUri ? (
-                <Image source={{uri: posterUri}} style={StyleSheet.absoluteFill} resizeMode="cover" />
-              ) : (
-                <VideoFrame uri={uri} />
-              )}
-              <View style={styles.playBadge}>
-                <Ionicons name="play" size={22} color="#FFFFFF" />
-              </View>
-            </View>
-          ) : (
-            <Image source={{uri}} style={styles.tileImage} resizeMode="cover" />
-          )}
-        </TouchableOpacity>
-      )}
+      ) : null}
     </View>
   );
 }
@@ -238,15 +238,11 @@ function MediaGallery({media, onOpen, videoPoster, playingIndex, onVideoEnd}) {
   }
 
   const posterFor = path => (isVideo(path) ? videoPoster : null);
-  const tileStyleFor = (path, baseStyle, playing) => {
+  const tileStyleFor = (path, baseStyle) => {
     if (!isVideo(path)) {
       return baseStyle;
     }
-    return [
-      baseStyle,
-      styles.videoSizedTile,
-      playing && styles.videoPlayingTile,
-    ];
+    return [baseStyle, styles.videoSizedTile];
   };
 
   if (media.length === 1) {
@@ -254,11 +250,7 @@ function MediaGallery({media, onOpen, videoPoster, playingIndex, onVideoEnd}) {
       <MediaTile
         uri={getImagePath(media[0])}
         posterUri={posterFor(media[0])}
-        style={tileStyleFor(
-          media[0],
-          isVideo(media[0]) ? styles.videoFullTile : styles.fullTile,
-          playingIndex === 0,
-        )}
+        style={tileStyleFor(media[0], isVideo(media[0]) ? styles.videoFullTile : styles.fullTile)}
         showPlay={isVideo(media[0])}
         playing={playingIndex === 0}
         onVideoEnd={onVideoEnd}
@@ -269,18 +261,13 @@ function MediaGallery({media, onOpen, videoPoster, playingIndex, onVideoEnd}) {
 
   if (media.length === 2) {
     return (
-      <View
-        style={[
-          styles.row,
-          media.some(isVideo) && styles.videoRow,
-          playingIndex != null && styles.videoPlayingRow,
-        ]}>
+      <View style={[styles.row, media.some(isVideo) && styles.videoRow]}>
         {media.map((path, index) => (
           <MediaTile
             key={`${path}_${index}`}
             uri={getImagePath(path)}
             posterUri={posterFor(path)}
-            style={tileStyleFor(path, styles.halfTile, playingIndex === index)}
+            style={tileStyleFor(path, styles.halfTile)}
             showPlay={isVideo(path)}
             playing={playingIndex === index}
             onVideoEnd={onVideoEnd}
@@ -292,16 +279,11 @@ function MediaGallery({media, onOpen, videoPoster, playingIndex, onVideoEnd}) {
   }
 
   return (
-    <View
-      style={[
-        styles.grid3,
-        isVideo(media[0]) && styles.videoRow,
-        playingIndex != null && styles.videoPlayingRow,
-      ]}>
+    <View style={[styles.grid3, isVideo(media[0]) && styles.videoRow]}>
       <MediaTile
         uri={getImagePath(media[0])}
         posterUri={posterFor(media[0])}
-        style={tileStyleFor(media[0], styles.grid3Main, playingIndex === 0)}
+        style={tileStyleFor(media[0], styles.grid3Main)}
         showPlay={isVideo(media[0])}
         playing={playingIndex === 0}
         onVideoEnd={onVideoEnd}
@@ -311,7 +293,7 @@ function MediaGallery({media, onOpen, videoPoster, playingIndex, onVideoEnd}) {
         <MediaTile
           uri={getImagePath(media[1])}
           posterUri={posterFor(media[1])}
-          style={tileStyleFor(media[1], styles.grid3SideTile, playingIndex === 1)}
+          style={tileStyleFor(media[1], styles.grid3SideTile)}
           showPlay={isVideo(media[1])}
           playing={playingIndex === 1}
           onVideoEnd={onVideoEnd}
@@ -321,7 +303,7 @@ function MediaGallery({media, onOpen, videoPoster, playingIndex, onVideoEnd}) {
           <MediaTile
             uri={getImagePath(media[2])}
             posterUri={posterFor(media[2])}
-            style={tileStyleFor(media[2], styles.grid3SideTile, playingIndex === 2)}
+            style={tileStyleFor(media[2], styles.grid3SideTile)}
             showPlay={isVideo(media[2])}
             playing={playingIndex === 2}
             onVideoEnd={onVideoEnd}
@@ -664,6 +646,14 @@ const PostItem = ({item}) => {
     };
   }, [item?._id]);
 
+  useEffect(() => {
+    (item?.videos || []).filter(Boolean).forEach(path => {
+      const uri = getImagePath(path);
+      cacheVideo(uri);
+      warmStill(uri);
+    });
+  }, [item]);
+
   const activityTitle =
     item.activity?.title || item.title || item.type || 'Update';
   const teacher = authorLabel(item.author);
@@ -987,10 +977,8 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   videoRow: {
-    height: VIDEO_H,
-  },
-  videoPlayingRow: {
-    height: VIDEO_H + 28,
+    height: undefined,
+    aspectRatio: 1,
   },
   fullTile: {
     width: '100%',
@@ -1000,16 +988,13 @@ const styles = StyleSheet.create({
   },
   videoFullTile: {
     width: '100%',
-    height: VIDEO_H,
+    aspectRatio: 1,
     borderRadius: 6,
     overflow: 'hidden',
-    backgroundColor: '#0B1220',
+    backgroundColor: '#000000',
   },
   videoSizedTile: {
-    backgroundColor: '#0B1220',
-  },
-  videoPlayingTile: {
-    height: VIDEO_H + 28,
+    backgroundColor: '#000000',
   },
   halfTile: {
     flex: 1,
@@ -1054,16 +1039,21 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   videoTile: {
-    backgroundColor: '#1A2744',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '100%',
-    height: '100%',
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#0B1220',
     overflow: 'hidden',
   },
+  videoCover: {
+    ...StyleSheet.absoluteFillObject,
+  },
   playBadge: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
     width: 52,
     height: 52,
+    marginTop: -26,
+    marginLeft: -26,
     borderRadius: 26,
     backgroundColor: 'rgba(15,31,75,0.72)',
     alignItems: 'center',

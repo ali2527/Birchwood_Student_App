@@ -1,6 +1,7 @@
-import React, {useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
   ActivityIndicator,
+  Image,
   Modal,
   Platform,
   Pressable,
@@ -13,21 +14,34 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Video from 'react-native-video';
 import fonts from '../../Assets/fonts';
+import {cacheVideo, cachedVideoUri, forgetCachedVideo} from '../../Utils/videoCache';
+import {rememberedStill} from '../VideoFrame';
 
 const NAVY = '#0F1F4B';
 
-const STREAM_BUFFER = {
-  minBufferMs: 2000,
-  maxBufferMs: 8000,
-  bufferForPlaybackMs: 1000,
-  bufferForPlaybackAfterRebufferMs: 1500,
-  backBufferDurationMs: 2000,
+const BUFFER = {
+  minBufferMs: 1000,
+  maxBufferMs: 5000,
+  bufferForPlaybackMs: 250,
+  bufferForPlaybackAfterRebufferMs: 500,
+  backBufferDurationMs: 1500,
+  cacheSizeMB: 256,
 };
 
+function isLocalUri(uri) {
+  return (
+    !!uri &&
+    (uri.startsWith('file://') ||
+      uri.startsWith('content://') ||
+      uri.startsWith('ph://') ||
+      uri.startsWith('assets-library://'))
+  );
+}
+
 /**
- * Progressive HTTP-range video player.
- * - inline: plays inside the post card
- * - modal: fullscreen (optional)
+ * Plays immediately from a local file or by streaming the remote URL.
+ * A full download may warm the disk cache for the next open, but never blocks
+ * the first frame.
  */
 export default function AppVideoPlayer({
   visible = true,
@@ -40,65 +54,99 @@ export default function AppVideoPlayer({
   resizeMode = 'contain',
 }) {
   const insets = useSafeAreaInsets();
-  const [buffering, setBuffering] = useState(true);
+  const [waiting, setWaiting] = useState(true);
   const [error, setError] = useState(null);
+  const [playUri, setPlayUri] = useState(() => cachedVideoUri(uri) || uri || '');
+  const started = useRef(false);
+  const cover = poster || rememberedStill(uri);
+
+  useEffect(() => {
+    started.current = false;
+    setError(null);
+    const local = cachedVideoUri(uri);
+    const next = local || uri || '';
+    setPlayUri(next);
+    setWaiting(Boolean(next) && !isLocalUri(next) && !local);
+
+    if (uri && !isLocalUri(uri) && !local) {
+      cacheVideo(uri).catch(() => {});
+    }
+  }, [uri]);
 
   if (!uri || (!inline && !visible)) {
     return null;
   }
 
+  const markReady = () => {
+    started.current = true;
+    setWaiting(false);
+    setError(null);
+  };
+
   const video = (
     <>
-      <Video
-        source={{uri, type: 'mp4'}}
-        style={inline ? styles.inlineVideo : styles.video}
-        controls
-        resizeMode={inline ? 'cover' : resizeMode}
-        poster={poster || undefined}
-        posterResizeMode={inline ? 'cover' : 'contain'}
-        paused={false}
-        playInBackground={false}
-        playWhenInactive={false}
-        ignoreSilentSwitch="ignore"
-        useTextureView
-        shutterColor="#0B1220"
-        progressUpdateInterval={500}
-        bufferConfig={STREAM_BUFFER}
-        preferredForwardBufferDuration={4}
-        maxBitRate={2_500_000}
-        onLoadStart={() => {
-          setBuffering(true);
-          setError(null);
-        }}
-        onReadyForDisplay={() => setBuffering(false)}
-        onBuffer={({isBuffering}) => setBuffering(!!isBuffering)}
-        onError={e => {
-          setBuffering(false);
-          setError('Could not play this video. Check your connection and try again.');
-        }}
-        onEnd={() => {
-          onEnd?.();
-          if (!inline) {
-            onClose?.();
-          }
-        }}
-      />
-
-      {buffering && !error ? (
-        <View style={styles.centerOverlay} pointerEvents="none">
-          <ActivityIndicator size={inline ? 'small' : 'large'} color="#FFFFFF" />
-          {!inline ? <Text style={styles.hint}>Streaming…</Text> : null}
+      {playUri ? (
+        <Video
+          key={playUri}
+          source={{uri: playUri, bufferConfig: BUFFER}}
+          style={styles.videoFill}
+          controls
+          resizeMode={inline ? 'contain' : resizeMode}
+          paused={false}
+          rate={1}
+          playInBackground={false}
+          playWhenInactive={false}
+          ignoreSilentSwitch="ignore"
+          automaticallyWaitsToMinimizeStalling={false}
+          preferredForwardBufferDuration={2}
+          bufferConfig={BUFFER}
+          useTextureView={Platform.OS === 'android'}
+          shutterColor="#000000"
+          progressUpdateInterval={500}
+          onLoadStart={() => {
+            if (!started.current) setWaiting(true);
+          }}
+          onLoad={markReady}
+          onReadyForDisplay={markReady}
+          onError={() => {
+            if (playUri !== uri && uri) {
+              forgetCachedVideo(uri);
+              setPlayUri(uri);
+              setError(null);
+              setWaiting(true);
+              started.current = false;
+              return;
+            }
+            setWaiting(false);
+            setError('Could not play this video. Check your connection and try again.');
+          }}
+          onEnd={() => {
+            onEnd?.();
+            if (!inline) onClose?.();
+          }}
+        />
+      ) : null}
+      {waiting && !error && cover ? (
+        <Image
+          source={{uri: cover}}
+          style={StyleSheet.absoluteFill}
+          resizeMode="cover"
+          pointerEvents="none"
+        />
+      ) : null}
+      {waiting && !error ? (
+        <View style={styles.loaderLayer} pointerEvents="none">
+          <View style={styles.loaderBubble}>
+            <ActivityIndicator size={inline ? 'small' : 'large'} color="#FFFFFF" />
+          </View>
         </View>
       ) : null}
-
       {error ? (
-        <View style={styles.centerOverlay}>
-          <Text style={[styles.errorText, inline && styles.errorTextInline]}>
-            {error}
-          </Text>
+        <View style={styles.errorLayer}>
+          <Text style={[styles.errorText, inline && styles.errorTextInline]}>{error}</Text>
           {onClose ? (
             <Pressable style={styles.retryBtn} onPress={onClose}>
-              <Text style={styles.retryLabel}>{inline ? 'Retry' : 'Close'}</Text>
+              <Text style={styles.retryLabel}>Close</Text>
             </Pressable>
           ) : null}
         </View>
@@ -137,37 +185,35 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: '#000000',
-    justifyContent: 'center',
   },
-  video: {
-    width: '100%',
-    height: '100%',
+  videoFill: {
+    ...StyleSheet.absoluteFillObject,
     backgroundColor: '#000000',
   },
   inlineRoot: {
     width: '100%',
     height: '100%',
-    backgroundColor: '#0B1220',
-    justifyContent: 'center',
-    overflow: 'hidden',
+    backgroundColor: '#000000',
+    overflow: 'visible',
   },
-  inlineVideo: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: '#0B1220',
-  },
-  centerOverlay: {
+  loaderLayer: {
     ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(0,0,0,0.25)',
-    paddingHorizontal: 24,
   },
-  hint: {
-    marginTop: 10,
-    color: 'rgba(255,255,255,0.85)',
-    fontFamily: fonts.euclidCircularA.regular,
-    fontSize: 13,
+  loaderBubble: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(15, 31, 75, 0.72)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  errorLayer: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
   },
   errorText: {
     color: '#FFFFFF',
